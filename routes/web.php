@@ -37,6 +37,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
+    // Country Routes
+    Route::get('/countries/{code}', [\App\Http\Controllers\CountryController::class, 'detail'])->name('countries.detail');
+    Route::post('/countries/{code}/sync', [\App\Http\Controllers\CountryController::class, 'sync'])->name('countries.sync');
+
     // Admin Specific Routes (Protected by RoleMiddleware)
     Route::middleware('role:Admin')->group(function () {
         Route::get('/admin/dashboard', function () {
