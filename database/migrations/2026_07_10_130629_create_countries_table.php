@@ -22,6 +22,8 @@ return new class extends Migration
             $table->bigInteger('gdp')->nullable(); // GDP in USD
             $table->decimal('inflation', 5, 2)->nullable(); // Inflation rate in %
             $table->bigInteger('population')->nullable();
+            $table->bigInteger('export_value')->nullable();
+            $table->bigInteger('import_value')->nullable();
             $table->decimal('current_weather_temp', 5, 2)->nullable();
             $table->string('current_weather_condition')->nullable();
             $table->timestamps();

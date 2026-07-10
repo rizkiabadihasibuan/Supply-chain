@@ -125,7 +125,8 @@ class RestCountriesTest extends TestCase
     public function test_controller_returns_parsed_json_for_authenticated_users(): void
     {
         Http::fake([
-            'https://restcountries.com/v3.1/alpha/ID' => Http::response($this->mockResponseData, 200)
+            'https://restcountries.com/v3.1/alpha/ID' => Http::response($this->mockResponseData, 200),
+            'http://api.worldbank.org/v2/country/id/indicator/*' => Http::response([[], [['date' => '2023', 'value' => 277534122]]], 200)
         ]);
 
         $response = $this->actingAs($this->user)
@@ -148,7 +149,8 @@ class RestCountriesTest extends TestCase
     public function test_controller_syncs_data_into_local_database(): void
     {
         Http::fake([
-            'https://restcountries.com/v3.1/alpha/ID' => Http::response($this->mockResponseData, 200)
+            'https://restcountries.com/v3.1/alpha/ID' => Http::response($this->mockResponseData, 200),
+            'http://api.worldbank.org/v2/country/id/indicator/*' => Http::response([[], [['date' => '2023', 'value' => 277534122]]], 200)
         ]);
 
         $this->assertEquals(277000000, $this->country->population); // original value
@@ -159,7 +161,7 @@ class RestCountriesTest extends TestCase
         $response->assertStatus(200)
             ->assertJson([
                 'success' => true,
-                'message' => "Data lokal negara 'Indonesia' berhasil disinkronisasikan dengan REST Countries API."
+                'message' => "Data lokal negara 'Indonesia' berhasil disinkronisasikan dengan REST Countries & World Bank API."
             ]);
 
         // Reload from DB and assert updated population and region
