@@ -19,6 +19,19 @@ return new class extends Migration
             $table->decimal('latitude', 10, 8);
             $table->decimal('longitude', 11, 8);
             $table->enum('criticality', ['low', 'medium', 'high'])->default('medium');
+            
+            // Integrated Supplier Contacts
+            $table->string('contact_name')->nullable();
+            $table->string('contact_email')->nullable();
+            $table->string('contact_phone', 50)->nullable();
+            $table->string('contact_position', 100)->nullable();
+
+            // Integrated Supplier Documents
+            $table->json('documents')->nullable(); // holds document type, file_path, expiry_date, status
+
+            // Integrated Supplier Performance Score
+            $table->decimal('performance_score', 5, 2)->default(100.00);
+
             $table->timestamps();
         });
     }

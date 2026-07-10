@@ -18,6 +18,12 @@ return new class extends Migration
             $table->enum('severity', ['low', 'medium', 'high', 'critical'])->default('medium');
             $table->text('description');
             $table->enum('status', ['active', 'mitigated', 'ignored'])->default('active');
+
+            // Integrated Alert Resolutions
+            $table->foreignId('resolved_by_user_id')->nullable()->constrained('users')->onDelete('restrict');
+            $table->text('resolution_action')->nullable();
+            $table->timestamp('resolved_at')->nullable();
+
             $table->timestamps();
         });
     }

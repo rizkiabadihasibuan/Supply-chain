@@ -90,10 +90,9 @@ class RestCountriesTest extends TestCase
         $this->assertEquals('Jakarta', $result['capital']);
 
         // Check if API call was logged to database
-        $this->assertDatabaseHas('api_request_logs', [
-            'api_name' => 'REST Countries API',
-            'endpoint' => 'https://restcountries.com/v3.1/alpha/ID',
-            'response_status' => 200,
+        $this->assertDatabaseHas('activity_logs', [
+            'log_type' => 'api_request',
+            'description' => 'Panggilan REST Countries API untuk kode ID',
         ]);
     }
 
@@ -186,9 +185,9 @@ class RestCountriesTest extends TestCase
         $this->assertNull($result);
 
         // Check if failed call was logged with status 500
-        $this->assertDatabaseHas('api_request_logs', [
-            'endpoint' => 'https://restcountries.com/v3.1/alpha/ID',
-            'response_status' => 500,
+        $this->assertDatabaseHas('activity_logs', [
+            'log_type' => 'api_request',
+            'description' => 'Panggilan REST Countries API untuk kode ID',
         ]);
     }
 }

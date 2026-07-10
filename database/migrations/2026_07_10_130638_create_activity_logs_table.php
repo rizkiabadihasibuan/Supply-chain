@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('supplier_contacts', function (Blueprint $table) {
+        Schema::create('activity_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('supplier_id')->constrained('suppliers')->onDelete('cascade');
-            $table->string('name');
-            $table->string('email')->nullable();
-            $table->string('phone', 50)->nullable();
-            $table->string('position', 100)->nullable();
+            $table->enum('log_type', ['api_request', 'audit']);
+            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('restrict');
+            $table->text('description');
+            $table->json('metadata')->nullable(); // holds response status, execution time, etc.
             $table->timestamps();
         });
     }
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('supplier_contacts');
+        Schema::dropIfExists('activity_logs');
     }
 };

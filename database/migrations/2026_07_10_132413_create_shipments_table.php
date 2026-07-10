@@ -22,6 +22,11 @@ return new class extends Migration
             $table->date('actual_delivery')->nullable();
             $table->enum('status', ['pending', 'in_transit', 'delivered', 'delayed', 'cancelled'])->default('pending');
             $table->decimal('current_risk_score', 5, 2)->default(0.00);
+
+            // Integrated routes and tracking logs
+            $table->json('route_points')->nullable(); // holds route sequences, location names, coords
+            $table->json('tracking_logs')->nullable(); // holds tracking history updates with timestamp
+
             $table->timestamps();
         });
     }

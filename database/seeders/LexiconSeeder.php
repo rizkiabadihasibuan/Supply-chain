@@ -2,8 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\PositiveWord;
-use App\Models\NegativeWord;
+use App\Models\SentimentLexicon;
 use Illuminate\Database\Seeder;
 
 class LexiconSeeder extends Seeder
@@ -27,11 +26,17 @@ class LexiconSeeder extends Seeder
         ];
 
         foreach ($positives as $word) {
-            PositiveWord::create(['word' => $word]);
+            SentimentLexicon::updateOrCreate(
+                ['word' => $word],
+                ['type' => 'positive']
+            );
         }
 
         foreach ($negatives as $word) {
-            NegativeWord::create(['word' => $word]);
+            SentimentLexicon::updateOrCreate(
+                ['word' => $word],
+                ['type' => 'negative']
+            );
         }
     }
 }

@@ -2,11 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\ApiRequestLog;
+use App\Models\ActivityLog;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 
 class RestCountriesService
 {
@@ -35,7 +34,7 @@ class RestCountriesService
                 $endTime = microtime(true);
                 $executionTime = round(($endTime - $startTime) * 1000, 2); // store in ms
 
-                // Log the API call to database
+                // Log the API call to activity logs
                 $this->logApiCall($endpoint, $responseStatus, $executionTime);
 
                 if ($response->successful()) {
@@ -72,12 +71,15 @@ class RestCountriesService
     protected function logApiCall(string $endpoint, int $status, float $executionTime): void
     {
         try {
-            ApiRequestLog::create([
-                'api_name' => 'REST Countries API',
-                'endpoint' => $endpoint,
-                'response_status' => $status,
-                'execution_time' => $executionTime,
-                'requested_at' => Carbon::now(),
+            ActivityLog::create([
+                'log_type' => 'api_request',
+                'description' => "Panggilan REST Countries API untuk kode " . basename($endpoint),
+                'metadata' => [
+                    'api_name' => 'REST Countries API',
+                    'endpoint' => $endpoint,
+                    'response_status' => $status,
+                    'execution_time' => $executionTime,
+                ],
             ]);
         } catch (\Exception $e) {
             Log::error("Failed to write API log: " . $e->getMessage());

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name')->unique();
             $table->string('description')->nullable();
+            $table->json('permissions')->nullable(); // JSON column for permissions
             $table->timestamps();
         });
 
@@ -25,6 +26,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->json('watchlist_country_codes')->nullable(); // JSON column for watchlist
             $table->rememberToken();
             $table->timestamps();
         });
