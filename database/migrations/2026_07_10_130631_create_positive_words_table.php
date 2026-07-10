@@ -11,10 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sentiment_lexicon', function (Blueprint $table) {
+        Schema::create('positive_words', function (Blueprint $table) {
             $table->id();
             $table->string('word')->unique();
-            $table->enum('type', ['positive', 'negative']);
             $table->timestamps();
         });
     }
@@ -24,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sentiment_lexicon');
+        Schema::dropIfExists('positive_words');
     }
 };
