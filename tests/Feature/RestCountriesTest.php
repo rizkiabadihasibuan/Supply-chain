@@ -63,7 +63,11 @@ class RestCountriesTest extends TestCase
                     'svg' => 'https://flagcdn.com/id.svg',
                     'png' => 'https://flagcdn.com/w320/id.png'
                 ],
-                'capital' => ['Jakarta']
+                'capital' => ['Jakarta'],
+                'latlng' => [-6.0, 120.0],
+                'capitalInfo' => [
+                    'latlng' => [-6.2147, 106.8451]
+                ]
             ]
         ];
     }
@@ -88,6 +92,8 @@ class RestCountriesTest extends TestCase
         $this->assertEquals('Indonesian rupiah', $result['currency_name']);
         $this->assertEquals('Indonesian', $result['language']);
         $this->assertEquals('Jakarta', $result['capital']);
+        $this->assertEquals(-6.2147, $result['latitude']);
+        $this->assertEquals(106.8451, $result['longitude']);
 
         // Check if API call was logged to database
         $this->assertDatabaseHas('activity_logs', [
@@ -126,7 +132,21 @@ class RestCountriesTest extends TestCase
     {
         Http::fake([
             'https://restcountries.com/v3.1/alpha/ID' => Http::response($this->mockResponseData, 200),
-            'http://api.worldbank.org/v2/country/id/indicator/*' => Http::response([[], [['date' => '2023', 'value' => 277534122]]], 200)
+            'http://api.worldbank.org/v2/country/id/indicator/*' => Http::response([[], [['date' => '2023', 'value' => 277534122]]], 200),
+            'https://api.open-meteo.com/v1/forecast*' => Http::response([
+                'current' => [
+                    'temperature_2m' => 31.0,
+                    'precipitation' => 0.0,
+                    'weather_code' => 0,
+                    'wind_speed_10m' => 5.0,
+                    'wind_gusts_10m' => 10.0,
+                ]
+            ], 200),
+            'https://open.er-api.com/v6/latest/USD' => Http::response([
+                'rates' => [
+                    'IDR' => 16000.00
+                ]
+            ], 200),
         ]);
 
         $response = $this->actingAs($this->user)
@@ -150,7 +170,21 @@ class RestCountriesTest extends TestCase
     {
         Http::fake([
             'https://restcountries.com/v3.1/alpha/ID' => Http::response($this->mockResponseData, 200),
-            'http://api.worldbank.org/v2/country/id/indicator/*' => Http::response([[], [['date' => '2023', 'value' => 277534122]]], 200)
+            'http://api.worldbank.org/v2/country/id/indicator/*' => Http::response([[], [['date' => '2023', 'value' => 277534122]]], 200),
+            'https://api.open-meteo.com/v1/forecast*' => Http::response([
+                'current' => [
+                    'temperature_2m' => 31.0,
+                    'precipitation' => 0.0,
+                    'weather_code' => 0,
+                    'wind_speed_10m' => 5.0,
+                    'wind_gusts_10m' => 10.0,
+                ]
+            ], 200),
+            'https://open.er-api.com/v6/latest/USD' => Http::response([
+                'rates' => [
+                    'IDR' => 16000.00
+                ]
+            ], 200),
         ]);
 
         $this->assertEquals(277000000, $this->country->population); // original value
@@ -161,13 +195,16 @@ class RestCountriesTest extends TestCase
         $response->assertStatus(200)
             ->assertJson([
                 'success' => true,
-                'message' => "Data lokal negara 'Indonesia' berhasil disinkronisasikan dengan REST Countries & World Bank API."
+                'message' => "Data lokal negara 'Indonesia' berhasil disinkronisasikan dengan REST Countries, World Bank, dan Open-Meteo API."
             ]);
 
         // Reload from DB and assert updated population and region
         $this->country->refresh();
         $this->assertEquals(277534122, $this->country->population);
         $this->assertEquals('Asia', $this->country->region);
+        $this->assertEquals(31.0, $this->country->current_weather_temp);
+        $this->assertEquals('Clear Sky', $this->country->current_weather_condition);
+        $this->assertEquals(0.0, $this->country->current_weather_storm_risk);
     }
 
     /**

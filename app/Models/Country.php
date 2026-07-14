@@ -13,13 +13,18 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'currency_name', 
     'region', 
     'language', 
+    'latitude',
+    'longitude',
     'gdp', 
     'inflation', 
     'population', 
     'export_value',
     'import_value',
     'current_weather_temp', 
-    'current_weather_condition'
+    'current_weather_condition',
+    'current_weather_wind_speed',
+    'current_weather_precipitation',
+    'current_weather_storm_risk',
 ])]
 class Country extends Model
 {

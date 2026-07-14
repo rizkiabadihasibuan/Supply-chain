@@ -109,6 +109,17 @@ class RestCountriesService
         }
         $language = !empty($languagesList) ? implode(', ', $languagesList) : 'N/A';
 
+        // Extract coordinates
+        $latitude = null;
+        $longitude = null;
+        if (!empty($countryData['capitalInfo']['latlng']) && is_array($countryData['capitalInfo']['latlng']) && count($countryData['capitalInfo']['latlng']) >= 2) {
+            $latitude = $countryData['capitalInfo']['latlng'][0];
+            $longitude = $countryData['capitalInfo']['latlng'][1];
+        } elseif (!empty($countryData['latlng']) && is_array($countryData['latlng']) && count($countryData['latlng']) >= 2) {
+            $latitude = $countryData['latlng'][0];
+            $longitude = $countryData['latlng'][1];
+        }
+
         return [
             'name' => $countryData['name']['common'] ?? 'N/A',
             'region' => $countryData['region'] ?? 'N/A',
@@ -118,6 +129,8 @@ class RestCountriesService
             'language' => $language,
             'flag_url' => $countryData['flags']['svg'] ?? ($countryData['flags']['png'] ?? null),
             'capital' => !empty($countryData['capital']) ? $countryData['capital'][0] : 'N/A',
+            'latitude' => $latitude,
+            'longitude' => $longitude,
         ];
     }
 }

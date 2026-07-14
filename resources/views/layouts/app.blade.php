@@ -83,8 +83,8 @@
                     <a href="{{ route('dashboard') }}" class="sidebar-link {{ Route::is('dashboard') ? 'active' : '' }}">
                         <i class="bi bi-speedometer2"></i> Dashboard Utama
                     </a>
-                    <a href="#" class="sidebar-link">
-                        <i class="bi bi-bar-chart-line"></i> Analytics Center
+                    <a href="{{ route('compare') }}" class="sidebar-link {{ Route::is('compare') ? 'active' : '' }}">
+                        <i class="bi bi-arrow-left-right"></i> Comparison Engine
                     </a>
                     <a href="#" class="sidebar-link">
                         <i class="bi bi-exclamation-triangle"></i> Monitoring Risiko
