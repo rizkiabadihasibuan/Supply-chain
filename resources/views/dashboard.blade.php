@@ -3,6 +3,9 @@
 @section('title', 'Dashboard Control Center')
 
 @section('styles')
+<!-- Leaflet Marker Cluster CSS CDN -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
 <style>
     /* Glowing borders based on risk status */
     .border-glow-success {
@@ -170,6 +173,24 @@
                 <h5 class="text-white mb-0"><i class="bi bi-globe me-2 text-glow-cyan"></i> Peta Risiko Logistik Global</h5>
                 <span class="badge bg-secondary glass-card text-white py-1.5 px-3" id="map-port-count">0 Ports</span>
             </div>
+            <!-- Search & Filter Controls -->
+            <div class="row g-2 mb-3">
+                <div class="col-sm-6">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-transparent border-secondary border-opacity-25 text-secondary"><i class="bi bi-search"></i></span>
+                        <input type="text" id="map-search" class="form-control form-control-sm glass-card text-white" placeholder="Cari pelabuhan..." style="border-left: none;">
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <select id="map-country-filter" class="form-select form-select-sm glass-card text-white">
+                        <option value="">Semua Negara</option>
+                        <option value="DE">Germany (DE)</option>
+                        <option value="CN">China (CN)</option>
+                        <option value="ID">Indonesia (ID)</option>
+                        <option value="AU">Australia (AU)</option>
+                    </select>
+                </div>
+            </div>
             <div id="main-map" style="height: 380px; border-radius: 12px; border: 1px solid var(--card-border);"></div>
         </div>
     </div>
@@ -277,6 +298,8 @@
 @endsection
 
 @section('scripts')
+<!-- Leaflet Marker Cluster JS CDN -->
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize Leaflet map centered globally
@@ -287,7 +310,15 @@
             attribution: '&copy; CartoDB &copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        let mapMarkers = [];
+        // Initialize Marker Cluster Group
+        const markerClusterGroup = L.markerClusterGroup({
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true
+        });
+        map.addLayer(markerClusterGroup);
+
+        let allPorts = [];
         let riskRadarChartObj = null;
         let currencyLineChartObj = null;
 
@@ -670,42 +701,12 @@
                     }
                 });
 
-            // 2. Fetch Ports for Map markers
-            fetch(`/api/ports?country=${countryCode}`)
-                .then(response => response.json())
-                .then(res => {
-                    if (res.success) {
-                        // Clear markers
-                        mapMarkers.forEach(m => map.removeLayer(m));
-                        mapMarkers = [];
-
-                        document.getElementById('map-port-count').innerText = `${res.data.length} Ports`;
-
-                        res.data.forEach(port => {
-                            const markerColor = port.congestion_rate > 50.0 ? '#EF4444' : (port.congestion_rate > 25.0 ? '#F59E0B' : '#10B981');
-                            
-                            // Custom DivIcon
-                            const icon = L.divIcon({
-                                className: 'custom-div-icon',
-                                html: `<div style="background-color: ${markerColor}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 10px ${markerColor};"></div>`,
-                                iconSize: [14, 14]
-                            });
-
-                            const marker = L.marker([port.latitude, port.longitude], { icon: icon })
-                                .addTo(map)
-                                .bindPopup(`
-                                    <div class="text-dark">
-                                        <strong>${port.name}</strong><br>
-                                        <small class="text-muted">Kode: ${port.port_code}</small><br>
-                                        Waktu Tunggu: <strong>${port.waiting_time_hours} jam</strong><br>
-                                        Rasio Kemacetan: <strong>${port.congestion_rate}%</strong>
-                                    </div>
-                                `);
-
-                            mapMarkers.push(marker);
-                        });
-                    }
-                });
+            // 2. Filter map ports by selected country
+            const mapCountryFilter = document.getElementById('map-country-filter');
+            if (mapCountryFilter) {
+                mapCountryFilter.value = countryCode;
+                renderMapPorts();
+            }
 
             // 3. Fetch News feed & Sentiments
             fetch(`/api/news?country=${countryCode}`)
@@ -859,6 +860,75 @@
             });
         }
 
+        // Map Search & Country Filter Event Listeners and Helpers
+        document.getElementById('map-search').addEventListener('input', renderMapPorts);
+        document.getElementById('map-country-filter').addEventListener('change', function() {
+            renderMapPorts();
+            if (this.value && this.value !== countrySelector.value) {
+                countrySelector.value = this.value;
+                loadDashboardData(this.value);
+            }
+        });
+
+        function fetchAllPorts() {
+            fetch('/api/ports')
+                .then(response => response.json())
+                .then(res => {
+                    if (res.success) {
+                        allPorts = res.data;
+                        renderMapPorts();
+                    }
+                });
+        }
+
+        function renderMapPorts() {
+            markerClusterGroup.clearLayers();
+            
+            const searchText = document.getElementById('map-search').value.toLowerCase().trim();
+            const countryFilter = document.getElementById('map-country-filter').value;
+            
+            const filteredPorts = allPorts.filter(port => {
+                const matchesCountry = !countryFilter || port.country.code === countryFilter;
+                const matchesSearch = !searchText || 
+                    port.name.toLowerCase().includes(searchText) || 
+                    port.port_code.toLowerCase().includes(searchText);
+                return matchesCountry && matchesSearch;
+            });
+            
+            document.getElementById('map-port-count').innerText = `${filteredPorts.length} Ports`;
+            
+            filteredPorts.forEach(port => {
+                const markerColor = port.congestion_rate > 50.0 ? '#EF4444' : (port.congestion_rate > 25.0 ? '#F59E0B' : '#10B981');
+                
+                const icon = L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div style="background-color: ${markerColor}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 10px ${markerColor};"></div>`,
+                    iconSize: [14, 14]
+                });
+                
+                const marker = L.marker([port.latitude, port.longitude], { icon: icon })
+                    .bindPopup(`
+                        <div class="text-dark">
+                            <strong>${port.name}</strong><br>
+                            <small class="text-muted">Kode: ${port.port_code}</small><br>
+                            Waktu Tunggu: <strong>${port.waiting_time_hours} jam</strong><br>
+                            Rasio Kemacetan: <strong>${port.congestion_rate}%</strong><br>
+                            Negara: <strong>${port.country.name} (${port.country.code})</strong>
+                        </div>
+                    `);
+                    
+                markerClusterGroup.addLayer(marker);
+            });
+
+            // Zoom map to fit clustered markers
+            if (filteredPorts.length > 0) {
+                const groupBounds = markerClusterGroup.getBounds();
+                if (groupBounds.isValid()) {
+                    map.fitBounds(groupBounds, { maxZoom: 5, padding: [20, 20] });
+                }
+            }
+        }
+
         // Floating notification helper (non-blocking alternative to alert())
         function showNotification(message, type = 'success') {
             const banner = document.getElementById('notification-banner');
@@ -880,6 +950,7 @@
         }, 15000); // 15 seconds
 
         // Initial Load (Germany)
+        fetchAllPorts();
         loadDashboardData('DE');
     });
 </script>
