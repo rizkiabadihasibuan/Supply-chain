@@ -888,7 +888,7 @@
             const countryFilter = document.getElementById('map-country-filter').value;
             
             const filteredPorts = allPorts.filter(port => {
-                const matchesCountry = !countryFilter || port.country.code === countryFilter;
+                const matchesCountry = !countryFilter || (port.country && port.country.code === countryFilter);
                 const matchesSearch = !searchText || 
                     port.name.toLowerCase().includes(searchText) || 
                     port.port_code.toLowerCase().includes(searchText);
@@ -913,18 +913,22 @@
                             <small class="text-muted">Kode: ${port.port_code}</small><br>
                             Waktu Tunggu: <strong>${port.waiting_time_hours} jam</strong><br>
                             Rasio Kemacetan: <strong>${port.congestion_rate}%</strong><br>
-                            Negara: <strong>${port.country.name} (${port.country.code})</strong>
+                            Negara: <strong>${port.country ? `${port.country.name} (${port.country.code})` : 'N/A'}</strong>
                         </div>
                     `);
                     
                 markerClusterGroup.addLayer(marker);
             });
 
-            // Zoom map to fit clustered markers
+            // Zoom map to fit clustered markers safely
             if (filteredPorts.length > 0) {
-                const groupBounds = markerClusterGroup.getBounds();
-                if (groupBounds.isValid()) {
-                    map.fitBounds(groupBounds, { maxZoom: 5, padding: [20, 20] });
+                try {
+                    const groupBounds = markerClusterGroup.getBounds();
+                    if (groupBounds && typeof groupBounds.getNorthEast === 'function') {
+                        map.fitBounds(groupBounds, { maxZoom: 5, padding: [20, 20] });
+                    }
+                } catch (err) {
+                    console.warn("Failed to fit map bounds:", err);
                 }
             }
         }
