@@ -38,8 +38,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
     // Country Routes
+    Route::post('/countries/sync', [\App\Http\Controllers\CountryController::class, 'syncAll'])->name('countries.sync-all');
+    Route::post('/countries/sync-economic', [\App\Http\Controllers\CountryController::class, 'syncAllEconomic'])->name('countries.sync-all-economic');
+    Route::post('/countries/sync-weather', [\App\Http\Controllers\WeatherController::class, 'syncAll'])->name('countries.sync-all-weather');
+    Route::post('/countries/sync-currency', [\App\Http\Controllers\CurrencyController::class, 'syncAll'])->name('countries.sync-all-currency');
     Route::get('/countries/{code}', [\App\Http\Controllers\CountryController::class, 'detail'])->name('countries.detail');
     Route::post('/countries/{code}/sync', [\App\Http\Controllers\CountryController::class, 'sync'])->name('countries.sync');
+    Route::post('/countries/{code}/sync-economic', [\App\Http\Controllers\CountryController::class, 'syncEconomic'])->name('countries.sync-economic');
+    Route::post('/countries/{code}/sync-weather', [\App\Http\Controllers\WeatherController::class, 'sync'])->name('countries.sync-weather');
+    Route::post('/countries/{code}/sync-currency', [\App\Http\Controllers\CurrencyController::class, 'sync'])->name('countries.sync-currency');
 
     // Comparison Routes
     Route::get('/compare', [\App\Http\Controllers\ComparisonController::class, 'index'])->name('compare');

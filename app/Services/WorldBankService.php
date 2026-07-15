@@ -6,6 +6,7 @@ use App\Models\ActivityLog;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class WorldBankService
 {
@@ -48,7 +49,7 @@ class WorldBankService
             $responseStatus = null;
 
             try {
-                $response = Http::timeout(10)->get($endpoint);
+                $response = Http::withoutVerifying()->timeout(10)->retry(3, 200)->get($endpoint);
                 $responseStatus = $response->status();
                 $endTime = microtime(true);
                 $executionTime = round(($endTime - $startTime) * 1000, 2);
@@ -139,5 +140,144 @@ class WorldBankService
             }
         }
         return null;
+    }
+
+    /**
+     * Synchronize economic indicators for a country using World Bank API.
+     *
+     * @param string $code
+     * @param bool $forceRefresh
+     * @return \App\Models\Country
+     * @throws \RuntimeException
+     */
+    public function syncCountryEconomicData(string $code, bool $forceRefresh = false): \App\Models\Country
+    {
+        $code = strtoupper(trim($code));
+
+        $country = \App\Models\Country::where('code', $code)
+            ->orWhere('iso2', $code)
+            ->orWhere('iso3', $code)
+            ->first();
+
+        if (!$country) {
+            throw new \RuntimeException("Negara dengan kode '{$code}' tidak ditemukan di database lokal.");
+        }
+
+        // World Bank API needs ISO2
+        $apiCode = $country->iso2 ?? (strlen($country->code) === 2 ? $country->code : $code);
+
+        Log::info("Memulai sinkronisasi data ekonomi untuk negara '{$country->name}' ({$apiCode}).");
+
+        $cacheKey = "world_bank_sync_{$code}";
+
+        if ($forceRefresh) {
+            Cache::forget($cacheKey);
+            foreach (array_keys(self::INDICATORS) as $metric) {
+                Cache::forget("world_bank_" . strtolower($apiCode) . "_{$metric}");
+            }
+        }
+
+        if (!$forceRefresh && Cache::has($cacheKey)) {
+            return $country;
+        }
+
+        $metrics = [];
+        foreach (array_keys(self::INDICATORS) as $metric) {
+            try {
+                $data = $this->fetchIndicator($apiCode, $metric);
+                $metrics[$metric] = $data['value'] ?? null;
+            } catch (\Exception $e) {
+                Log::error("Gagal mengambil metrik {$metric} untuk {$apiCode}: " . $e->getMessage());
+                $metrics[$metric] = null;
+            }
+        }
+
+        // Validate that we got at least some data
+        $allNull = true;
+        foreach ($metrics as $val) {
+            if ($val !== null) {
+                $allNull = false;
+                break;
+            }
+        }
+
+        if ($allNull) {
+            throw new \RuntimeException("Gagal mengambil data terbaru dari World Bank API untuk negara '{$country->name}' (Semua metrik bernilai null).");
+        }
+
+        // Save to database inside a transaction
+        return DB::transaction(function () use ($country, $metrics, $cacheKey) {
+            $country->gdp = $metrics['gdp'] ?? $country->gdp;
+            $country->inflation = $metrics['inflation'] ?? $country->inflation;
+            $country->population = $metrics['population'] ?? $country->population;
+            $country->export_value = $metrics['export'] ?? $country->export_value;
+            $country->import_value = $metrics['import'] ?? $country->import_value;
+            $country->save();
+
+            // Set sync cache marker
+            Cache::put($cacheKey, true, 86400);
+
+            // Log database audit trail
+            $this->logAudit("Berhasil menyelaraskan data ekonomi negara '{$country->name}' dari World Bank API.", [
+                'country_id' => $country->id,
+                'country_code' => $country->code,
+                'metrics_updated' => array_keys(array_filter($metrics, fn($v) => $v !== null))
+            ]);
+
+            Log::info("Data ekonomi negara '{$country->name}' ({$country->code}) berhasil diperbarui.");
+
+            return $country;
+        });
+    }
+
+    /**
+     * Synchronize economic indicators for all countries.
+     *
+     * @param bool $forceRefresh
+     * @return array
+     */
+    public function syncAllEconomicData(bool $forceRefresh = false): array
+    {
+        $countries = \App\Models\Country::all();
+        $results = [
+            'success' => [],
+            'failed' => []
+        ];
+
+        foreach ($countries as $country) {
+            try {
+                $this->syncCountryEconomicData($country->code, $forceRefresh);
+                $results['success'][] = $country->code;
+            } catch (\Exception $e) {
+                Log::error("Gagal menyinkronkan data ekonomi '{$country->code}' selama syncAll: " . $e->getMessage());
+                $results['failed'][] = [
+                    'code' => $country->code,
+                    'error' => $e->getMessage()
+                ];
+            }
+        }
+
+        Log::info("Sinkronisasi data ekonomi seluruh negara selesai. Sukses: " . count($results['success']) . ", Gagal: " . count($results['failed']));
+
+        return $results;
+    }
+
+    /**
+     * Log audit trail to activity_logs.
+     *
+     * @param string $description
+     * @param array|null $metadata
+     */
+    protected function logAudit(string $description, ?array $metadata = null): void
+    {
+        try {
+            ActivityLog::create([
+                'log_type' => 'audit',
+                'description' => $description,
+                'metadata' => $metadata,
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Gagal mencatat log audit ke database: " . $e->getMessage());
+        }
     }
 }

@@ -29,7 +29,7 @@ class OpenMeteoService
             $responseStatus = null;
 
             try {
-                $response = Http::timeout(10)->get($endpoint);
+                $response = Http::withoutVerifying()->timeout(10)->get($endpoint);
                 $responseStatus = $response->status();
                 $endTime = microtime(true);
                 $executionTime = round(($endTime - $startTime) * 1000, 2);

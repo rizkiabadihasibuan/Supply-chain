@@ -29,7 +29,7 @@ class RestCountriesService
 
             try {
                 // Call external API with a timeout
-                $response = Http::timeout(10)->get($endpoint);
+                $response = Http::withoutVerifying()->timeout(10)->get($endpoint);
                 $responseStatus = $response->status();
                 $endTime = microtime(true);
                 $executionTime = round(($endTime - $startTime) * 1000, 2); // store in ms
@@ -94,12 +94,16 @@ class RestCountriesService
      */
     protected function parseResponse(array $countryData): array
     {
-        // Extract currency code & name
+        // Extract currency code, name, and symbol
         $currencyCode = 'N/A';
         $currencyName = 'N/A';
+        $currencySymbol = 'N/A';
         if (!empty($countryData['currencies']) && is_array($countryData['currencies'])) {
             $currencyCode = array_key_first($countryData['currencies']);
-            $currencyName = $countryData['currencies'][$currencyCode]['name'] ?? 'N/A';
+            if ($currencyCode) {
+                $currencyName = $countryData['currencies'][$currencyCode]['name'] ?? 'N/A';
+                $currencySymbol = $countryData['currencies'][$currencyCode]['symbol'] ?? 'N/A';
+            }
         }
 
         // Extract languages
@@ -120,17 +124,29 @@ class RestCountriesService
             $longitude = $countryData['latlng'][1];
         }
 
+        // Extract timezone
+        $timezone = 'N/A';
+        if (!empty($countryData['timezones']) && is_array($countryData['timezones'])) {
+            $timezone = implode(', ', $countryData['timezones']);
+        }
+
         return [
             'name' => $countryData['name']['common'] ?? 'N/A',
+            'iso2' => $countryData['cca2'] ?? 'N/A',
+            'iso3' => $countryData['cca3'] ?? 'N/A',
             'region' => $countryData['region'] ?? 'N/A',
+            'subregion' => $countryData['subregion'] ?? 'N/A',
             'population' => $countryData['population'] ?? 0,
+            'area' => $countryData['area'] ?? 0.0,
             'currency_code' => $currencyCode,
             'currency_name' => $currencyName,
+            'currency_symbol' => $currencySymbol,
             'language' => $language,
             'flag_url' => $countryData['flags']['svg'] ?? ($countryData['flags']['png'] ?? null),
             'capital' => !empty($countryData['capital']) ? $countryData['capital'][0] : 'N/A',
             'latitude' => $latitude,
             'longitude' => $longitude,
+            'timezone' => $timezone,
         ];
     }
 }

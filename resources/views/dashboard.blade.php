@@ -29,6 +29,15 @@
         border-color: var(--color-warning);
         color: var(--color-warning);
     }
+    /* Spin animation for loading icons */
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .spin {
+        animation: spin 1s linear infinite;
+        display: inline-block;
+    }
 </style>
 @endsection
 
@@ -50,9 +59,29 @@
             <i class="bi bi-star-fill"></i>
         </button>
 
-        <!-- Sync Button -->
+        <!-- Sync Single Country Button -->
         <button type="button" id="sync-country-btn" class="btn btn-sm btn-primary d-flex align-items-center py-1.5 px-3">
             <i class="bi bi-arrow-repeat me-1.5" id="sync-icon"></i> <span id="sync-btn-text">Sync Data</span>
+        </button>
+
+        <!-- Sync All Countries Button -->
+        <button type="button" id="sync-all-countries-btn" class="btn btn-sm btn-outline-light d-flex align-items-center py-1.5 px-3 glass-card text-glow-cyan" style="border-color: rgba(56, 189, 248, 0.4);">
+            <i class="bi bi-globe me-1.5" id="sync-all-icon"></i> <span id="sync-all-btn-text">Sync Country Data</span>
+        </button>
+
+        <!-- Sync Economic Data Button -->
+        <button type="button" id="sync-economic-btn" class="btn btn-sm btn-outline-light d-flex align-items-center py-1.5 px-3 glass-card text-glow-purple" style="border-color: rgba(139, 92, 246, 0.4);">
+            <i class="bi bi-currency-exchange me-1.5" id="sync-economic-icon"></i> <span id="sync-economic-btn-text">Sync Economic Data</span>
+        </button>
+
+        <!-- Sync Weather Button -->
+        <button type="button" id="sync-weather-btn" class="btn btn-sm btn-outline-light d-flex align-items-center py-1.5 px-3 glass-card text-glow-warning" style="border-color: rgba(245, 158, 11, 0.4);">
+            <i class="bi bi-cloud-sun me-1.5" id="sync-weather-icon"></i> <span id="sync-weather-btn-text">Sync Weather</span>
+        </button>
+
+        <!-- Sync Currency Button -->
+        <button type="button" id="sync-currency-btn" class="btn btn-sm btn-outline-light d-flex align-items-center py-1.5 px-3 glass-card text-glow-success" style="border-color: rgba(16, 185, 129, 0.4);">
+            <i class="bi bi-cash-coin me-1.5" id="sync-currency-icon"></i> <span id="sync-currency-btn-text">Sync Currency</span>
         </button>
     </div>
 </div>
@@ -195,6 +224,56 @@
         </div>
     </div>
 </div>
+
+<!-- Detailed Weather & Forecast Section -->
+<div class="row g-4 mt-2 mb-4">
+    <div class="col-12">
+        <div class="glass-card p-4">
+            <h5 class="text-white mb-3"><i class="bi bi-cloud-sun me-2 text-glow-warning"></i> Prakiraan Cuaca 7 Hari & Parameter Detail</h5>
+            <div class="row g-4">
+                <!-- Weather Details Column -->
+                <div class="col-lg-4 border-end border-secondary border-opacity-10">
+                    <h6 class="text-secondary small fw-medium mb-3">Detail Cuaca Saat Ini</h6>
+                    <div class="d-flex flex-column gap-2 text-white">
+                        <div class="d-flex justify-content-between py-1 border-bottom border-secondary border-opacity-10">
+                            <span class="text-secondary"><i class="bi bi-moisture me-1"></i> Kelembaban</span>
+                            <span class="fw-semibold" id="weather-detail-humidity">N/A</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-1 border-bottom border-secondary border-opacity-10">
+                            <span class="text-secondary"><i class="bi bi-wind me-1"></i> Arah Angin</span>
+                            <span class="fw-semibold" id="weather-detail-wind-direction">N/A</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-1 border-bottom border-secondary border-opacity-10">
+                            <span class="text-secondary"><i class="bi bi-cloud-drizzle me-1"></i> Curah Hujan</span>
+                            <span class="fw-semibold" id="weather-detail-rain">N/A</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-1 border-bottom border-secondary border-opacity-10">
+                            <span class="text-secondary"><i class="bi bi-activity me-1"></i> Kode Cuaca (WMO)</span>
+                            <span class="fw-semibold" id="weather-detail-code">N/A</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-1">
+                            <span class="text-secondary"><i class="bi bi-exclamation-triangle me-1"></i> Risiko Badai</span>
+                            <span class="fw-semibold text-warning" id="weather-detail-storm-risk">N/A</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 7-Day Forecast Column -->
+                <div class="col-lg-8">
+                    <h6 class="text-secondary small fw-medium mb-3">Prakiraan 7 Hari Ke Depan</h6>
+                    <div class="row row-cols-2 row-cols-md-4 row-cols-lg-7 g-2 text-center" id="weather-forecast-container">
+                        <div class="col w-100 text-center py-4">
+                            <span class="text-secondary small">Data prakiraan tidak tersedia. Silakan tekan tombol "Sync Weather".</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Notification Banner -->
+<div id="notification-banner" class="alert d-none position-fixed bottom-0 end-0 m-4 glass-card text-white" style="z-index: 1050; transition: all 0.3s ease;"></div>
 @endsection
 
 @section('scripts')
@@ -298,19 +377,188 @@
                 syncBtn.disabled = false;
                 
                 if (res.success) {
+                    showNotification("Sinkronisasi data " + countryCode + " selesai!");
                     loadDashboardData(countryCode);
                     fetchWatchlist();
                 } else {
-                    alert('Sync failed: ' + res.message);
+                    showNotification('Sync failed: ' + res.message, 'danger');
                 }
             })
             .catch(err => {
                 syncIcon.classList.remove('spin');
                 syncText.innerText = 'Sync Data';
                 syncBtn.disabled = false;
-                alert('Sync error: ' + err.message);
+                showNotification('Sync error: ' + err.message, 'danger');
             });
         });
+
+        // Trigger All Countries Sync
+        const syncAllBtn = document.getElementById('sync-all-countries-btn');
+        if (syncAllBtn) {
+            syncAllBtn.addEventListener('click', function() {
+                const syncAllIcon = document.getElementById('sync-all-icon');
+                const syncAllText = document.getElementById('sync-all-btn-text');
+
+                syncAllIcon.classList.add('spin');
+                syncAllText.innerText = 'Syncing...';
+                syncAllBtn.disabled = true;
+
+                fetch('/countries/sync', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                .then(response => response.json())
+                .then(res => {
+                    syncAllIcon.classList.remove('spin');
+                    syncAllText.innerText = 'Sync Country Data';
+                    syncAllBtn.disabled = false;
+                    
+                    if (res.success) {
+                        showNotification(res.message);
+                        const countryCode = countrySelector.value;
+                        loadDashboardData(countryCode);
+                        fetchWatchlist();
+                    } else {
+                        showNotification('Sync failed: ' + res.message, 'danger');
+                    }
+                })
+                .catch(err => {
+                    syncAllIcon.classList.remove('spin');
+                    syncAllText.innerText = 'Sync Country Data';
+                    syncAllBtn.disabled = false;
+                    showNotification('Sync error: ' + err.message, 'danger');
+                });
+            });
+        }
+
+        // Trigger Economic Data Sync
+        const syncEconomicBtn = document.getElementById('sync-economic-btn');
+        if (syncEconomicBtn) {
+            syncEconomicBtn.addEventListener('click', function() {
+                const syncEconomicIcon = document.getElementById('sync-economic-icon');
+                const syncEconomicText = document.getElementById('sync-economic-btn-text');
+
+                syncEconomicIcon.classList.add('spin');
+                syncEconomicText.innerText = 'Syncing...';
+                syncEconomicBtn.disabled = true;
+
+                fetch('/countries/sync-economic', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                .then(response => response.json())
+                .then(res => {
+                    syncEconomicIcon.classList.remove('spin');
+                    syncEconomicText.innerText = 'Sync Economic Data';
+                    syncEconomicBtn.disabled = false;
+                    
+                    if (res.success) {
+                        showNotification(res.message);
+                        const countryCode = countrySelector.value;
+                        loadDashboardData(countryCode);
+                        fetchWatchlist();
+                    } else {
+                        showNotification('Sync failed: ' + res.message, 'danger');
+                    }
+                })
+                .catch(err => {
+                    syncEconomicIcon.classList.remove('spin');
+                    syncEconomicText.innerText = 'Sync Economic Data';
+                    syncEconomicBtn.disabled = false;
+                    showNotification('Sync error: ' + err.message, 'danger');
+                });
+            });
+        }
+
+        // Trigger Weather Data Sync
+        const syncWeatherBtn = document.getElementById('sync-weather-btn');
+        if (syncWeatherBtn) {
+            syncWeatherBtn.addEventListener('click', function() {
+                const syncWeatherIcon = document.getElementById('sync-weather-icon');
+                const syncWeatherText = document.getElementById('sync-weather-btn-text');
+
+                syncWeatherIcon.classList.add('spin');
+                syncWeatherText.innerText = 'Syncing...';
+                syncWeatherBtn.disabled = true;
+
+                fetch('/countries/sync-weather', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                .then(response => response.json())
+                .then(res => {
+                    syncWeatherIcon.classList.remove('spin');
+                    syncWeatherText.innerText = 'Sync Weather';
+                    syncWeatherBtn.disabled = false;
+                    
+                    if (res.success) {
+                        showNotification(res.message);
+                        const countryCode = countrySelector.value;
+                        loadDashboardData(countryCode);
+                        fetchWatchlist();
+                    } else {
+                        showNotification('Sync failed: ' + res.message, 'danger');
+                    }
+                })
+                .catch(err => {
+                    syncWeatherIcon.classList.remove('spin');
+                    syncWeatherText.innerText = 'Sync Weather';
+                    syncWeatherBtn.disabled = false;
+                    showNotification('Sync error: ' + err.message, 'danger');
+                });
+            });
+        }
+
+        // Trigger Currency Data Sync
+        const syncCurrencyBtn = document.getElementById('sync-currency-btn');
+        if (syncCurrencyBtn) {
+            syncCurrencyBtn.addEventListener('click', function() {
+                const syncCurrencyIcon = document.getElementById('sync-currency-icon');
+                const syncCurrencyText = document.getElementById('sync-currency-btn-text');
+
+                syncCurrencyIcon.classList.add('spin');
+                syncCurrencyText.innerText = 'Syncing...';
+                syncCurrencyBtn.disabled = true;
+
+                fetch('/countries/sync-currency', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                .then(response => response.json())
+                .then(res => {
+                    syncCurrencyIcon.classList.remove('spin');
+                    syncCurrencyText.innerText = 'Sync Currency';
+                    syncCurrencyBtn.disabled = false;
+                    
+                    if (res.success) {
+                        showNotification(res.message);
+                        const countryCode = countrySelector.value;
+                        loadDashboardData(countryCode);
+                        fetchWatchlist();
+                    } else {
+                        showNotification('Sync failed: ' + res.message, 'danger');
+                    }
+                })
+                .catch(err => {
+                    syncCurrencyIcon.classList.remove('spin');
+                    syncCurrencyText.innerText = 'Sync Currency';
+                    syncCurrencyBtn.disabled = false;
+                    showNotification('Sync error: ' + err.message, 'danger');
+                });
+            });
+        }
 
         // Load all data for the selected country
         window.selectCountry = function(code) {
@@ -327,7 +575,7 @@
             fetchWatchlist();
 
             // 1. Fetch Countries detail (GDP, Inflation, Weather, Region, etc.)
-            fetch("{{ route('api.countries') }}")
+            fetch("{{ route('api.countries') }}?country=" + countryCode)
                 .then(response => response.json())
                 .then(res => {
                     if (res.success) {
@@ -340,6 +588,51 @@
                             document.getElementById('kpi-population-footer').innerHTML = `<i class="bi bi-people me-1"></i> ${Number(country.population).toLocaleString('id-ID')} Jiwa`;
                             document.getElementById('kpi-weather').innerText = country.weather_temp !== null ? country.weather_temp + '°C' : 'N/A';
                             document.getElementById('kpi-weather-desc').innerText = country.weather_condition || 'N/A';
+
+                            // Update detailed weather parameters
+                            document.getElementById('weather-detail-humidity').innerText = country.weather_humidity !== null ? country.weather_humidity + '%' : 'N/A';
+                            document.getElementById('weather-detail-wind-direction').innerText = country.weather_wind_direction !== null ? country.weather_wind_direction + '°' : 'N/A';
+                            document.getElementById('weather-detail-rain').innerText = country.weather_rain !== null ? country.weather_rain + ' mm' : 'N/A';
+                            document.getElementById('weather-detail-code').innerText = country.weather_code !== null ? country.weather_code : 'N/A';
+                            document.getElementById('weather-detail-storm-risk').innerText = country.weather_storm_risk !== null ? country.weather_storm_risk + '%' : 'N/A';
+
+                            // Update forecast list
+                            const forecastContainer = document.getElementById('weather-forecast-container');
+                            forecastContainer.innerHTML = '';
+                            if (country.weather_forecast && country.weather_forecast.length > 0) {
+                                country.weather_forecast.forEach(day => {
+                                    const dateObj = new Date(day.date);
+                                    const dayName = dateObj.toLocaleDateString('id-ID', { weekday: 'short' });
+                                    const dayDate = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+                                    
+                                    let iconClass = 'bi-cloud';
+                                    if (day.condition === 'Clear Sky') iconClass = 'bi-sun';
+                                    else if (day.condition === 'Partly Cloudy') iconClass = 'bi-cloud-sun';
+                                    else if (day.condition === 'Foggy') iconClass = 'bi-cloud-fog';
+                                    else if (day.condition === 'Drizzle') iconClass = 'bi-cloud-drizzle';
+                                    else if (day.condition === 'Heavy Rain') iconClass = 'bi-cloud-rain-heavy';
+                                    else if (day.condition === 'Snowy') iconClass = 'bi-cloud-snow';
+                                    else if (day.condition === 'Thunderstorm') iconClass = 'bi-cloud-lightning-rain';
+
+                                    forecastContainer.innerHTML += `
+                                        <div class="col">
+                                            <div class="glass-card p-2 h-100 d-flex flex-column justify-content-between align-items-center" style="background: rgba(255,255,255,0.02); min-height: 120px;">
+                                                <div class="small fw-semibold text-secondary mb-1">${dayName}</div>
+                                                <div class="small text-muted mb-2" style="font-size: 0.75rem;">${dayDate}</div>
+                                                <div class="fs-4 text-warning mb-2"><i class="bi ${iconClass}"></i></div>
+                                                <div class="small text-white fw-bold mb-1">${day.temp_max}°C</div>
+                                                <div class="small text-secondary" style="font-size: 0.75rem;">${day.temp_min}°C</div>
+                                            </div>
+                                        </div>
+                                    `;
+                                });
+                            } else {
+                                forecastContainer.innerHTML = `
+                                    <div class="col w-100 text-center py-3">
+                                        <span class="text-secondary small">Tidak ada data prakiraan. Silakan tekan tombol "Sync Weather".</span>
+                                    </div>
+                                `;
+                            }
 
                             // Center map on capital
                             if (country.latitude && country.longitude) {
@@ -565,6 +858,26 @@
                 }
             });
         }
+
+        // Floating notification helper (non-blocking alternative to alert())
+        function showNotification(message, type = 'success') {
+            const banner = document.getElementById('notification-banner');
+            banner.innerText = message;
+            banner.className = `alert d-block position-fixed bottom-0 end-0 m-4 glass-card text-white ${type === 'success' ? 'border-glow-success' : 'border-glow-danger'}`;
+            banner.style.background = type === 'success' ? 'rgba(16, 185, 129, 0.95)' : 'rgba(239, 68, 68, 0.95)';
+            banner.style.boxShadow = type === 'success' ? '0 0 20px rgba(16, 185, 129, 0.4)' : '0 0 20px rgba(239, 68, 68, 0.4)';
+            banner.style.zIndex = '1050';
+            
+            setTimeout(() => {
+                banner.className = 'alert d-none';
+            }, 4000);
+        }
+
+        // Auto-polling for real-time updates every 15 seconds
+        setInterval(function() {
+            const countryCode = countrySelector.value;
+            loadDashboardData(countryCode);
+        }, 15000); // 15 seconds
 
         // Initial Load (Germany)
         loadDashboardData('DE');

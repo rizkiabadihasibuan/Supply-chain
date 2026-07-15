@@ -41,8 +41,62 @@ class ApiController extends Controller
      *
      * @return JsonResponse
      */
-    public function countries(): JsonResponse
+    public function countries(Request $request): JsonResponse
     {
+        $weatherService = app(\App\Services\WeatherService::class);
+        $currencyService = app(\App\Services\CurrencyService::class);
+        $worldBankService = app(\App\Services\WorldBankService::class);
+
+        $selectedCountryCode = strtoupper(trim($request->query('country', '')));
+        
+        if ($selectedCountryCode) {
+            $c = Country::where('code', $selectedCountryCode)->first();
+            if ($c) {
+                // Auto sync general country data from REST Countries if missing
+                if ($c->latitude === null || $c->longitude === null || empty($c->currency_code)) {
+                    try {
+                        $countryService = app(\App\Services\CountryService::class);
+                        $c = $countryService->syncCountry($c->code, false);
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::warning("Auto-sync REST Countries failed for {$c->code}: " . $e->getMessage());
+                    }
+                }
+
+                // Auto sync weather if needed
+                try {
+                    if ($c->latitude !== null && $c->longitude !== null) {
+                        $weatherService->syncWeather($c->code, false);
+                    }
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::warning("Auto-sync weather failed for {$c->code}: " . $e->getMessage());
+                }
+
+                // Auto sync currency if needed
+                try {
+                    if (!empty($c->currency_code)) {
+                        $currencyService->syncCountryCurrency($c->code, false);
+                    }
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::warning("Auto-sync currency failed for {$c->code}: " . $e->getMessage());
+                }
+
+                // Auto sync economic data if needed
+                try {
+                    $worldBankService->syncCountryEconomicData($c->code, false);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::warning("Auto-sync economic data failed for {$c->code}: " . $e->getMessage());
+                }
+
+                // Recalculate Risk Score
+                try {
+                    $c->refresh();
+                    $this->riskScoringEngine->calculateRisk($c);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::warning("Auto-risk calculation failed for {$c->code}: " . $e->getMessage());
+                }
+            }
+        }
+
         $countries = Country::all()->map(function ($country) {
             $latestRisk = $country->riskScores()->latest()->first();
             return [
@@ -54,6 +108,15 @@ class ApiController extends Controller
                 'gdp' => $country->gdp,
                 'inflation' => $country->inflation,
                 'population' => $country->population,
+                'area' => $country->area,
+                'subregion' => $country->subregion,
+                'flag_url' => $country->flag_url,
+                'currency_code' => $country->currency_code,
+                'currency_name' => $country->currency_name,
+                'currency_symbol' => $country->currency_symbol,
+                'timezone' => $country->timezone,
+                'iso2' => $country->iso2,
+                'iso3' => $country->iso3,
                 'export_value' => $country->export_value,
                 'import_value' => $country->import_value,
                 'latitude' => $country->latitude,
@@ -63,6 +126,11 @@ class ApiController extends Controller
                 'weather_wind_speed' => $country->current_weather_wind_speed,
                 'weather_precipitation' => $country->current_weather_precipitation,
                 'weather_storm_risk' => $country->current_weather_storm_risk,
+                'weather_humidity' => $country->current_weather_humidity,
+                'weather_wind_direction' => $country->current_weather_wind_direction,
+                'weather_rain' => $country->current_weather_rain,
+                'weather_code' => $country->current_weather_code,
+                'weather_forecast' => $country->weather_forecast_7_days,
                 'latest_risk' => $latestRisk ? [
                     'total_risk_score' => (float) $latestRisk->total_risk_score,
                     'risk_level' => $latestRisk->risk_level,
@@ -237,7 +305,7 @@ class ApiController extends Controller
         }
 
         $currencyCode = $country->currency_code ?? 'USD';
-        $currentRate = $this->exchangeRateService->getRateAgainstUsd($currencyCode);
+        $currentRate = $country->exchange_rate !== null ? (float) $country->exchange_rate : $this->exchangeRateService->getRateAgainstUsd($currencyCode);
 
         // Fetch volatility from cache (CurrencySeeder)
         $cacheKey = "currency_rate_USD_{$currencyCode}";
@@ -249,22 +317,26 @@ class ApiController extends Controller
             $currentRate = $currencyData && isset($currencyData['rate']) ? (float) $currencyData['rate'] : 1.0;
         }
 
-        // Generate 7-day simulated trend for Chart.js
-        $history = [];
-        $rateTracker = $currentRate;
-        for ($i = 6; $i >= 0; $i--) {
-            $date = now()->subDays($i)->format('Y-m-d');
-            
-            // Seed a consistent mock fluctuation based on volatility
-            // We use the day of month and day of week to make it deterministic but look dynamic
-            $seed = (int) now()->subDays($i)->format('d');
-            $fluctuationPercent = (($seed % 10) - 5) / 100 * $volatility;
-            $rateForDay = $currentRate * (1 + $fluctuationPercent);
+        // Get currency history from database, fallback to simulated if empty
+        $history = $country->exchange_rate_history;
+        if (empty($history) || !is_array($history)) {
+            $history = [];
+            for ($i = 6; $i >= 0; $i--) {
+                $date = now()->subDays($i)->format('Y-m-d');
+                $seed = (int) now()->subDays($i)->format('d');
+                $fluctuationPercent = (($seed % 10) - 5) / 100 * $volatility;
+                $rateForDay = $currentRate * (1 + $fluctuationPercent);
 
-            $history[] = [
-                'date' => $date,
-                'rate' => round($rateForDay, 4),
-            ];
+                $history[] = [
+                    'date' => $date,
+                    'rate' => round($rateForDay, 4),
+                ];
+            }
+        } else {
+            // Sort history ascending by date for Chart.js
+            usort($history, function ($a, $b) {
+                return strcmp($a['date'], $b['date']);
+            });
         }
 
         return response()->json([
