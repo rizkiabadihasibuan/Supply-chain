@@ -14,40 +14,39 @@
     
     <style>
         :root {
-            --primary: #2563EB;
-            --secondary: #1E293B;
-            --background: #0F172A;
-            --card-bg: #1E293B;
-            --border-color: #334155;
+            --primary: #0EA5E9;
+            --background: #F7F9FC;
+            --card-bg: #FFFFFF;
+            --border-color: #E5E7EB;
             --success: #22C55E;
             --warning: #F59E0B;
             --danger: #EF4444;
-            --info: #38BDF8;
-            --text-primary: #FFFFFF;
-            --text-secondary: #CBD5E1;
-            --sidebar-bg: #090D1A;
+            --sidebar-bg: #123458;
+            --text-primary: #1E293B;
+            --text-secondary: #64748B;
             --sidebar-width: 260px;
+            --radius-custom: 16px;
         }
 
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--background);
-            color: var(--text-secondary);
+            color: var(--text-primary);
             overflow-x: hidden;
             min-height: 100vh;
         }
 
-        /* Scrollbar Styling */
+        /* Custom Scrollbar */
         ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
         }
         ::-webkit-scrollbar-track {
             background: var(--background);
         }
         ::-webkit-scrollbar-thumb {
             background: var(--border-color);
-            border-radius: 4px;
+            border-radius: 10px;
         }
         ::-webkit-scrollbar-thumb:hover {
             background: var(--primary);
@@ -62,21 +61,21 @@
             left: 0;
             z-index: 100;
             background-color: var(--sidebar-bg);
-            border-right: 1px solid var(--border-color);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             padding: 1.5rem 1rem;
             display: flex;
             flex-direction: column;
+            box-shadow: 4px 0 15px rgba(18, 52, 88, 0.05);
         }
 
         .sidebar-brand {
             padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             margin-bottom: 1rem;
         }
 
         .sidebar-brand h5 {
-            color: var(--text-primary);
+            color: #FFFFFF;
             font-weight: 700;
             margin: 0;
             letter-spacing: 0.5px;
@@ -85,50 +84,46 @@
         .sidebar-menu {
             overflow-y: auto;
             flex-grow: 1;
-            padding-right: 0.25rem;
         }
 
         .menu-item {
             display: flex;
             align-items: center;
             padding: 0.75rem 1rem;
-            color: var(--text-secondary);
+            color: #E2E8F0;
             text-decoration: none;
             font-weight: 500;
             font-size: 0.9rem;
             transition: all 0.2s ease;
-            border-radius: 10px;
+            border-radius: 12px;
             margin-bottom: 0.25rem;
-            border: 1px solid transparent;
         }
 
         .menu-item i {
-            font-size: 1.2rem;
+            font-size: 1.15rem;
             margin-right: 0.75rem;
-            color: var(--text-secondary);
+            color: #94A3B8;
             transition: all 0.2s;
         }
 
         .menu-item:hover {
-            background-color: rgba(37, 99, 235, 0.1);
-            color: var(--primary);
-            border-color: rgba(37, 99, 235, 0.2);
+            background-color: rgba(255, 255, 255, 0.08);
+            color: #FFFFFF;
         }
 
         .menu-item:hover i {
             color: var(--primary);
-            transform: translateX(2px);
         }
 
         .menu-item.active {
             background-color: var(--primary);
-            color: var(--text-primary);
+            color: #FFFFFF;
             font-weight: 600;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
         }
 
         .menu-item.active i {
-            color: var(--text-primary);
+            color: #FFFFFF;
         }
 
         /* Main Content Wrapper */
@@ -142,32 +137,32 @@
 
         /* Navbar Styling */
         .navbar-custom {
-            background-color: rgba(15, 23, 42, 0.8);
+            background-color: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(10px);
             border-bottom: 1px solid var(--border-color);
-            padding: 1rem 1.5rem;
+            padding: 0.85rem 1.5rem;
             position: sticky;
             top: 0;
             z-index: 90;
         }
 
         .search-bar {
-            background-color: rgba(30, 41, 59, 0.7);
+            background-color: #F1F5F9;
             border: 1px solid var(--border-color);
             border-radius: 10px;
             color: var(--text-primary);
-            padding: 0.5rem 1rem 0.5rem 2.5rem;
-            font-size: 0.875rem;
-            width: 250px;
+            padding: 0.45rem 1rem 0.45rem 2.25rem;
+            font-size: 0.85rem;
+            width: 240px;
             transition: all 0.2s;
         }
 
         .search-bar:focus {
-            background-color: var(--secondary);
+            background-color: #FFFFFF;
             border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+            box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.15);
             outline: none;
-            width: 300px;
+            width: 280px;
         }
 
         .search-wrapper {
@@ -176,10 +171,11 @@
 
         .search-wrapper i {
             position: absolute;
-            left: 1rem;
+            left: 0.85rem;
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-secondary);
+            font-size: 0.85rem;
         }
 
         /* Content Area */
@@ -190,126 +186,208 @@
 
         /* Footer Styling */
         footer {
-            background-color: var(--sidebar-bg);
+            background-color: #FFFFFF;
             border-top: 1px solid var(--border-color);
-            padding: 1.25rem 1.5rem;
+            padding: 1.15rem 1.5rem;
             font-size: 0.85rem;
             color: var(--text-secondary);
         }
 
-        /* Custom UI Components for Design System */
-        .card-custom {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 18px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        /* Overrides Bootstrap Defaults for Premium Custom Corporate Aesthetics */
+        .card {
+            background-color: var(--card-bg) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: var(--radius-custom) !important;
+            box-shadow: 0 4px 18px rgba(18, 52, 88, 0.03) !important;
+            color: var(--text-primary) !important;
+            transition: all 0.25s ease-in-out;
         }
 
-        .card-custom:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.1);
-            border-color: rgba(37, 99, 235, 0.3);
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 22px rgba(18, 52, 88, 0.06) !important;
+            border-color: rgba(14, 165, 233, 0.25) !important;
         }
 
-        .btn-custom {
+        .bg-white {
+            background-color: var(--card-bg) !important;
+        }
+
+        .text-dark {
+            color: var(--text-primary) !important;
+        }
+
+        .text-muted {
+            color: var(--text-secondary) !important;
+        }
+
+        /* Button Styling */
+        .btn {
             border-radius: 10px;
-            padding: 0.6rem 1.25rem;
-            font-weight: 600;
-            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 0.55rem 1.15rem;
             transition: all 0.2s ease-in-out;
         }
 
-        .btn-custom-primary {
-            background-color: var(--primary);
-            border: 1px solid var(--primary);
-            color: var(--text-primary);
+        .btn-primary {
+            background-color: var(--primary) !important;
+            border-color: var(--primary) !important;
+            color: #FFFFFF !important;
         }
 
-        .btn-custom-primary:hover {
-            background-color: #1d4ed8;
-            border-color: #1d4ed8;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+        .btn-primary:hover {
+            background-color: #0284c7 !important;
+            border-color: #0284c7 !important;
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3) !important;
         }
 
-        .form-control-custom {
-            background-color: rgba(30, 41, 59, 0.7);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            color: var(--text-primary);
-            padding: 0.6rem 1rem;
-            transition: all 0.2s;
+        /* Table Styling */
+        .table {
+            color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
         }
 
-        .form-control-custom:focus {
-            background-color: var(--secondary);
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
-            color: var(--text-primary);
-            outline: none;
-        }
-
-        .table-custom {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .table-custom th {
-            background-color: rgba(15, 23, 42, 0.5);
-            color: var(--text-primary);
+        .table th {
+            background-color: #F8FAFC !important;
+            color: var(--text-primary) !important;
             font-weight: 600;
-            border-bottom: 2px solid var(--border-color);
-            padding: 1rem;
-        }
-
-        .table-custom td {
-            color: var(--text-secondary);
-            border-bottom: 1px solid var(--border-color);
-            padding: 1rem;
-            background-color: var(--card-bg);
-        }
-
-        .table-custom tr:hover td {
-            background-color: rgba(255, 255, 255, 0.02) !important;
-            color: var(--text-primary);
-        }
-
-        /* Badges */
-        .badge-custom {
+            border-bottom: 2px solid var(--border-color) !important;
+            padding: 0.9rem 1rem !important;
+            text-transform: uppercase;
             font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+
+        .table td {
+            padding: 0.9rem 1rem !important;
+            border-bottom: 1px solid var(--border-color) !important;
+            background-color: var(--card-bg) !important;
+            vertical-align: middle;
+        }
+
+        .table-hover tbody tr:hover td {
+            background-color: #F8FAFC !important;
+            color: var(--text-primary) !important;
+        }
+
+        /* Form Inputs */
+        .form-control, .form-select {
+            background-color: #FFFFFF !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 10px !important;
+            color: var(--text-primary) !important;
+            padding: 0.55rem 1rem !important;
+            transition: all 0.2s !important;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12) !important;
+            outline: none !important;
+            color: var(--text-primary) !important;
+        }
+
+        /* Status Badges */
+        .badge {
             font-weight: 600;
+            font-size: 0.75rem;
             padding: 0.35em 0.8em;
             border-radius: 6px;
             text-transform: uppercase;
         }
 
-        .badge-custom-success {
-            background-color: rgba(34, 197, 94, 0.15);
+        .badge-success {
+            background-color: rgba(34, 197, 94, 0.12);
             color: var(--success);
-            border: 1px solid rgba(34, 197, 94, 0.3);
+            border: 1px solid rgba(34, 197, 94, 0.25);
         }
 
-        .badge-custom-warning {
-            background-color: rgba(245, 158, 11, 0.15);
+        .badge-warning {
+            background-color: rgba(245, 158, 11, 0.12);
             color: var(--warning);
-            border: 1px solid rgba(245, 158, 11, 0.3);
+            border: 1px solid rgba(245, 158, 11, 0.25);
         }
 
-        .badge-custom-danger {
-            background-color: rgba(239, 68, 68, 0.15);
+        .badge-danger {
+            background-color: rgba(239, 68, 68, 0.12);
             color: var(--danger);
-            border: 1px solid rgba(239, 68, 68, 0.3);
+            border: 1px solid rgba(239, 68, 68, 0.25);
         }
 
-        .badge-custom-info {
-            background-color: rgba(56, 189, 248, 0.15);
-            color: var(--info);
-            border: 1px solid rgba(56, 189, 248, 0.3);
+        .badge-info {
+            background-color: rgba(14, 165, 233, 0.12);
+            color: var(--primary);
+            border: 1px solid rgba(14, 165, 233, 0.25);
         }
 
-        /* Pulse animations for status icons */
+        /* Modal Custom Style */
+        .modal-content {
+            border-radius: var(--radius-custom) !important;
+            border: 1px solid var(--border-color) !important;
+            box-shadow: 0 10px 30px rgba(18, 52, 88, 0.1) !important;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--border-color) !important;
+            background-color: #F8FAFC !important;
+            border-top-left-radius: var(--radius-custom) !important;
+            border-top-right-radius: var(--radius-custom) !important;
+        }
+
+        .modal-footer {
+            border-top: 1px solid var(--border-color) !important;
+            background-color: #F8FAFC !important;
+            border-bottom-left-radius: var(--radius-custom) !important;
+            border-bottom-right-radius: var(--radius-custom) !important;
+        }
+
+        /* Dropdown Custom Style */
+        .dropdown-menu {
+            border-radius: 12px !important;
+            border: 1px solid var(--border-color) !important;
+            box-shadow: 0 8px 24px rgba(18, 52, 88, 0.08) !important;
+            padding: 0.5rem !important;
+        }
+
+        .dropdown-item {
+            border-radius: 8px !important;
+            padding: 0.5rem 1rem !important;
+            font-size: 0.85rem !important;
+            color: var(--text-primary) !important;
+            transition: all 0.2s !important;
+        }
+
+        .dropdown-item:hover {
+            background-color: #F1F5F9 !important;
+            color: var(--text-primary) !important;
+        }
+
+        /* Alert Custom Style */
+        .alert {
+            border-radius: 12px !important;
+            border: 1px solid transparent !important;
+            font-size: 0.875rem !important;
+        }
+
+        .alert-success {
+            background-color: rgba(34, 197, 94, 0.08) !important;
+            border-color: rgba(34, 197, 94, 0.15) !important;
+            color: #166534 !important;
+        }
+
+        .alert-danger {
+            background-color: rgba(239, 68, 68, 0.08) !important;
+            border-color: rgba(239, 68, 68, 0.15) !important;
+            color: #991b1b !important;
+        }
+
+        .alert-warning {
+            background-color: rgba(245, 158, 11, 0.08) !important;
+            border-color: rgba(245, 158, 11, 0.15) !important;
+            color: #9a3412 !important;
+        }
+
+        /* Pulse Indicator */
         .pulse-indicator {
             position: relative;
             display: inline-block;
@@ -354,59 +432,6 @@
             #main-wrapper {
                 margin-left: 0;
             }
-        /* Override Bootstrap Defaults for seamless dark mode */
-        .card {
-            background-color: var(--card-bg) !important;
-            border: 1px solid var(--border-color) !important;
-            border-radius: 18px !important;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
-            color: var(--text-primary) !important;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.1) !important;
-            border-color: rgba(37, 99, 235, 0.3) !important;
-        }
-        .bg-white {
-            background-color: var(--card-bg) !important;
-        }
-        .text-dark {
-            color: var(--text-primary) !important;
-        }
-        .text-muted {
-            color: var(--text-secondary) !important;
-        }
-        .table {
-            color: var(--text-secondary) !important;
-            background-color: var(--card-bg) !important;
-        }
-        .table th, .table-light th {
-            background-color: rgba(15, 23, 42, 0.5) !important;
-            color: var(--text-primary) !important;
-            border-bottom: 2px solid var(--border-color) !important;
-        }
-        .table td {
-            border-bottom: 1px solid var(--border-color) !important;
-            background-color: var(--card-bg) !important;
-        }
-        .table-hover tbody tr:hover td {
-            background-color: rgba(255, 255, 255, 0.02) !important;
-            color: var(--text-primary) !important;
-        }
-        .form-control, .form-select {
-            background-color: rgba(30, 41, 59, 0.7) !important;
-            border: 1px solid var(--border-color) !important;
-            border-radius: 10px !important;
-            color: var(--text-primary) !important;
-            transition: all 0.2s !important;
-        }
-        .form-control:focus, .form-select:focus {
-            background-color: var(--secondary) !important;
-            border-color: var(--primary) !important;
-            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
-            color: var(--text-primary) !important;
-            outline: none !important;
         }
     </style>
     @yield('styles')
@@ -420,7 +445,7 @@
                 <i class="bi bi-shield-shaded text-primary fs-4 me-2"></i>
                 <h5>SupplyChain</h5>
             </div>
-            <button class="btn btn-sm d-lg-none text-secondary" onclick="toggleSidebar()">
+            <button class="btn btn-sm d-lg-none text-light" onclick="toggleSidebar()">
                 <i class="bi bi-x-lg"></i>
             </button>
         </div>
@@ -485,14 +510,14 @@
 
                 <div class="ms-auto d-flex align-items-center gap-3">
                     <!-- Date & Time Widget -->
-                    <span id="live-datetime" class="text-secondary small d-none d-lg-inline-block border border-secondary px-3 py-1.5 rounded-pill bg-dark">
+                    <span id="live-datetime" class="text-secondary small d-none d-lg-inline-block border px-3 py-1.5 rounded-pill bg-light">
                         <!-- Loaded dynamically via JS -->
                     </span>
 
                     <!-- Notification Button -->
-                    <button class="btn btn-dark btn-sm rounded-circle p-2 position-relative border border-secondary" style="background-color: var(--secondary)">
+                    <button class="btn btn-light btn-sm rounded-circle p-2 position-relative border" style="background-color: #F8FAFC">
                         <i class="bi bi-bell text-secondary"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; padding: 0.25em 0.4em;">
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger text-light" style="font-size: 0.6rem; padding: 0.25em 0.4em;">
                             3
                             <span class="visually-hidden">notifikasi belum dibaca</span>
                         </span>
@@ -503,7 +528,7 @@
                     <!-- User Profile Info -->
                     <div class="d-flex align-items-center">
                         <div class="text-end me-2 d-none d-sm-block">
-                            <div class="text-light fw-medium small">Administrator</div>
+                            <div class="text-dark fw-medium small">Administrator</div>
                             <div class="text-secondary" style="font-size: 0.75rem;">Command Center</div>
                         </div>
                         <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop" alt="Profil User" class="rounded-circle border border-primary" width="36" height="36" style="object-fit: cover;">
