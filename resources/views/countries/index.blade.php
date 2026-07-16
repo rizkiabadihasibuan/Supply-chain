@@ -83,7 +83,12 @@
                                     <td>275 Juta</td>
                                     <td><span class="badge badge-success">Rendah - 0.12</span></td>
                                     <td><i class="bi bi-check-circle-fill text-success me-1"></i> Terhubung</td>
-                                    <td><button class="btn btn-light btn-sm border px-2.5 btn-select-country">Pilih</button></td>
+                                    <td>
+                                        <div class="d-flex gap-1">
+                                            <button class="btn btn-light btn-sm border px-2.5 btn-select-country">Pilih</button>
+                                            <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-2.5 text-decoration-none" style="font-size: 0.775rem;">Detail</a>
+                                        </div>
+                                    </td>
                                 </tr>
                                 <tr class="country-row" data-country-id="SG" data-name="Singapura" data-flag="🇸🇬" data-gdp="USD 466 Miliar" data-inflation="1.9%" data-pop="5.9 Juta" data-curr="Dolar Singapura (SGD)" data-weather="31°C / Cerah" data-risk="0.08" data-risk-level="success" data-status="Terhubung">
                                     <td class="fw-bold text-dark">SG</td>
@@ -92,7 +97,12 @@
                                     <td>5.9 Juta</td>
                                     <td><span class="badge badge-success">Rendah - 0.08</span></td>
                                     <td><i class="bi bi-check-circle-fill text-success me-1"></i> Terhubung</td>
-                                    <td><button class="btn btn-light btn-sm border px-2.5 btn-select-country">Pilih</button></td>
+                                    <td>
+                                        <div class="d-flex gap-1">
+                                            <button class="btn btn-light btn-sm border px-2.5 btn-select-country">Pilih</button>
+                                            <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-2.5 text-decoration-none" style="font-size: 0.775rem;">Detail</a>
+                                        </div>
+                                    </td>
                                 </tr>
                                 <tr class="country-row" data-country-id="JP" data-name="Jepang" data-flag="🇯🇵" data-gdp="USD 4.23 Triliun" data-inflation="2.5%" data-pop="125 Juta" data-curr="Yen Jepang (JPY)" data-weather="25°C / Berawan" data-risk="2.80" data-risk-level="warning" data-status="Siaga">
                                     <td class="fw-bold text-dark">JP</td>
@@ -101,7 +111,12 @@
                                     <td>125 Juta</td>
                                     <td><span class="badge badge-warning">Sedang - 2.80</span></td>
                                     <td><i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> Siaga</td>
-                                    <td><button class="btn btn-light btn-sm border px-2.5 btn-select-country">Pilih</button></td>
+                                    <td>
+                                        <div class="d-flex gap-1">
+                                            <button class="btn btn-light btn-sm border px-2.5 btn-select-country">Pilih</button>
+                                            <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-2.5 text-decoration-none" style="font-size: 0.775rem;">Detail</a>
+                                        </div>
+                                    </td>
                                 </tr>
                                 <tr class="country-row" data-country-id="US" data-name="Amerika Serikat" data-flag="🇺🇸" data-gdp="USD 26.85 Triliun" data-inflation="3.2%" data-pop="333 Juta" data-curr="Dolar AS (USD)" data-weather="19°C / Berangin" data-risk="4.89" data-risk-level="danger" data-status="Gangguan">
                                     <td class="fw-bold text-dark">US</td>
@@ -110,7 +125,12 @@
                                     <td>333 Juta</td>
                                     <td><span class="badge badge-danger">Tinggi - 4.89</span></td>
                                     <td><i class="bi bi-x-circle-fill text-danger me-1"></i> Gangguan</td>
-                                    <td><button class="btn btn-light btn-sm border px-2.5 btn-select-country">Pilih</button></td>
+                                    <td>
+                                        <div class="d-flex gap-1">
+                                            <button class="btn btn-light btn-sm border px-2.5 btn-select-country">Pilih</button>
+                                            <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-2.5 text-decoration-none" style="font-size: 0.775rem;">Detail</a>
+                                        </div>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>

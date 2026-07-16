@@ -21,3 +21,7 @@ Route::get('/risk', [DashboardController::class, 'risk'])->name('risk');
 Route::get('/comparison', [DashboardController::class, 'comparison'])->name('comparison');
 Route::get('/watchlist', [DashboardController::class, 'watchlist'])->name('watchlist');
 Route::get('/admin', [DashboardController::class, 'admin'])->name('admin');
+
+Route::get('/countries/detail', function() {
+    return view('countries.show');
+})->name('countries.detail');
