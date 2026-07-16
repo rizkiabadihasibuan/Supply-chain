@@ -2,10 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\ActivityLog;
-use App\Models\Country;
-use App\Services\OpenMeteoService;
 use App\Services\ExchangeRateService;
+use App\Services\OpenMeteoService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -18,7 +16,7 @@ class WeatherAndCurrencyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Clear cache
         Cache::forget('open_meteo_ID');
         Cache::forget('exchange_rates_usd_base');
@@ -37,8 +35,8 @@ class WeatherAndCurrencyTest extends TestCase
                     'weather_code' => 95, // Thunderstorm
                     'wind_speed_10m' => 20.5,
                     'wind_gusts_10m' => 45.0,
-                ]
-            ], 200)
+                ],
+            ], 200),
         ]);
 
         $service = app(OpenMeteoService::class);
@@ -49,7 +47,7 @@ class WeatherAndCurrencyTest extends TestCase
         $this->assertEquals(4.5, $result['precipitation']);
         $this->assertEquals('Thunderstorm', $result['condition']);
         $this->assertEquals(20.5, $result['wind_speed']);
-        
+
         // Storm risk verification based on our formula:
         // wind_speed > 15 -> (20.5 - 15) * 1.5 = 8.25
         // wind_gusts > 30 -> (45.0 - 30) * 2.0 = 30.0
@@ -75,12 +73,12 @@ class WeatherAndCurrencyTest extends TestCase
                     'EUR' => 0.92,
                     'IDR' => 16000.00,
                     'AUD' => 1.50,
-                ]
-            ], 200)
+                ],
+            ], 200),
         ]);
 
         $service = app(ExchangeRateService::class);
-        
+
         // Fetch all rates
         $rates = $service->fetchRates();
         $this->assertNotNull($rates);

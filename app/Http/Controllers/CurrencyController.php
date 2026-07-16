@@ -27,14 +27,14 @@ class CurrencyController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => "Data kurs negara '{$country->name}' ({$country->currency_code}) berhasil diperbarui dari Exchange Rate API."
+                'message' => "Data kurs negara '{$country->name}' ({$country->currency_code}) berhasil diperbarui dari Exchange Rate API.",
             ]);
         } catch (\Exception $e) {
-            Log::error("Gagal menyelaraskan kurs negara '{$code}': " . $e->getMessage());
+            Log::error("Gagal menyelaraskan kurs negara '{$code}': ".$e->getMessage());
 
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -53,14 +53,14 @@ class CurrencyController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => "Sinkronisasi kurs seluruh negara selesai. Sukses: {$successCount}, Gagal: {$failedCount}."
+                'message' => "Sinkronisasi kurs seluruh negara selesai. Sukses: {$successCount}, Gagal: {$failedCount}.",
             ]);
         } catch (\Exception $e) {
-            Log::error("Gagal menyelaraskan kurs seluruh negara: " . $e->getMessage());
+            Log::error('Gagal menyelaraskan kurs seluruh negara: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }

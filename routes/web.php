@@ -1,9 +1,14 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\ComparisonController;
+use App\Http\Controllers\CountryController;
+use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\WeatherController;
 use Illuminate\Support\Facades\Route;
 
 // Public Landing Page
@@ -38,26 +43,26 @@ Route::middleware('auth')->group(function () {
     Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
     // Country Routes
-    Route::post('/countries/sync', [\App\Http\Controllers\CountryController::class, 'syncAll'])->name('countries.sync-all');
-    Route::post('/countries/sync-economic', [\App\Http\Controllers\CountryController::class, 'syncAllEconomic'])->name('countries.sync-all-economic');
-    Route::post('/countries/sync-weather', [\App\Http\Controllers\WeatherController::class, 'syncAll'])->name('countries.sync-all-weather');
-    Route::post('/countries/sync-currency', [\App\Http\Controllers\CurrencyController::class, 'syncAll'])->name('countries.sync-all-currency');
-    Route::get('/countries/{code}', [\App\Http\Controllers\CountryController::class, 'detail'])->name('countries.detail');
-    Route::post('/countries/{code}/sync', [\App\Http\Controllers\CountryController::class, 'sync'])->name('countries.sync');
-    Route::post('/countries/{code}/sync-economic', [\App\Http\Controllers\CountryController::class, 'syncEconomic'])->name('countries.sync-economic');
-    Route::post('/countries/{code}/sync-weather', [\App\Http\Controllers\WeatherController::class, 'sync'])->name('countries.sync-weather');
-    Route::post('/countries/{code}/sync-currency', [\App\Http\Controllers\CurrencyController::class, 'sync'])->name('countries.sync-currency');
+    Route::post('/countries/sync', [CountryController::class, 'syncAll'])->name('countries.sync-all');
+    Route::post('/countries/sync-economic', [CountryController::class, 'syncAllEconomic'])->name('countries.sync-all-economic');
+    Route::post('/countries/sync-weather', [WeatherController::class, 'syncAll'])->name('countries.sync-all-weather');
+    Route::post('/countries/sync-currency', [CurrencyController::class, 'syncAll'])->name('countries.sync-all-currency');
+    Route::get('/countries/{code}', [CountryController::class, 'detail'])->name('countries.detail');
+    Route::post('/countries/{code}/sync', [CountryController::class, 'sync'])->name('countries.sync');
+    Route::post('/countries/{code}/sync-economic', [CountryController::class, 'syncEconomic'])->name('countries.sync-economic');
+    Route::post('/countries/{code}/sync-weather', [WeatherController::class, 'sync'])->name('countries.sync-weather');
+    Route::post('/countries/{code}/sync-currency', [CurrencyController::class, 'sync'])->name('countries.sync-currency');
 
     // Comparison Routes
-    Route::get('/compare', [\App\Http\Controllers\ComparisonController::class, 'index'])->name('compare');
+    Route::get('/compare', [ComparisonController::class, 'index'])->name('compare');
 
     // Admin Specific Routes (Protected by RoleMiddleware)
     Route::middleware('role:Admin')->group(function () {
-        Route::get('/admin/dashboard', [\App\Http\Controllers\AdminController::class, 'index'])->name('admin.dashboard');
-        Route::post('/admin/users/{user}/role', [\App\Http\Controllers\AdminController::class, 'updateUserRole'])->name('admin.users.role');
-        Route::post('/admin/ports', [\App\Http\Controllers\AdminController::class, 'storePort'])->name('admin.ports.store');
-        Route::delete('/admin/ports/{port}', [\App\Http\Controllers\AdminController::class, 'destroyPort'])->name('admin.ports.destroy');
-        Route::post('/admin/articles', [\App\Http\Controllers\AdminController::class, 'storeArticle'])->name('admin.articles.store');
-        Route::delete('/admin/articles/{article}', [\App\Http\Controllers\AdminController::class, 'destroyArticle'])->name('admin.articles.destroy');
+        Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
+        Route::post('/admin/users/{user}/role', [AdminController::class, 'updateUserRole'])->name('admin.users.role');
+        Route::post('/admin/ports', [AdminController::class, 'storePort'])->name('admin.ports.store');
+        Route::delete('/admin/ports/{port}', [AdminController::class, 'destroyPort'])->name('admin.ports.destroy');
+        Route::post('/admin/articles', [AdminController::class, 'storeArticle'])->name('admin.articles.store');
+        Route::delete('/admin/articles/{article}', [AdminController::class, 'destroyArticle'])->name('admin.articles.destroy');
     });
 });

@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\Article;
 use App\Models\Country;
 use App\Models\Port;
 use App\Models\Role;
 use App\Models\User;
-use App\Models\Article;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -15,9 +15,13 @@ class AdminDashboardTest extends TestCase
     use RefreshDatabase;
 
     protected $adminUser;
+
     protected $analystUser;
+
     protected $country;
+
     protected $adminRole;
+
     protected $analystRole;
 
     protected function setUp(): void
@@ -69,7 +73,7 @@ class AdminDashboardTest extends TestCase
     {
         $response = $this->actingAs($this->analystUser)
             ->get(route('admin.dashboard'));
-        
+
         $response->assertStatus(403);
     }
 
@@ -80,7 +84,7 @@ class AdminDashboardTest extends TestCase
     {
         $response = $this->actingAs($this->adminUser)
             ->get(route('admin.dashboard'));
-        
+
         $response->assertStatus(200)
             ->assertSee('Admin Control Panel')
             ->assertSee('analyst@supplyrisk.io');
@@ -95,7 +99,7 @@ class AdminDashboardTest extends TestCase
 
         $response = $this->actingAs($this->adminUser)
             ->post(route('admin.users.role', $this->analystUser->id), [
-                'role_id' => $this->adminRole->id
+                'role_id' => $this->adminRole->id,
             ]);
 
         $response->assertRedirect();

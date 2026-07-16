@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Country;
+use App\Services\CurrencyService;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -27,7 +29,7 @@ class SyncCurrencyCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(\App\Services\CurrencyService $currencyService)
+    public function handle(CurrencyService $currencyService)
     {
         $countryCode = $this->argument('country');
         $force = $this->option('force');
@@ -39,21 +41,24 @@ class SyncCurrencyCommand extends Command
             try {
                 $country = $currencyService->syncCountryCurrency($countryCode, $force);
                 $this->info("Sukses! Data kurs negara '{$country->name}' ({$country->currency_code}: {$country->exchange_rate}) berhasil diperbarui.");
+
                 return self::SUCCESS;
             } catch (\Exception $e) {
-                $this->error("Gagal menyinkronkan data kurs negara '{$countryCode}': " . $e->getMessage());
+                $this->error("Gagal menyinkronkan data kurs negara '{$countryCode}': ".$e->getMessage());
+
                 return self::FAILURE;
             }
         }
 
         // Sync all countries
-        $countries = \App\Models\Country::all();
+        $countries = Country::all();
         if ($countries->isEmpty()) {
-            $this->warn("Tidak ada data negara di database lokal untuk disinkronkan.");
+            $this->warn('Tidak ada data negara di database lokal untuk disinkronkan.');
+
             return self::SUCCESS;
         }
 
-        $this->info("Menyinkronkan data kurs " . $countries->count() . " negara dari Exchange Rate API...");
+        $this->info('Menyinkronkan data kurs '.$countries->count().' negara dari Exchange Rate API...');
 
         $bar = $this->output->createProgressBar($countries->count());
         $bar->start();
@@ -66,6 +71,7 @@ class SyncCurrencyCommand extends Command
                 $failedCount++;
                 $this->error("\nNegara {$country->code} tidak memiliki kode mata uang.");
                 $bar->advance();
+
                 continue;
             }
 
@@ -74,14 +80,14 @@ class SyncCurrencyCommand extends Command
                 $successCount++;
             } catch (\Exception $e) {
                 $failedCount++;
-                $this->error("\nGagal menyinkronkan data kurs {$country->code}: " . $e->getMessage());
+                $this->error("\nGagal menyinkronkan data kurs {$country->code}: ".$e->getMessage());
             }
             $bar->advance();
         }
 
         $bar->finish();
-        $this->line("");
-        $this->info("Sinkronisasi data kurs massal selesai!");
+        $this->line('');
+        $this->info('Sinkronisasi data kurs massal selesai!');
         $this->info("Sukses: {$successCount}, Gagal: {$failedCount}");
 
         return $failedCount === 0 ? self::SUCCESS : self::FAILURE;

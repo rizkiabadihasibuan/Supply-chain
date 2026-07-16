@@ -4,11 +4,11 @@ namespace App\Services;
 
 use App\Models\ActivityLog;
 use App\Models\Country;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
 use Exception;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 class CountryService
@@ -21,9 +21,6 @@ class CountryService
     /**
      * Synchronize a specific country by its ISO2 or ISO3 code.
      *
-     * @param string $code
-     * @param bool $forceRefresh
-     * @return Country
      * @throws Exception
      */
     public function syncCountry(string $code, bool $forceRefresh = false): Country
@@ -42,7 +39,7 @@ class CountryService
             ->orWhere('iso3', $code)
             ->first();
 
-        if (!$forceRefresh && Cache::has($cacheKey) && $country && $country->latitude !== null) {
+        if (! $forceRefresh && Cache::has($cacheKey) && $country && $country->latitude !== null) {
             return $country;
         }
 
@@ -54,7 +51,7 @@ class CountryService
         $rawData = Cache::remember($cacheKey, self::CACHE_DURATION, function () use ($endpoint, $code, $startTime, &$responseStatus) {
             try {
                 Log::debug("Memanggil API REST Countries: {$endpoint}");
-                
+
                 // HTTP Client with timeout of 10s and retry on failure (2 times with 100ms delay)
                 $response = Http::withoutVerifying()->timeout(10)->retry(2, 100)->get($endpoint);
                 $responseStatus = $response->status();
@@ -63,13 +60,13 @@ class CountryService
 
                 $this->logApiCall($endpoint, $responseStatus, $executionTime);
 
-                if (!$response->successful()) {
+                if (! $response->successful()) {
                     Log::warning("REST Countries API returned status {$responseStatus} for country '{$code}'");
                     throw new RuntimeException("REST Countries API returned error status: {$responseStatus}");
                 }
 
                 $json = $response->json();
-                
+
                 // Validate response format
                 $this->validateResponse($json);
 
@@ -81,7 +78,7 @@ class CountryService
                 $status = $responseStatus ?? 500;
 
                 $this->logApiCall($endpoint, $status, $executionTime);
-                Log::error("Gagal mengambil data dari REST Countries API untuk '{$code}': " . $e->getMessage());
+                Log::error("Gagal mengambil data dari REST Countries API untuk '{$code}': ".$e->getMessage());
                 throw $e;
             }
         });
@@ -96,9 +93,9 @@ class CountryService
                 ->orWhere('iso3', $code)
                 ->first();
 
-            if (!$country) {
+            if (! $country) {
                 // If country is not in database, we create it using code as key
-                $country = new Country();
+                $country = new Country;
                 $country->code = strlen($code) === 2 ? $code : ($parsedData['iso2'] ?? $code);
             }
 
@@ -126,7 +123,7 @@ class CountryService
             $this->logAudit("Berhasil menyelaraskan data negara '{$country->name}' dari REST Countries API.", [
                 'country_id' => $country->id,
                 'country_code' => $country->code,
-                'fields_updated' => array_keys($parsedData)
+                'fields_updated' => array_keys($parsedData),
             ]);
 
             Log::info("Data negara '{$country->name}' ({$country->code}) berhasil disinkronisasi ke database.");
@@ -137,16 +134,13 @@ class CountryService
 
     /**
      * Synchronize all registered countries in the database.
-     *
-     * @param bool $forceRefresh
-     * @return array
      */
     public function syncAllCountries(bool $forceRefresh = false): array
     {
         $countries = Country::all();
         $results = [
             'success' => [],
-            'failed' => []
+            'failed' => [],
         ];
 
         foreach ($countries as $country) {
@@ -154,15 +148,15 @@ class CountryService
                 $this->syncCountry($country->code, $forceRefresh);
                 $results['success'][] = $country->code;
             } catch (Exception $e) {
-                Log::error("Gagal menyinkronkan negara '{$country->code}' selama syncAll: " . $e->getMessage());
+                Log::error("Gagal menyinkronkan negara '{$country->code}' selama syncAll: ".$e->getMessage());
                 $results['failed'][] = [
                     'code' => $country->code,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ];
             }
         }
 
-        Log::info("Sinkronisasi semua negara selesai. Sukses: " . count($results['success']) . ", Gagal: " . count($results['failed']));
+        Log::info('Sinkronisasi semua negara selesai. Sukses: '.count($results['success']).', Gagal: '.count($results['failed']));
 
         return $results;
     }
@@ -170,13 +164,14 @@ class CountryService
     /**
      * Validate REST Countries API response.
      *
-     * @param mixed $response
+     * @param  mixed  $response
+     *
      * @throws RuntimeException
      */
     protected function validateResponse($response): void
     {
-        if (!is_array($response) || empty($response)) {
-            throw new RuntimeException("Respon dari REST Countries API kosong atau berformat salah.");
+        if (! is_array($response) || empty($response)) {
+            throw new RuntimeException('Respon dari REST Countries API kosong atau berformat salah.');
         }
 
         $countryData = $response[0];
@@ -188,10 +183,6 @@ class CountryService
 
     /**
      * Parse REST Countries API raw response data.
-     *
-     * @param array $data
-     * @param string $requestedCode
-     * @return array
      */
     protected function parseResponse(array $data, string $requestedCode): array
     {
@@ -200,7 +191,7 @@ class CountryService
         $currencyName = null;
         $currencySymbol = null;
 
-        if (!empty($data['currencies']) && is_array($data['currencies'])) {
+        if (! empty($data['currencies']) && is_array($data['currencies'])) {
             $currencyCode = array_key_first($data['currencies']);
             if ($currencyCode) {
                 $currencyName = $data['currencies'][$currencyCode]['name'] ?? null;
@@ -210,24 +201,24 @@ class CountryService
 
         // Extract languages
         $languages = null;
-        if (!empty($data['languages']) && is_array($data['languages'])) {
+        if (! empty($data['languages']) && is_array($data['languages'])) {
             $languages = implode(', ', array_values($data['languages']));
         }
 
         // Extract coordinates (latitude and longitude)
         $latitude = null;
         $longitude = null;
-        if (!empty($data['capitalInfo']['latlng']) && is_array($data['capitalInfo']['latlng']) && count($data['capitalInfo']['latlng']) >= 2) {
+        if (! empty($data['capitalInfo']['latlng']) && is_array($data['capitalInfo']['latlng']) && count($data['capitalInfo']['latlng']) >= 2) {
             $latitude = $data['capitalInfo']['latlng'][0];
             $longitude = $data['capitalInfo']['latlng'][1];
-        } elseif (!empty($data['latlng']) && is_array($data['latlng']) && count($data['latlng']) >= 2) {
+        } elseif (! empty($data['latlng']) && is_array($data['latlng']) && count($data['latlng']) >= 2) {
             $latitude = $data['latlng'][0];
             $longitude = $data['latlng'][1];
         }
 
         // Extract capital
         $capital = null;
-        if (!empty($data['capital']) && is_array($data['capital'])) {
+        if (! empty($data['capital']) && is_array($data['capital'])) {
             $capital = $data['capital'][0];
         }
 
@@ -236,7 +227,7 @@ class CountryService
 
         // Extract timezones
         $timezone = null;
-        if (!empty($data['timezones']) && is_array($data['timezones'])) {
+        if (! empty($data['timezones']) && is_array($data['timezones'])) {
             $timezone = implode(', ', $data['timezones']);
         }
 
@@ -262,17 +253,13 @@ class CountryService
 
     /**
      * Log API request to database activity_logs.
-     *
-     * @param string $endpoint
-     * @param int $status
-     * @param float $executionTime
      */
     protected function logApiCall(string $endpoint, int $status, float $executionTime): void
     {
         try {
             ActivityLog::create([
                 'log_type' => 'api_request',
-                'description' => "Panggilan REST Countries API untuk kode " . basename($endpoint),
+                'description' => 'Panggilan REST Countries API untuk kode '.basename($endpoint),
                 'metadata' => [
                     'api_name' => 'REST Countries API',
                     'endpoint' => $endpoint,
@@ -281,15 +268,12 @@ class CountryService
                 ],
             ]);
         } catch (Exception $e) {
-            Log::error("Gagal mencatat log panggilan API ke database: " . $e->getMessage());
+            Log::error('Gagal mencatat log panggilan API ke database: '.$e->getMessage());
         }
     }
 
     /**
      * Log audit trail to activity_logs.
-     *
-     * @param string $description
-     * @param array|null $metadata
      */
     protected function logAudit(string $description, ?array $metadata = null): void
     {
@@ -300,7 +284,7 @@ class CountryService
                 'metadata' => $metadata,
             ]);
         } catch (Exception $e) {
-            Log::error("Gagal mencatat log audit ke database: " . $e->getMessage());
+            Log::error('Gagal mencatat log audit ke database: '.$e->getMessage());
         }
     }
 }

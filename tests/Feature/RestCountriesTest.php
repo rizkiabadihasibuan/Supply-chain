@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\ApiRequestLog;
 use App\Models\Country;
 use App\Models\Role;
 use App\Models\User;
@@ -17,7 +16,9 @@ class RestCountriesTest extends TestCase
     use RefreshDatabase;
 
     protected $user;
+
     protected $country;
+
     protected $mockResponseData;
 
     protected function setUp(): void
@@ -26,10 +27,10 @@ class RestCountriesTest extends TestCase
 
         // Seed roles & permissions
         $this->artisan('db:seed', ['--class' => 'RoleSeeder']);
-        
+
         $analystRole = Role::where('name', 'Analyst')->first();
         $this->user = User::factory()->create([
-            'role_id' => $analystRole->id
+            'role_id' => $analystRole->id,
         ]);
 
         // Create a pilot country
@@ -54,21 +55,21 @@ class RestCountriesTest extends TestCase
                 'region' => 'Asia',
                 'population' => 277534122,
                 'currencies' => [
-                    'IDR' => ['name' => 'Indonesian rupiah']
+                    'IDR' => ['name' => 'Indonesian rupiah'],
                 ],
                 'languages' => [
-                    'ind' => 'Indonesian'
+                    'ind' => 'Indonesian',
                 ],
                 'flags' => [
                     'svg' => 'https://flagcdn.com/id.svg',
-                    'png' => 'https://flagcdn.com/w320/id.png'
+                    'png' => 'https://flagcdn.com/w320/id.png',
                 ],
                 'capital' => ['Jakarta'],
                 'latlng' => [-6.0, 120.0],
                 'capitalInfo' => [
-                    'latlng' => [-6.2147, 106.8451]
-                ]
-            ]
+                    'latlng' => [-6.2147, 106.8451],
+                ],
+            ],
         ];
     }
 
@@ -78,7 +79,7 @@ class RestCountriesTest extends TestCase
     public function test_service_can_fetch_and_parse_country_data(): void
     {
         Http::fake([
-            'https://restcountries.com/v3.1/alpha/ID' => Http::response($this->mockResponseData, 200)
+            'https://restcountries.com/v3.1/alpha/ID' => Http::response($this->mockResponseData, 200),
         ]);
 
         $service = app(RestCountriesService::class);
@@ -108,11 +109,11 @@ class RestCountriesTest extends TestCase
     public function test_service_caches_responses(): void
     {
         Http::fake([
-            'https://restcountries.com/v3.1/alpha/ID' => Http::response($this->mockResponseData, 200)
+            'https://restcountries.com/v3.1/alpha/ID' => Http::response($this->mockResponseData, 200),
         ]);
 
         $service = app(RestCountriesService::class);
-        
+
         // Clear cache first
         Cache::forget('rest_countries_ID');
 
@@ -140,12 +141,12 @@ class RestCountriesTest extends TestCase
                     'weather_code' => 0,
                     'wind_speed_10m' => 5.0,
                     'wind_gusts_10m' => 10.0,
-                ]
+                ],
             ], 200),
             'https://open.er-api.com/v6/latest/USD' => Http::response([
                 'rates' => [
-                    'IDR' => 16000.00
-                ]
+                    'IDR' => 16000.00,
+                ],
             ], 200),
         ]);
 
@@ -158,8 +159,8 @@ class RestCountriesTest extends TestCase
                 'data' => [
                     'name' => 'Indonesia',
                     'region' => 'Asia',
-                    'population' => 277534122
-                ]
+                    'population' => 277534122,
+                ],
             ]);
     }
 
@@ -178,12 +179,12 @@ class RestCountriesTest extends TestCase
                     'weather_code' => 0,
                     'wind_speed_10m' => 5.0,
                     'wind_gusts_10m' => 10.0,
-                ]
+                ],
             ], 200),
             'https://open.er-api.com/v6/latest/USD' => Http::response([
                 'rates' => [
-                    'IDR' => 16000.00
-                ]
+                    'IDR' => 16000.00,
+                ],
             ], 200),
         ]);
 
@@ -195,7 +196,7 @@ class RestCountriesTest extends TestCase
         $response->assertStatus(200)
             ->assertJson([
                 'success' => true,
-                'message' => "Data lokal negara 'Indonesia' berhasil disinkronisasikan dengan REST Countries, World Bank, dan Open-Meteo API."
+                'message' => "Data lokal negara 'Indonesia' berhasil disinkronisasikan dengan REST Countries, World Bank, dan Open-Meteo API.",
             ]);
 
         // Reload from DB and assert updated population and region
@@ -213,12 +214,12 @@ class RestCountriesTest extends TestCase
     public function test_service_gracefully_handles_api_failure(): void
     {
         Http::fake([
-            'https://restcountries.com/v3.1/alpha/ID' => Http::response('Server Error', 500)
+            'https://restcountries.com/v3.1/alpha/ID' => Http::response('Server Error', 500),
         ]);
 
         $service = app(RestCountriesService::class);
         Cache::forget('rest_countries_ID');
-        
+
         $result = $service->fetchByCode('ID');
 
         $this->assertNull($result);

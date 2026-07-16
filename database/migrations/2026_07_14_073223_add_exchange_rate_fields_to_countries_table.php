@@ -27,7 +27,7 @@ return new class extends Migration
             $table->dropColumn([
                 'exchange_rate',
                 'exchange_rate_base',
-                'exchange_rate_history'
+                'exchange_rate_history',
             ]);
         });
     }

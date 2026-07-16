@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\Models\ActivityLog;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class OpenMeteoService
@@ -12,11 +12,6 @@ class OpenMeteoService
     /**
      * Fetch current weather for given coordinates.
      * Caches responses for 24 hours (86400 seconds) and logs requests.
-     *
-     * @param string $countryCode
-     * @param float $latitude
-     * @param float $longitude
-     * @return array|null
      */
     public function fetchWeather(string $countryCode, float $latitude, float $longitude): ?array
     {
@@ -45,6 +40,7 @@ class OpenMeteoService
                 }
 
                 Log::warning("Open-Meteo API returned status code {$responseStatus} for country {$countryCode} at coordinates [{$latitude}, {$longitude}].");
+
                 return null;
 
             } catch (\Exception $e) {
@@ -52,7 +48,8 @@ class OpenMeteoService
                 $executionTime = round(($endTime - $startTime) * 1000, 2);
 
                 $this->logApiCall($endpoint, 500, $executionTime);
-                Log::error("Failed to connect to Open-Meteo API: " . $e->getMessage());
+                Log::error('Failed to connect to Open-Meteo API: '.$e->getMessage());
+
                 return null;
             }
         });
@@ -60,17 +57,13 @@ class OpenMeteoService
 
     /**
      * Log API request details to activity logs.
-     *
-     * @param string $endpoint
-     * @param int $status
-     * @param float $executionTime
      */
     protected function logApiCall(string $endpoint, int $status, float $executionTime): void
     {
         try {
             ActivityLog::create([
                 'log_type' => 'api_request',
-                'description' => "Panggilan Open-Meteo API untuk cuaca koordinat",
+                'description' => 'Panggilan Open-Meteo API untuk cuaca koordinat',
                 'metadata' => [
                     'api_name' => 'Open-Meteo API',
                     'endpoint' => $endpoint,
@@ -79,15 +72,12 @@ class OpenMeteoService
                 ],
             ]);
         } catch (\Exception $e) {
-            Log::error("Failed to write API log for Open-Meteo: " . $e->getMessage());
+            Log::error('Failed to write API log for Open-Meteo: '.$e->getMessage());
         }
     }
 
     /**
      * Parse weather response and calculate storm risk.
-     *
-     * @param array $current
-     * @return array
      */
     protected function parseResponse(array $current): array
     {
@@ -129,9 +119,6 @@ class OpenMeteoService
 
     /**
      * Map WMO code to weather condition string.
-     *
-     * @param int $code
-     * @return string
      */
     protected function mapWeatherCode(int $code): string
     {

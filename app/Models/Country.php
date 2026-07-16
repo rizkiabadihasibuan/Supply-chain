@@ -2,33 +2,33 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
-    'code', 
-    'name', 
+    'code',
+    'name',
     'iso2',
     'iso3',
     'flag_url',
-    'currency_code', 
-    'currency_name', 
+    'currency_code',
+    'currency_name',
     'currency_symbol',
-    'region', 
+    'region',
     'subregion',
     'capital',
-    'language', 
+    'language',
     'latitude',
     'longitude',
     'timezone',
-    'gdp', 
-    'inflation', 
-    'population', 
+    'gdp',
+    'inflation',
+    'population',
     'area',
     'export_value',
     'import_value',
-    'current_weather_temp', 
+    'current_weather_temp',
     'current_weather_condition',
     'current_weather_wind_speed',
     'current_weather_precipitation',
@@ -53,6 +53,7 @@ class Country extends Model
         'weather_forecast_7_days' => 'array',
         'exchange_rate_history' => 'array',
     ];
+
     /**
      * Get the ports in this country.
      */

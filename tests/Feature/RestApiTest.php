@@ -16,7 +16,9 @@ class RestApiTest extends TestCase
     use RefreshDatabase;
 
     protected $user;
+
     protected $country;
+
     protected $port;
 
     protected function setUp(): void
@@ -29,7 +31,7 @@ class RestApiTest extends TestCase
 
         $analystRole = Role::where('name', 'Analyst')->first();
         $this->user = User::factory()->create([
-            'role_id' => $analystRole->id
+            'role_id' => $analystRole->id,
         ]);
 
         // Create country
@@ -83,9 +85,9 @@ class RestApiTest extends TestCase
                         'code',
                         'name',
                         'region',
-                        'latest_risk'
-                    ]
-                ]
+                        'latest_risk',
+                    ],
+                ],
             ]);
     }
 
@@ -97,9 +99,9 @@ class RestApiTest extends TestCase
         Http::fake([
             'https://gnews.io/api/v4/search*' => Http::response([
                 'articles' => [
-                    ['title' => 'Germany trade crisis', 'description' => 'Disruption and delay.']
-                ]
-            ], 200)
+                    ['title' => 'Germany trade crisis', 'description' => 'Disruption and delay.'],
+                ],
+            ], 200),
         ]);
 
         $response = $this->actingAs($this->user)
@@ -112,8 +114,8 @@ class RestApiTest extends TestCase
                     'country_code' => 'DE',
                     'country_name' => 'Germany',
                     'weather_risk' => 10.0,
-                    'risk_level' => 'Medium'
-                ]
+                    'risk_level' => 'Medium',
+                ],
             ]);
     }
 
@@ -145,9 +147,9 @@ class RestApiTest extends TestCase
                     [
                         'title' => 'German economic recovery stable', // positive: recovery, stable
                         'description' => 'Growth reported.', // positive: growth
-                    ]
-                ]
-            ], 200)
+                    ],
+                ],
+            ], 200),
         ]);
 
         $response = $this->actingAs($this->user)
@@ -162,8 +164,8 @@ class RestApiTest extends TestCase
                         'positive' => 100.0,
                         'neutral' => 0.0,
                         'negative' => 0.0,
-                    ]
-                ]
+                    ],
+                ],
             ]);
     }
 
@@ -175,9 +177,9 @@ class RestApiTest extends TestCase
         Http::fake([
             'https://open.er-api.com/v6/latest/USD' => Http::response([
                 'rates' => [
-                    'EUR' => 0.92
-                ]
-            ], 200)
+                    'EUR' => 0.92,
+                ],
+            ], 200),
         ]);
 
         $response = $this->actingAs($this->user)
@@ -189,8 +191,8 @@ class RestApiTest extends TestCase
                 'data' => [
                     'currency_code' => 'EUR',
                     'current_rate' => 0.92,
-                    'volatility' => 1.25
-                ]
+                    'volatility' => 1.25,
+                ],
             ])
             ->assertJsonCount(7, 'data.history');
     }
@@ -207,12 +209,12 @@ class RestApiTest extends TestCase
         $toggleResponse->assertStatus(200)
             ->assertJson([
                 'success' => true,
-                'attached' => true
+                'attached' => true,
             ]);
 
         $this->assertDatabaseHas('watchlists', [
             'user_id' => $this->user->id,
-            'country_id' => $this->country->id
+            'country_id' => $this->country->id,
         ]);
 
         // 2. Fetch watchlist
@@ -222,7 +224,7 @@ class RestApiTest extends TestCase
         $listResponse->assertStatus(200)
             ->assertJsonFragment([
                 'code' => 'DE',
-                'name' => 'Germany'
+                'name' => 'Germany',
             ]);
 
         // 3. Toggle again to remove it
@@ -232,12 +234,12 @@ class RestApiTest extends TestCase
         $toggleResponse2->assertStatus(200)
             ->assertJson([
                 'success' => true,
-                'attached' => false
+                'attached' => false,
             ]);
 
         $this->assertDatabaseMissing('watchlists', [
             'user_id' => $this->user->id,
-            'country_id' => $this->country->id
+            'country_id' => $this->country->id,
         ]);
     }
 }

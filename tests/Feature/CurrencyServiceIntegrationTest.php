@@ -7,9 +7,9 @@ use App\Models\Role;
 use App\Models\User;
 use App\Services\CurrencyService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
 class CurrencyServiceIntegrationTest extends TestCase
@@ -17,7 +17,9 @@ class CurrencyServiceIntegrationTest extends TestCase
     use RefreshDatabase;
 
     protected $user;
+
     protected $country;
+
     protected $mockRatesData;
 
     protected function setUp(): void
@@ -29,7 +31,7 @@ class CurrencyServiceIntegrationTest extends TestCase
 
         $analystRole = Role::where('name', 'Analyst')->first();
         $this->user = User::factory()->create([
-            'role_id' => $analystRole->id
+            'role_id' => $analystRole->id,
         ]);
 
         // Create country (Germany - EUR)
@@ -49,7 +51,7 @@ class CurrencyServiceIntegrationTest extends TestCase
                 'EUR' => 0.92,
                 'IDR' => 16200.0,
                 'GBP' => 0.78,
-            ]
+            ],
         ];
     }
 
@@ -59,7 +61,7 @@ class CurrencyServiceIntegrationTest extends TestCase
     public function test_service_can_sync_currency_rates(): void
     {
         Http::fake([
-            'https://open.er-api.com/v6/latest/USD' => Http::response($this->mockRatesData, 200)
+            'https://open.er-api.com/v6/latest/USD' => Http::response($this->mockRatesData, 200),
         ]);
 
         $service = app(CurrencyService::class);
@@ -86,7 +88,7 @@ class CurrencyServiceIntegrationTest extends TestCase
     public function test_service_caches_rates(): void
     {
         Http::fake([
-            'https://open.er-api.com/v6/latest/USD' => Http::response($this->mockRatesData, 200)
+            'https://open.er-api.com/v6/latest/USD' => Http::response($this->mockRatesData, 200),
         ]);
 
         $service = app(CurrencyService::class);
@@ -107,7 +109,7 @@ class CurrencyServiceIntegrationTest extends TestCase
     public function test_service_sync_all_method(): void
     {
         Http::fake([
-            'https://open.er-api.com/v6/latest/USD' => Http::response($this->mockRatesData, 200)
+            'https://open.er-api.com/v6/latest/USD' => Http::response($this->mockRatesData, 200),
         ]);
 
         $service = app(CurrencyService::class);
@@ -115,10 +117,10 @@ class CurrencyServiceIntegrationTest extends TestCase
 
         $this->assertContains('DE', $results['success']);
         $this->assertEmpty($results['failed']);
-        
+
         $this->assertDatabaseHas('countries', [
             'code' => 'DE',
-            'exchange_rate' => 0.92
+            'exchange_rate' => 0.92,
         ]);
     }
 
@@ -128,18 +130,18 @@ class CurrencyServiceIntegrationTest extends TestCase
     public function test_artisan_command_syncs_currency(): void
     {
         Http::fake([
-            'https://open.er-api.com/v6/latest/USD' => Http::response($this->mockRatesData, 200)
+            'https://open.er-api.com/v6/latest/USD' => Http::response($this->mockRatesData, 200),
         ]);
 
         $exitCode = Artisan::call('currency:sync', [
             'country' => 'DE',
-            '--force' => true
+            '--force' => true,
         ]);
 
         $this->assertEquals(0, $exitCode);
         $this->assertDatabaseHas('countries', [
             'code' => 'DE',
-            'exchange_rate' => 0.92
+            'exchange_rate' => 0.92,
         ]);
     }
 
@@ -149,7 +151,7 @@ class CurrencyServiceIntegrationTest extends TestCase
     public function test_controller_sync_endpoints(): void
     {
         Http::fake([
-            'https://open.er-api.com/v6/latest/USD' => Http::response($this->mockRatesData, 200)
+            'https://open.er-api.com/v6/latest/USD' => Http::response($this->mockRatesData, 200),
         ]);
 
         // Single sync endpoint
@@ -159,7 +161,7 @@ class CurrencyServiceIntegrationTest extends TestCase
         $response->assertStatus(200)
             ->assertJson([
                 'success' => true,
-                'message' => "Data kurs negara 'Germany' (EUR) berhasil diperbarui dari Exchange Rate API."
+                'message' => "Data kurs negara 'Germany' (EUR) berhasil diperbarui dari Exchange Rate API.",
             ]);
 
         // Mass sync endpoint
@@ -169,7 +171,7 @@ class CurrencyServiceIntegrationTest extends TestCase
         $responseAll->assertStatus(200)
             ->assertJson([
                 'success' => true,
-                'message' => "Sinkronisasi kurs seluruh negara selesai. Sukses: 1, Gagal: 0."
+                'message' => 'Sinkronisasi kurs seluruh negara selesai. Sukses: 1, Gagal: 0.',
             ]);
     }
 }

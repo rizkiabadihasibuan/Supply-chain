@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\Models\ActivityLog;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class RestCountriesService
@@ -12,9 +12,6 @@ class RestCountriesService
     /**
      * Fetch country details by ISO 3166-1 alpha-2 or alpha-3 code.
      * Includes caching and request logging.
-     *
-     * @param string $code
-     * @return array|null
      */
     public function fetchByCode(string $code): ?array
     {
@@ -39,23 +36,25 @@ class RestCountriesService
 
                 if ($response->successful()) {
                     $data = $response->json();
-                    
-                    if (!empty($data) && is_array($data)) {
+
+                    if (! empty($data) && is_array($data)) {
                         return $this->parseResponse($data[0]);
                     }
                 }
 
                 Log::warning("REST Countries API returned status code {$responseStatus} for code {$code}.");
+
                 return null;
 
             } catch (\Exception $e) {
                 $endTime = microtime(true);
                 $executionTime = round(($endTime - $startTime) * 1000, 2);
-                
+
                 // Log failed API call with 500 status code
                 $this->logApiCall($endpoint, 500, $executionTime);
-                
-                Log::error("Failed to connect to REST Countries API: " . $e->getMessage());
+
+                Log::error('Failed to connect to REST Countries API: '.$e->getMessage());
+
                 return null;
             }
         });
@@ -63,17 +62,13 @@ class RestCountriesService
 
     /**
      * Log API request details to database.
-     *
-     * @param string $endpoint
-     * @param int $status
-     * @param float $executionTime
      */
     protected function logApiCall(string $endpoint, int $status, float $executionTime): void
     {
         try {
             ActivityLog::create([
                 'log_type' => 'api_request',
-                'description' => "Panggilan REST Countries API untuk kode " . basename($endpoint),
+                'description' => 'Panggilan REST Countries API untuk kode '.basename($endpoint),
                 'metadata' => [
                     'api_name' => 'REST Countries API',
                     'endpoint' => $endpoint,
@@ -82,15 +77,12 @@ class RestCountriesService
                 ],
             ]);
         } catch (\Exception $e) {
-            Log::error("Failed to write API log: " . $e->getMessage());
+            Log::error('Failed to write API log: '.$e->getMessage());
         }
     }
 
     /**
      * Parse REST Countries API raw JSON format into our platform's structure.
-     *
-     * @param array $countryData
-     * @return array
      */
     protected function parseResponse(array $countryData): array
     {
@@ -98,7 +90,7 @@ class RestCountriesService
         $currencyCode = 'N/A';
         $currencyName = 'N/A';
         $currencySymbol = 'N/A';
-        if (!empty($countryData['currencies']) && is_array($countryData['currencies'])) {
+        if (! empty($countryData['currencies']) && is_array($countryData['currencies'])) {
             $currencyCode = array_key_first($countryData['currencies']);
             if ($currencyCode) {
                 $currencyName = $countryData['currencies'][$currencyCode]['name'] ?? 'N/A';
@@ -108,25 +100,25 @@ class RestCountriesService
 
         // Extract languages
         $languagesList = [];
-        if (!empty($countryData['languages']) && is_array($countryData['languages'])) {
+        if (! empty($countryData['languages']) && is_array($countryData['languages'])) {
             $languagesList = array_values($countryData['languages']);
         }
-        $language = !empty($languagesList) ? implode(', ', $languagesList) : 'N/A';
+        $language = ! empty($languagesList) ? implode(', ', $languagesList) : 'N/A';
 
         // Extract coordinates
         $latitude = null;
         $longitude = null;
-        if (!empty($countryData['capitalInfo']['latlng']) && is_array($countryData['capitalInfo']['latlng']) && count($countryData['capitalInfo']['latlng']) >= 2) {
+        if (! empty($countryData['capitalInfo']['latlng']) && is_array($countryData['capitalInfo']['latlng']) && count($countryData['capitalInfo']['latlng']) >= 2) {
             $latitude = $countryData['capitalInfo']['latlng'][0];
             $longitude = $countryData['capitalInfo']['latlng'][1];
-        } elseif (!empty($countryData['latlng']) && is_array($countryData['latlng']) && count($countryData['latlng']) >= 2) {
+        } elseif (! empty($countryData['latlng']) && is_array($countryData['latlng']) && count($countryData['latlng']) >= 2) {
             $latitude = $countryData['latlng'][0];
             $longitude = $countryData['latlng'][1];
         }
 
         // Extract timezone
         $timezone = 'N/A';
-        if (!empty($countryData['timezones']) && is_array($countryData['timezones'])) {
+        if (! empty($countryData['timezones']) && is_array($countryData['timezones'])) {
             $timezone = implode(', ', $countryData['timezones']);
         }
 
@@ -143,7 +135,7 @@ class RestCountriesService
             'currency_symbol' => $currencySymbol,
             'language' => $language,
             'flag_url' => $countryData['flags']['svg'] ?? ($countryData['flags']['png'] ?? null),
-            'capital' => !empty($countryData['capital']) ? $countryData['capital'][0] : 'N/A',
+            'capital' => ! empty($countryData['capital']) ? $countryData['capital'][0] : 'N/A',
             'latitude' => $latitude,
             'longitude' => $longitude,
             'timezone' => $timezone,

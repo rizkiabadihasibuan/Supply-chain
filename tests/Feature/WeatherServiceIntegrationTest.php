@@ -7,9 +7,9 @@ use App\Models\Role;
 use App\Models\User;
 use App\Services\WeatherService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
 class WeatherServiceIntegrationTest extends TestCase
@@ -17,7 +17,9 @@ class WeatherServiceIntegrationTest extends TestCase
     use RefreshDatabase;
 
     protected $user;
+
     protected $country;
+
     protected $mockWeatherData;
 
     protected function setUp(): void
@@ -29,7 +31,7 @@ class WeatherServiceIntegrationTest extends TestCase
 
         $analystRole = Role::where('name', 'Analyst')->first();
         $this->user = User::factory()->create([
-            'role_id' => $analystRole->id
+            'role_id' => $analystRole->id,
         ]);
 
         // Create country
@@ -59,7 +61,7 @@ class WeatherServiceIntegrationTest extends TestCase
                 'temperature_2m_max' => [25.0, 27.0],
                 'temperature_2m_min' => [15.0, 16.0],
                 'precipitation_sum' => [1.0, 0.0],
-            ]
+            ],
         ];
     }
 
@@ -69,7 +71,7 @@ class WeatherServiceIntegrationTest extends TestCase
     public function test_service_can_sync_weather_data_into_local_database(): void
     {
         Http::fake([
-            'https://api.open-meteo.com/v1/forecast*' => Http::response($this->mockWeatherData, 200)
+            'https://api.open-meteo.com/v1/forecast*' => Http::response($this->mockWeatherData, 200),
         ]);
 
         $service = app(WeatherService::class);
@@ -99,7 +101,7 @@ class WeatherServiceIntegrationTest extends TestCase
     public function test_service_caches_weather_responses(): void
     {
         Http::fake([
-            'https://api.open-meteo.com/v1/forecast*' => Http::response($this->mockWeatherData, 200)
+            'https://api.open-meteo.com/v1/forecast*' => Http::response($this->mockWeatherData, 200),
         ]);
 
         $service = app(WeatherService::class);
@@ -120,7 +122,7 @@ class WeatherServiceIntegrationTest extends TestCase
     public function test_service_throws_exception_on_invalid_or_null_weather(): void
     {
         Http::fake([
-            'https://api.open-meteo.com/v1/forecast*' => Http::response([], 200)
+            'https://api.open-meteo.com/v1/forecast*' => Http::response([], 200),
         ]);
 
         $service = app(WeatherService::class);
@@ -135,18 +137,18 @@ class WeatherServiceIntegrationTest extends TestCase
     public function test_artisan_command_syncs_weather_data(): void
     {
         Http::fake([
-            'https://api.open-meteo.com/v1/forecast*' => Http::response($this->mockWeatherData, 200)
+            'https://api.open-meteo.com/v1/forecast*' => Http::response($this->mockWeatherData, 200),
         ]);
 
         $exitCode = Artisan::call('weather:sync', [
             'country' => 'DE',
-            '--force' => true
+            '--force' => true,
         ]);
 
         $this->assertEquals(0, $exitCode);
         $this->assertDatabaseHas('countries', [
             'code' => 'DE',
-            'current_weather_temp' => 22.5
+            'current_weather_temp' => 22.5,
         ]);
     }
 
@@ -156,7 +158,7 @@ class WeatherServiceIntegrationTest extends TestCase
     public function test_controller_sync_endpoints(): void
     {
         Http::fake([
-            'https://api.open-meteo.com/v1/forecast*' => Http::response($this->mockWeatherData, 200)
+            'https://api.open-meteo.com/v1/forecast*' => Http::response($this->mockWeatherData, 200),
         ]);
 
         // Single sync endpoint
@@ -166,7 +168,7 @@ class WeatherServiceIntegrationTest extends TestCase
         $response->assertStatus(200)
             ->assertJson([
                 'success' => true,
-                'message' => "Data cuaca negara 'Germany' berhasil diperbarui dari Open Meteo API."
+                'message' => "Data cuaca negara 'Germany' berhasil diperbarui dari Open Meteo API.",
             ]);
 
         // Mass sync endpoint
@@ -176,7 +178,7 @@ class WeatherServiceIntegrationTest extends TestCase
         $responseAll->assertStatus(200)
             ->assertJson([
                 'success' => true,
-                'message' => "Sinkronisasi cuaca seluruh negara selesai. Sukses: 1, Gagal: 0."
+                'message' => 'Sinkronisasi cuaca seluruh negara selesai. Sukses: 1, Gagal: 0.',
             ]);
     }
 }

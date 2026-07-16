@@ -2,16 +2,16 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\SyncEconomicDataJob;
 use App\Models\Country;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\WorldBankService;
-use App\Jobs\SyncEconomicDataJob;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
 class WorldBankServiceIntegrationTest extends TestCase
@@ -19,11 +19,17 @@ class WorldBankServiceIntegrationTest extends TestCase
     use RefreshDatabase;
 
     protected $user;
+
     protected $country;
+
     protected $mockGdpData;
+
     protected $mockInflationData;
+
     protected $mockPopulationData;
+
     protected $mockExportData;
+
     protected $mockImportData;
 
     protected function setUp(): void
@@ -35,7 +41,7 @@ class WorldBankServiceIntegrationTest extends TestCase
 
         $analystRole = Role::where('name', 'Analyst')->first();
         $this->user = User::factory()->create([
-            'role_id' => $analystRole->id
+            'role_id' => $analystRole->id,
         ]);
 
         // Create country
@@ -103,7 +109,7 @@ class WorldBankServiceIntegrationTest extends TestCase
         ]);
 
         $service = app(WorldBankService::class);
-        
+
         // Clear caches
         Cache::forget('world_bank_de_gdp');
         Cache::forget('world_bank_de_inflation');
@@ -126,7 +132,7 @@ class WorldBankServiceIntegrationTest extends TestCase
     public function test_service_throws_exception_on_invalid_or_null_metrics(): void
     {
         Http::fake([
-            'http://api.worldbank.org/v2/country/de/indicator/*' => Http::response([[], []], 200)
+            'http://api.worldbank.org/v2/country/de/indicator/*' => Http::response([[], []], 200),
         ]);
 
         $service = app(WorldBankService::class);
@@ -150,13 +156,13 @@ class WorldBankServiceIntegrationTest extends TestCase
 
         $exitCode = Artisan::call('economic:sync', [
             'country' => 'DE',
-            '--force' => true
+            '--force' => true,
         ]);
 
         $this->assertEquals(0, $exitCode);
         $this->assertDatabaseHas('countries', [
             'code' => 'DE',
-            'gdp' => 4456189000000
+            'gdp' => 4456189000000,
         ]);
     }
 
@@ -169,7 +175,7 @@ class WorldBankServiceIntegrationTest extends TestCase
 
         $exitCode = Artisan::call('economic:sync', [
             'country' => 'DE',
-            '--queue' => true
+            '--queue' => true,
         ]);
 
         $this->assertEquals(0, $exitCode);
@@ -198,7 +204,7 @@ class WorldBankServiceIntegrationTest extends TestCase
         $response->assertStatus(200)
             ->assertJson([
                 'success' => true,
-                'message' => "Data ekonomi negara 'Germany' berhasil disinkronisasikan dengan World Bank API."
+                'message' => "Data ekonomi negara 'Germany' berhasil disinkronisasikan dengan World Bank API.",
             ]);
 
         // Mass sync endpoint
@@ -208,7 +214,7 @@ class WorldBankServiceIntegrationTest extends TestCase
         $responseAll->assertStatus(200)
             ->assertJson([
                 'success' => true,
-                'message' => "Sinkronisasi data ekonomi seluruh negara selesai. Sukses: 1, Gagal: 0."
+                'message' => 'Sinkronisasi data ekonomi seluruh negara selesai. Sukses: 1, Gagal: 0.',
             ]);
     }
 }

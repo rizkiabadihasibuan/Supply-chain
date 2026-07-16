@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\SyncCountryJob;
 use App\Models\Country;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\CountryService;
-use App\Jobs\SyncCountryJob;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -18,7 +18,9 @@ class CountryServiceTest extends TestCase
     use RefreshDatabase;
 
     protected $user;
+
     protected $country;
+
     protected $mockResponseData;
 
     protected function setUp(): void
@@ -30,7 +32,7 @@ class CountryServiceTest extends TestCase
 
         $analystRole = Role::where('name', 'Analyst')->first();
         $this->user = User::factory()->create([
-            'role_id' => $analystRole->id
+            'role_id' => $analystRole->id,
         ]);
 
         // Create initial pilot country
@@ -57,25 +59,25 @@ class CountryServiceTest extends TestCase
                 'currencies' => [
                     'EUR' => [
                         'name' => 'Euro',
-                        'symbol' => '€'
-                    ]
+                        'symbol' => '€',
+                    ],
                 ],
                 'languages' => [
-                    'deu' => 'German'
+                    'deu' => 'German',
                 ],
                 'flags' => [
                     'png' => 'https://flagcdn.com/w320/de.png',
-                    'svg' => 'https://flagcdn.com/de.svg'
+                    'svg' => 'https://flagcdn.com/de.svg',
                 ],
                 'capital' => ['Berlin'],
                 'latlng' => [51.0, 9.0],
                 'capitalInfo' => [
-                    'latlng' => [52.52, 13.40]
+                    'latlng' => [52.52, 13.40],
                 ],
                 'timezones' => [
-                    'UTC+01:00'
-                ]
-            ]
+                    'UTC+01:00',
+                ],
+            ],
         ];
     }
 
@@ -85,7 +87,7 @@ class CountryServiceTest extends TestCase
     public function test_service_can_sync_country_data_from_api(): void
     {
         Http::fake([
-            'https://restcountries.com/v3.1/alpha/DE' => Http::response($this->mockResponseData, 200)
+            'https://restcountries.com/v3.1/alpha/DE' => Http::response($this->mockResponseData, 200),
         ]);
 
         $service = app(CountryService::class);
@@ -126,11 +128,11 @@ class CountryServiceTest extends TestCase
     public function test_service_caches_api_response_for_24_hours(): void
     {
         Http::fake([
-            'https://restcountries.com/v3.1/alpha/DE' => Http::response($this->mockResponseData, 200)
+            'https://restcountries.com/v3.1/alpha/DE' => Http::response($this->mockResponseData, 200),
         ]);
 
         $service = app(CountryService::class);
-        
+
         Cache::forget('rest_countries_service_DE');
 
         // First call should execute HTTP request
@@ -148,7 +150,7 @@ class CountryServiceTest extends TestCase
     public function test_service_throws_exception_on_invalid_api_response(): void
     {
         Http::fake([
-            'https://restcountries.com/v3.1/alpha/DE' => Http::response([['name' => []]], 200) // missing cca2, cca3, name.common
+            'https://restcountries.com/v3.1/alpha/DE' => Http::response([['name' => []]], 200), // missing cca2, cca3, name.common
         ]);
 
         $service = app(CountryService::class);
@@ -163,7 +165,7 @@ class CountryServiceTest extends TestCase
     public function test_queue_job_syncs_country(): void
     {
         Http::fake([
-            'https://restcountries.com/v3.1/alpha/DE' => Http::response($this->mockResponseData, 200)
+            'https://restcountries.com/v3.1/alpha/DE' => Http::response($this->mockResponseData, 200),
         ]);
 
         Queue::fake();
@@ -181,11 +183,11 @@ class CountryServiceTest extends TestCase
     public function test_artisan_command_syncs_countries(): void
     {
         Http::fake([
-            'https://restcountries.com/v3.1/alpha/DE' => Http::response($this->mockResponseData, 200)
+            'https://restcountries.com/v3.1/alpha/DE' => Http::response($this->mockResponseData, 200),
         ]);
 
         $this->artisan('countries:sync', ['country' => 'DE'])
-            ->expectsOutput("Memulai sinkronisasi untuk negara: DE...")
+            ->expectsOutput('Memulai sinkronisasi untuk negara: DE...')
             ->expectsOutput("Sukses! Data negara 'Germany' (DE) berhasil diperbarui.")
             ->assertExitCode(0);
     }
@@ -196,7 +198,7 @@ class CountryServiceTest extends TestCase
     public function test_controller_sync_endpoint(): void
     {
         Http::fake([
-            'https://restcountries.com/v3.1/alpha/DE' => Http::response($this->mockResponseData, 200)
+            'https://restcountries.com/v3.1/alpha/DE' => Http::response($this->mockResponseData, 200),
         ]);
 
         $response = $this->actingAs($this->user)
@@ -205,13 +207,13 @@ class CountryServiceTest extends TestCase
         $response->assertStatus(200)
             ->assertJson([
                 'success' => true,
-                'message' => "Data lokal negara 'Germany' berhasil disinkronisasikan dengan REST Countries, World Bank, dan Open-Meteo API."
+                'message' => "Data lokal negara 'Germany' berhasil disinkronisasikan dengan REST Countries, World Bank, dan Open-Meteo API.",
             ]);
 
         $this->assertDatabaseHas('countries', [
             'code' => 'DE',
             'iso3' => 'DEU',
-            'capital' => 'Berlin'
+            'capital' => 'Berlin',
         ]);
     }
 
@@ -221,7 +223,7 @@ class CountryServiceTest extends TestCase
     public function test_controller_sync_all_endpoint(): void
     {
         Http::fake([
-            'https://restcountries.com/v3.1/alpha/DE' => Http::response($this->mockResponseData, 200)
+            'https://restcountries.com/v3.1/alpha/DE' => Http::response($this->mockResponseData, 200),
         ]);
 
         $response = $this->actingAs($this->user)
@@ -230,7 +232,7 @@ class CountryServiceTest extends TestCase
         $response->assertStatus(200)
             ->assertJson([
                 'success' => true,
-                'message' => "Sinkronisasi seluruh negara selesai. Sukses: 1, Gagal: 0."
+                'message' => 'Sinkronisasi seluruh negara selesai. Sukses: 1, Gagal: 0.',
             ]);
     }
 
@@ -243,8 +245,8 @@ class CountryServiceTest extends TestCase
             'https://restcountries.com/v3.1/alpha/DE' => Http::response($this->mockResponseData, 200),
             'http://api.worldbank.org/v2/country/*' => Http::response([
                 ['page' => 1, 'pages' => 1, 'per_page' => 50, 'total' => 1],
-                [['value' => null]]
-            ], 200)
+                [['value' => null]],
+            ], 200),
         ]);
 
         $response = $this->actingAs($this->user)
@@ -257,7 +259,7 @@ class CountryServiceTest extends TestCase
                     'name' => 'Germany',
                     'area' => 357114.0,
                     'subregion' => 'Western Europe',
-                ]
+                ],
             ]);
     }
 }

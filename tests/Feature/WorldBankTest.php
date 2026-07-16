@@ -16,7 +16,9 @@ class WorldBankTest extends TestCase
     use RefreshDatabase;
 
     protected $user;
+
     protected $country;
+
     protected $mockGdpData;
 
     protected function setUp(): void
@@ -25,10 +27,10 @@ class WorldBankTest extends TestCase
 
         // Seed roles
         $this->artisan('db:seed', ['--class' => 'RoleSeeder']);
-        
+
         $analystRole = Role::where('name', 'Analyst')->first();
         $this->user = User::factory()->create([
-            'role_id' => $analystRole->id
+            'role_id' => $analystRole->id,
         ]);
 
         // Create country
@@ -72,8 +74,8 @@ class WorldBankTest extends TestCase
                     'unit' => '',
                     'obs_status' => '',
                     'decimal' => 0,
-                ]
-            ]
+                ],
+            ],
         ];
     }
 
@@ -83,7 +85,7 @@ class WorldBankTest extends TestCase
     public function test_service_can_fetch_and_parse_world_bank_data(): void
     {
         Http::fake([
-            'http://api.worldbank.org/v2/country/de/indicator/NY.GDP.MKTP.CD*' => Http::response($this->mockGdpData, 200)
+            'http://api.worldbank.org/v2/country/de/indicator/NY.GDP.MKTP.CD*' => Http::response($this->mockGdpData, 200),
         ]);
 
         $service = app(WorldBankService::class);
@@ -106,7 +108,7 @@ class WorldBankTest extends TestCase
     public function test_service_caches_economic_indicators(): void
     {
         Http::fake([
-            'http://api.worldbank.org/v2/country/de/indicator/NY.GDP.MKTP.CD*' => Http::response($this->mockGdpData, 200)
+            'http://api.worldbank.org/v2/country/de/indicator/NY.GDP.MKTP.CD*' => Http::response($this->mockGdpData, 200),
         ]);
 
         $service = app(WorldBankService::class);
@@ -133,7 +135,7 @@ class WorldBankTest extends TestCase
             'http://api.worldbank.org/v2/country/de/indicator/SP.POP.TOTL*' => Http::response([[], [['date' => '2023', 'value' => 84100000]]], 200), // Population
             'http://api.worldbank.org/v2/country/de/indicator/NE.EXP.GNFS.CD*' => Http::response([[], [['date' => '2023', 'value' => 2000000000000]]], 200), // Export
             'http://api.worldbank.org/v2/country/de/indicator/NE.IMP.GNFS.CD*' => Http::response([[], [['date' => '2023', 'value' => 1800000000000]]], 200), // Import
-            'https://restcountries.com/v3.1/alpha/DE*' => Http::response([], 404) // Mock Rest Countries to fail gracefully
+            'https://restcountries.com/v3.1/alpha/DE*' => Http::response([], 404), // Mock Rest Countries to fail gracefully
         ]);
 
         $this->assertEquals(4000000000000, $this->country->gdp);

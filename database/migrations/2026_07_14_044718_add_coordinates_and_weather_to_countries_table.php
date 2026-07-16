@@ -31,7 +31,7 @@ return new class extends Migration
                 'longitude',
                 'current_weather_wind_speed',
                 'current_weather_precipitation',
-                'current_weather_storm_risk'
+                'current_weather_storm_risk',
             ]);
         });
     }

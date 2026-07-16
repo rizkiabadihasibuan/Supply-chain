@@ -52,8 +52,8 @@ class CountrySeeder extends Seeder
                         'longitude' => 8.71000000,
                         'waiting_time_hours' => 8,
                         'congestion_rate' => 15.0,
-                    ]
-                ]
+                    ],
+                ],
             ],
             [
                 'code' => 'CN',
@@ -93,8 +93,8 @@ class CountrySeeder extends Seeder
                         'longitude' => 113.60000000,
                         'waiting_time_hours' => 14,
                         'congestion_rate' => 42.1,
-                    ]
-                ]
+                    ],
+                ],
             ],
             [
                 'code' => 'ID',
@@ -134,8 +134,8 @@ class CountrySeeder extends Seeder
                         'longitude' => 112.73000000,
                         'waiting_time_hours' => 16,
                         'congestion_rate' => 45.3,
-                    ]
-                ]
+                    ],
+                ],
             ],
             [
                 'code' => 'AU',
@@ -175,9 +175,9 @@ class CountrySeeder extends Seeder
                         'longitude' => 144.93000000,
                         'waiting_time_hours' => 10,
                         'congestion_rate' => 22.0,
-                    ]
-                ]
-            ]
+                    ],
+                ],
+            ],
         ];
 
         foreach ($countries as $cData) {

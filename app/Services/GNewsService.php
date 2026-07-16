@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\Models\ActivityLog;
-use App\Models\NewsCache;
 use App\Models\Country;
+use App\Models\NewsCache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -13,18 +13,15 @@ class GNewsService
     /**
      * Fetch news articles for a country.
      * Caches responses in the database 'news_caches' table (valid for 24 hours).
-     *
-     * @param string $countryCode
-     * @param string $countryName
-     * @return array
      */
     public function fetchNews(string $countryCode, string $countryName): array
     {
         $countryCode = strtoupper(trim($countryCode));
         $country = Country::where('code', $countryCode)->first();
-        
-        if (!$country) {
+
+        if (! $country) {
             Log::warning("Country code {$countryCode} not found for news fetching.");
+
             return [];
         }
 
@@ -47,7 +44,7 @@ class GNewsService
 
         // Cache expired or missing, fetch from API or mock
         $apiKey = env('GNEWS_API_KEY');
-        
+
         // If API key is not configured, use fallback mock news generator
         if (empty($apiKey)) {
             Log::info("GNEWS_API_KEY not configured. Using mock news fallback for {$countryName}.");
@@ -84,7 +81,7 @@ class GNewsService
                 $executionTime = round(($endTime - $startTime) * 1000, 2);
 
                 $this->logApiCall($endpoint, 500, $executionTime);
-                Log::error("Failed to connect to GNews API: " . $e->getMessage() . ". Falling back to mock news.");
+                Log::error('Failed to connect to GNews API: '.$e->getMessage().'. Falling back to mock news.');
                 $articles = $this->getMockNews($countryName);
             }
         }
@@ -109,9 +106,6 @@ class GNewsService
 
     /**
      * Parse GNews API response into custom news format.
-     *
-     * @param array $articles
-     * @return array
      */
     protected function parseResponse(array $articles): array
     {
@@ -125,39 +119,33 @@ class GNewsService
                 'published_at' => $article['publishedAt'] ?? now()->toIso8601String(),
             ];
         }
+
         return $parsed;
     }
 
     /**
      * Log API request details to activity logs.
-     *
-     * @param string $endpoint
-     * @param int $status
-     * @param float $executionTime
      */
     protected function logApiCall(string $endpoint, int $status, float $executionTime): void
     {
         try {
             ActivityLog::create([
                 'log_type' => 'api_request',
-                'description' => "Panggilan GNews API untuk berita intelijen",
+                'description' => 'Panggilan GNews API untuk berita intelijen',
                 'metadata' => [
                     'api_name' => 'GNews API',
-                    'endpoint' => parse_url($endpoint, PHP_URL_SCHEME) . '://' . parse_url($endpoint, PHP_URL_HOST) . parse_url($endpoint, PHP_URL_PATH),
+                    'endpoint' => parse_url($endpoint, PHP_URL_SCHEME).'://'.parse_url($endpoint, PHP_URL_HOST).parse_url($endpoint, PHP_URL_PATH),
                     'response_status' => $status,
                     'execution_time' => $executionTime,
                 ],
             ]);
         } catch (\Exception $e) {
-            Log::error("Failed to write API log for GNews: " . $e->getMessage());
+            Log::error('Failed to write API log for GNews: '.$e->getMessage());
         }
     }
 
     /**
      * Generate realistic mock news containing keywords for sentiment analysis.
-     *
-     * @param string $countryName
-     * @return array
      */
     protected function getMockNews(string $countryName): array
     {
@@ -165,31 +153,31 @@ class GNewsService
         $templates = [
             [
                 'title' => "Economic growth accelerates in {$countryName} amid trade success",
-                'description' => "New reports show strong recovery and profit expansion in industrial sectors. The market remains stable and secure.",
+                'description' => 'New reports show strong recovery and profit expansion in industrial sectors. The market remains stable and secure.',
                 'source' => 'Global Trade News',
                 'published_at' => now()->subHours(2)->toIso8601String(),
             ],
             [
                 'title' => "Logistics disruption in {$countryName} causes major delay and trade loss",
-                'description' => "A severe strike and container congestion at ports created a shortage of raw materials. Analysts warn of tariff risk.",
+                'description' => 'A severe strike and container congestion at ports created a shortage of raw materials. Analysts warn of tariff risk.',
                 'source' => 'Logistics Weekly',
                 'published_at' => now()->subHours(5)->toIso8601String(),
             ],
             [
                 'title' => "Inflation increases in {$countryName} due to global energy crisis",
-                'description' => "Rising supply chain disruption and import costs lead to economic decrease. The government fears a major shutdown.",
+                'description' => 'Rising supply chain disruption and import costs lead to economic decrease. The government fears a major shutdown.',
                 'source' => 'Economy Insider',
                 'published_at' => now()->subHours(12)->toIso8601String(),
             ],
             [
                 'title' => "New shipping corridor improves trade link with {$countryName}",
-                'description' => "Infrastructure success and safe maritime agreements strengthen export capacities. Stable prices are expected.",
+                'description' => 'Infrastructure success and safe maritime agreements strengthen export capacities. Stable prices are expected.',
                 'source' => 'Maritime Review',
                 'published_at' => now()->subDays(1)->toIso8601String(),
             ],
             [
                 'title' => "Port authority in {$countryName} reviews cargo handling regulations",
-                'description' => "Meeting was held to discuss digitizing custom declarations and cargo container workflows with international partners.",
+                'description' => 'Meeting was held to discuss digitizing custom declarations and cargo container workflows with international partners.',
                 'source' => 'Port Technology',
                 'published_at' => now()->subDays(2)->toIso8601String(),
             ],

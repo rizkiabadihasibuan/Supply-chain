@@ -42,7 +42,7 @@ class RoleSeeder extends Seeder
                 'permissions' => [
                     'view_dashboards',
                 ],
-            ]
+            ],
         ];
 
         foreach ($roles as $roleData) {
@@ -50,7 +50,7 @@ class RoleSeeder extends Seeder
                 ['name' => $roleData['name']],
                 [
                     'description' => $roleData['description'],
-                    'permissions' => $roleData['permissions']
+                    'permissions' => $roleData['permissions'],
                 ]
             );
         }

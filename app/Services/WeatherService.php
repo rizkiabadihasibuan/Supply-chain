@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
-use App\Models\Country;
 use App\Models\ActivityLog;
-use Illuminate\Support\Facades\Http;
+use App\Models\Country;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class WeatherService
 {
@@ -19,9 +19,6 @@ class WeatherService
     /**
      * Fetch weather data for a country (current & 7-day forecast) and save to database.
      *
-     * @param string $code
-     * @param bool $forceRefresh
-     * @return Country
      * @throws \RuntimeException
      */
     public function syncWeather(string $code, bool $forceRefresh = false): Country
@@ -33,7 +30,7 @@ class WeatherService
             ->orWhere('iso3', $code)
             ->first();
 
-        if (!$country) {
+        if (! $country) {
             throw new \RuntimeException("Negara dengan kode '{$code}' tidak ditemukan di database lokal.");
         }
 
@@ -49,18 +46,18 @@ class WeatherService
             Cache::forget($cacheKey);
         }
 
-        if (!$forceRefresh && Cache::has($cacheKey)) {
+        if (! $forceRefresh && Cache::has($cacheKey)) {
             return $country;
         }
 
-        $rawData = Cache::remember($cacheKey, self::CACHE_DURATION, function () use ($code, $lat, $lng) {
+        $rawData = Cache::remember($cacheKey, self::CACHE_DURATION, function () use ($lat, $lng) {
             $endpoint = "https://api.open-meteo.com/v1/forecast?latitude={$lat}&longitude={$lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,rain,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto";
             $startTime = microtime(true);
             $responseStatus = null;
 
             try {
                 Log::debug("Memanggil Open Meteo API untuk koordinat: [{$lat}, {$lng}]");
-                
+
                 $response = Http::withoutVerifying()->timeout(10)->retry(3, 200)->get($endpoint);
                 $responseStatus = $response->status();
                 $endTime = microtime(true);
@@ -82,11 +79,11 @@ class WeatherService
         });
 
         if (empty($rawData['current'])) {
-            throw new \RuntimeException("Format respons dari Open Meteo API tidak valid.");
+            throw new \RuntimeException('Format respons dari Open Meteo API tidak valid.');
         }
 
         $parsedCurrent = $this->parseCurrent($rawData['current']);
-        $parsedForecast = !empty($rawData['daily']) ? $this->parseForecast($rawData['daily']) : null;
+        $parsedForecast = ! empty($rawData['daily']) ? $this->parseForecast($rawData['daily']) : null;
 
         // Save to database
         return DB::transaction(function () use ($country, $parsedCurrent, $parsedForecast) {
@@ -95,17 +92,17 @@ class WeatherService
             $country->current_weather_wind_speed = $parsedCurrent['wind_speed'];
             $country->current_weather_precipitation = $parsedCurrent['precipitation'];
             $country->current_weather_storm_risk = $parsedCurrent['storm_risk'];
-            
+
             // New detailed columns
             $country->current_weather_humidity = $parsedCurrent['humidity'];
             $country->current_weather_wind_direction = $parsedCurrent['wind_direction'];
             $country->current_weather_rain = $parsedCurrent['rain'];
             $country->current_weather_code = $parsedCurrent['weather_code'];
-            
+
             if ($parsedForecast !== null) {
                 $country->weather_forecast_7_days = $parsedForecast;
             }
-            
+
             $country->save();
 
             // Log activity log
@@ -124,24 +121,22 @@ class WeatherService
 
     /**
      * Synchronize weather for all countries in local database.
-     *
-     * @param bool $forceRefresh
-     * @return array
      */
     public function syncAllWeather(bool $forceRefresh = false): array
     {
         $countries = Country::all();
         $results = [
             'success' => [],
-            'failed' => []
+            'failed' => [],
         ];
 
         foreach ($countries as $country) {
             if ($country->latitude === null || $country->longitude === null) {
                 $results['failed'][] = [
                     'code' => $country->code,
-                    'error' => "Negara tidak memiliki koordinat latitude/longitude."
+                    'error' => 'Negara tidak memiliki koordinat latitude/longitude.',
                 ];
+
                 continue;
             }
 
@@ -149,15 +144,15 @@ class WeatherService
                 $this->syncWeather($country->code, $forceRefresh);
                 $results['success'][] = $country->code;
             } catch (\Exception $e) {
-                Log::error("Gagal menyinkronkan cuaca '{$country->code}' selama syncAllWeather: " . $e->getMessage());
+                Log::error("Gagal menyinkronkan cuaca '{$country->code}' selama syncAllWeather: ".$e->getMessage());
                 $results['failed'][] = [
                     'code' => $country->code,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ];
             }
         }
 
-        Log::info("Sinkronisasi cuaca seluruh negara selesai. Sukses: " . count($results['success']) . ", Gagal: " . count($results['failed']));
+        Log::info('Sinkronisasi cuaca seluruh negara selesai. Sukses: '.count($results['success']).', Gagal: '.count($results['failed']));
 
         return $results;
     }
@@ -281,7 +276,7 @@ class WeatherService
         try {
             ActivityLog::create([
                 'log_type' => 'api_request',
-                'description' => "Panggilan Open-Meteo API untuk cuaca koordinat",
+                'description' => 'Panggilan Open-Meteo API untuk cuaca koordinat',
                 'metadata' => [
                     'api_name' => 'Open-Meteo API (WeatherService)',
                     'endpoint' => $endpoint,
@@ -290,7 +285,7 @@ class WeatherService
                 ],
             ]);
         } catch (\Exception $e) {
-            Log::error("Gagal mencatat log API Open Meteo: " . $e->getMessage());
+            Log::error('Gagal mencatat log API Open Meteo: '.$e->getMessage());
         }
     }
 
@@ -306,7 +301,7 @@ class WeatherService
                 'metadata' => $metadata,
             ]);
         } catch (\Exception $e) {
-            Log::error("Gagal mencatat log audit cuaca ke database: " . $e->getMessage());
+            Log::error('Gagal mencatat log audit cuaca ke database: '.$e->getMessage());
         }
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Services\WorldBankService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -10,6 +11,7 @@ class SyncEconomicDataJob implements ShouldQueue
     use Queueable;
 
     public $countryCode;
+
     public $forceRefresh;
 
     /**
@@ -38,7 +40,7 @@ class SyncEconomicDataJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(\App\Services\WorldBankService $worldBankService): void
+    public function handle(WorldBankService $worldBankService): void
     {
         $worldBankService->syncCountryEconomicData($this->countryCode, $this->forceRefresh);
     }

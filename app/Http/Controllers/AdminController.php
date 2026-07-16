@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\Role;
-use App\Models\Port;
-use App\Models\Country;
 use App\Models\Article;
+use App\Models\Country;
+use App\Models\Port;
+use App\Models\Role;
+use App\Models\User;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -15,8 +17,7 @@ class AdminController extends Controller
     /**
      * Display the Admin Control Panel with tabbed management cards.
      *
-     * @param Request $request
-     * @return \Illuminate\Contracts\View\View
+     * @return View
      */
     public function index(Request $request)
     {
@@ -32,9 +33,7 @@ class AdminController extends Controller
     /**
      * Update a user's role.
      *
-     * @param Request $request
-     * @param User $user
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function updateUserRole(Request $request, User $user)
     {
@@ -59,8 +58,7 @@ class AdminController extends Controller
     /**
      * Store a newly created port in the database.
      *
-     * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function storePort(Request $request)
     {
@@ -90,8 +88,7 @@ class AdminController extends Controller
     /**
      * Delete a port from the database.
      *
-     * @param Port $port
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function destroyPort(Port $port)
     {
@@ -104,8 +101,7 @@ class AdminController extends Controller
     /**
      * Store a newly created analysis article in the database.
      *
-     * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function storeArticle(Request $request)
     {
@@ -115,11 +111,11 @@ class AdminController extends Controller
         ]);
 
         $slug = Str::slug($request->title);
-        
+
         // Ensure unique slug
         $count = Article::where('slug', 'like', "{$slug}%")->count();
         if ($count > 0) {
-            $slug .= '-' . ($count + 1);
+            $slug .= '-'.($count + 1);
         }
 
         Article::create([
@@ -136,8 +132,7 @@ class AdminController extends Controller
     /**
      * Delete an article from the database.
      *
-     * @param Article $article
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function destroyArticle(Article $article)
     {

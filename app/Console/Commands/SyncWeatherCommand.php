@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Country;
+use App\Services\WeatherService;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -27,7 +29,7 @@ class SyncWeatherCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(\App\Services\WeatherService $weatherService)
+    public function handle(WeatherService $weatherService)
     {
         $countryCode = $this->argument('country');
         $force = $this->option('force');
@@ -39,21 +41,24 @@ class SyncWeatherCommand extends Command
             try {
                 $country = $weatherService->syncWeather($countryCode, $force);
                 $this->info("Sukses! Data cuaca negara '{$country->name}' ({$country->code}) berhasil diperbarui.");
+
                 return self::SUCCESS;
             } catch (\Exception $e) {
-                $this->error("Gagal menyinkronkan data cuaca negara '{$countryCode}': " . $e->getMessage());
+                $this->error("Gagal menyinkronkan data cuaca negara '{$countryCode}': ".$e->getMessage());
+
                 return self::FAILURE;
             }
         }
 
         // Sync all countries
-        $countries = \App\Models\Country::all();
+        $countries = Country::all();
         if ($countries->isEmpty()) {
-            $this->warn("Tidak ada data negara di database lokal untuk disinkronkan.");
+            $this->warn('Tidak ada data negara di database lokal untuk disinkronkan.');
+
             return self::SUCCESS;
         }
 
-        $this->info("Menyinkronkan data cuaca " . $countries->count() . " negara dari Open Meteo API...");
+        $this->info('Menyinkronkan data cuaca '.$countries->count().' negara dari Open Meteo API...');
 
         $bar = $this->output->createProgressBar($countries->count());
         $bar->start();
@@ -66,6 +71,7 @@ class SyncWeatherCommand extends Command
                 $failedCount++;
                 $this->error("\nNegara {$country->code} tidak memiliki koordinat latitude/longitude.");
                 $bar->advance();
+
                 continue;
             }
 
@@ -74,14 +80,14 @@ class SyncWeatherCommand extends Command
                 $successCount++;
             } catch (\Exception $e) {
                 $failedCount++;
-                $this->error("\nGagal menyinkronkan data cuaca {$country->code}: " . $e->getMessage());
+                $this->error("\nGagal menyinkronkan data cuaca {$country->code}: ".$e->getMessage());
             }
             $bar->advance();
         }
 
         $bar->finish();
-        $this->line("");
-        $this->info("Sinkronisasi data cuaca massal selesai!");
+        $this->line('');
+        $this->info('Sinkronisasi data cuaca massal selesai!');
         $this->info("Sukses: {$successCount}, Gagal: {$failedCount}");
 
         return $failedCount === 0 ? self::SUCCESS : self::FAILURE;

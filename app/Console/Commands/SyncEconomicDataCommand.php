@@ -2,6 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\SyncEconomicDataJob;
+use App\Models\Country;
+use App\Services\WorldBankService;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -28,7 +31,7 @@ class SyncEconomicDataCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(\App\Services\WorldBankService $worldBankService)
+    public function handle(WorldBankService $worldBankService)
     {
         $countryCode = $this->argument('country');
         $force = $this->option('force');
@@ -39,35 +42,40 @@ class SyncEconomicDataCommand extends Command
             $this->info("Memulai sinkronisasi data ekonomi untuk negara: {$countryCode}...");
 
             if ($queue) {
-                \App\Jobs\SyncEconomicDataJob::dispatch($countryCode, $force);
+                SyncEconomicDataJob::dispatch($countryCode, $force);
                 $this->info("Job sinkronisasi ekonomi untuk '{$countryCode}' telah dikirim ke antrean.");
+
                 return self::SUCCESS;
             }
 
             try {
                 $country = $worldBankService->syncCountryEconomicData($countryCode, $force);
                 $this->info("Sukses! Data ekonomi negara '{$country->name}' ({$country->code}) berhasil diperbarui.");
+
                 return self::SUCCESS;
             } catch (\Exception $e) {
-                $this->error("Gagal menyinkronkan data ekonomi negara '{$countryCode}': " . $e->getMessage());
+                $this->error("Gagal menyinkronkan data ekonomi negara '{$countryCode}': ".$e->getMessage());
+
                 return self::FAILURE;
             }
         }
 
         // Sync all countries
-        $countries = \App\Models\Country::all();
+        $countries = Country::all();
         if ($countries->isEmpty()) {
-            $this->warn("Tidak ada data negara di database lokal untuk disinkronkan.");
+            $this->warn('Tidak ada data negara di database lokal untuk disinkronkan.');
+
             return self::SUCCESS;
         }
 
-        $this->info("Menyinkronkan data ekonomi " . $countries->count() . " negara dari World Bank API...");
+        $this->info('Menyinkronkan data ekonomi '.$countries->count().' negara dari World Bank API...');
 
         if ($queue) {
             foreach ($countries as $country) {
-                \App\Jobs\SyncEconomicDataJob::dispatch($country->code, $force);
+                SyncEconomicDataJob::dispatch($country->code, $force);
             }
-            $this->info("Seluruh job sinkronisasi ekonomi negara telah dikirim ke antrean.");
+            $this->info('Seluruh job sinkronisasi ekonomi negara telah dikirim ke antrean.');
+
             return self::SUCCESS;
         }
 
@@ -83,14 +91,14 @@ class SyncEconomicDataCommand extends Command
                 $successCount++;
             } catch (\Exception $e) {
                 $failedCount++;
-                $this->error("\nGagal menyinkronkan data ekonomi {$country->code}: " . $e->getMessage());
+                $this->error("\nGagal menyinkronkan data ekonomi {$country->code}: ".$e->getMessage());
             }
             $bar->advance();
         }
 
         $bar->finish();
-        $this->line("");
-        $this->info("Sinkronisasi data ekonomi massal selesai!");
+        $this->line('');
+        $this->info('Sinkronisasi data ekonomi massal selesai!');
         $this->info("Sukses: {$successCount}, Gagal: {$failedCount}");
 
         return $failedCount === 0 ? self::SUCCESS : self::FAILURE;

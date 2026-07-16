@@ -10,13 +10,11 @@ use Illuminate\Support\Facades\Log;
 class RiskScoringEngine
 {
     protected $gnewsService;
+
     protected $sentimentAnalyzer;
 
     /**
      * RiskScoringEngine constructor.
-     *
-     * @param GNewsService $gnewsService
-     * @param SentimentAnalyzer $sentimentAnalyzer
      */
     public function __construct(GNewsService $gnewsService, SentimentAnalyzer $sentimentAnalyzer)
     {
@@ -26,9 +24,6 @@ class RiskScoringEngine
 
     /**
      * Calculate and record the risk score for a country.
-     *
-     * @param Country $country
-     * @return RiskScore
      */
     public function calculateRisk(Country $country): RiskScore
     {
@@ -37,11 +32,11 @@ class RiskScoringEngine
         $weatherRisk = (float) ($country->current_weather_storm_risk ?? 0.0);
 
         // 2. Inflation Risk (20% weight)
-        // Normal/safe inflation target is around 2.0%. 
+        // Normal/safe inflation target is around 2.0%.
         // Deviations or extremely high inflation increases the risk.
         $inflation = $country->inflation !== null ? (float) $country->inflation : null;
         $inflationRisk = 20.0; // Default if not available
-        
+
         if ($inflation !== null) {
             if ($inflation <= 0) {
                 // Deflation is also risky
@@ -61,26 +56,26 @@ class RiskScoringEngine
         $currencyCode = $country->currency_code ?? 'USD';
         $cacheKey = "currency_rate_USD_{$currencyCode}";
         $currencyData = Cache::get($cacheKey);
-        
+
         $volatility = 1.50; // Default volatility fallback
         if ($currencyData && isset($currencyData['volatility'])) {
             $volatility = (float) $currencyData['volatility'];
         }
-        
+
         $currencyRisk = min(100.0, max(0.0, $volatility * 35.0));
 
         // 4. Political News Risk / News Sentiment Risk (40% weight)
         // Fetch news for the country and run sentiment analysis
         $news = $this->gnewsService->fetchNews($country->code, $country->name);
         $sentimentResult = $this->sentimentAnalyzer->analyzeArticles($news);
-        
+
         // News Sentiment Risk is based on the Negative Sentiment percentage
         $politicalRisk = (float) ($sentimentResult['negative_percent'] ?? 0.0);
 
         // Calculate Weighted Total Risk Score
-        $totalRiskScore = (0.30 * $weatherRisk) + 
-                          (0.20 * $inflationRisk) + 
-                          (0.10 * $currencyRisk) + 
+        $totalRiskScore = (0.30 * $weatherRisk) +
+                          (0.20 * $inflationRisk) +
+                          (0.10 * $currencyRisk) +
                           (0.40 * $politicalRisk);
 
         $totalRiskScore = round(min(100.0, max(0.0, $totalRiskScore)), 2);

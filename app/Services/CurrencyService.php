@@ -2,12 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\Country;
 use App\Models\ActivityLog;
-use App\Services\ExchangeRateService;
+use App\Models\Country;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CurrencyService
 {
@@ -21,9 +20,6 @@ class CurrencyService
     /**
      * Synchronize currency rates for a country and update local database history.
      *
-     * @param string $code
-     * @param bool $forceRefresh
-     * @return Country
      * @throws \RuntimeException
      */
     public function syncCountryCurrency(string $code, bool $forceRefresh = false): Country
@@ -35,7 +31,7 @@ class CurrencyService
             ->orWhere('iso3', $code)
             ->first();
 
-        if (!$country) {
+        if (! $country) {
             throw new \RuntimeException("Negara dengan kode '{$code}' tidak ditemukan di database lokal.");
         }
 
@@ -50,10 +46,10 @@ class CurrencyService
 
         if ($forceRefresh) {
             Cache::forget($cacheKey);
-            Cache::forget("exchange_rates_usd_base");
+            Cache::forget('exchange_rates_usd_base');
         }
 
-        if (!$forceRefresh && Cache::has($cacheKey)) {
+        if (! $forceRefresh && Cache::has($cacheKey)) {
             return $country;
         }
 
@@ -70,12 +66,12 @@ class CurrencyService
 
             // Maintain rolling 7-day history
             $history = $country->exchange_rate_history ?? [];
-            if (!is_array($history)) {
+            if (! is_array($history)) {
                 $history = [];
             }
 
             $today = now()->format('Y-m-d');
-            
+
             // Remove duplication for today's date if it already exists
             $history = array_filter($history, function ($item) use ($today) {
                 return is_array($item) && isset($item['date']) && $item['date'] !== $today;
@@ -84,12 +80,12 @@ class CurrencyService
             // Prepend today's rate
             array_unshift($history, [
                 'date' => $today,
-                'rate' => round($rate, 4)
+                'rate' => round($rate, 4),
             ]);
 
             // Slice to keep only the last 7 entries
             $country->exchange_rate_history = array_slice($history, 0, 7);
-            
+
             $country->save();
 
             // Set sync cache marker
@@ -100,7 +96,7 @@ class CurrencyService
                 'country_id' => $country->id,
                 'country_code' => $country->code,
                 'currency_code' => $currencyCode,
-                'rate' => $rate
+                'rate' => $rate,
             ]);
 
             Log::info("Data kurs '{$currencyCode}' untuk negara '{$country->name}' ({$country->code}) berhasil diperbarui.");
@@ -111,24 +107,22 @@ class CurrencyService
 
     /**
      * Synchronize currency rates for all countries in the database.
-     *
-     * @param bool $forceRefresh
-     * @return array
      */
     public function syncAllCurrencies(bool $forceRefresh = false): array
     {
         $countries = Country::all();
         $results = [
             'success' => [],
-            'failed' => []
+            'failed' => [],
         ];
 
         foreach ($countries as $country) {
             if (empty($country->currency_code)) {
                 $results['failed'][] = [
                     'code' => $country->code,
-                    'error' => "Negara tidak memiliki kode mata uang (currency_code)."
+                    'error' => 'Negara tidak memiliki kode mata uang (currency_code).',
                 ];
+
                 continue;
             }
 
@@ -136,15 +130,15 @@ class CurrencyService
                 $this->syncCountryCurrency($country->code, $forceRefresh);
                 $results['success'][] = $country->code;
             } catch (\Exception $e) {
-                Log::error("Gagal menyinkronkan kurs '{$country->code}' selama syncAllCurrencies: " . $e->getMessage());
+                Log::error("Gagal menyinkronkan kurs '{$country->code}' selama syncAllCurrencies: ".$e->getMessage());
                 $results['failed'][] = [
                     'code' => $country->code,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ];
             }
         }
 
-        Log::info("Sinkronisasi kurs seluruh negara selesai. Sukses: " . count($results['success']) . ", Gagal: " . count($results['failed']));
+        Log::info('Sinkronisasi kurs seluruh negara selesai. Sukses: '.count($results['success']).', Gagal: '.count($results['failed']));
 
         return $results;
     }
@@ -161,7 +155,7 @@ class CurrencyService
                 'metadata' => $metadata,
             ]);
         } catch (\Exception $e) {
-            Log::error("Gagal mencatat log audit mata uang ke database: " . $e->getMessage());
+            Log::error('Gagal mencatat log audit mata uang ke database: '.$e->getMessage());
         }
     }
 }

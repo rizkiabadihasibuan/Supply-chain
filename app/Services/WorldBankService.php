@@ -3,10 +3,11 @@
 namespace App\Services;
 
 use App\Models\ActivityLog;
-use Illuminate\Support\Facades\Http;
+use App\Models\Country;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class WorldBankService
 {
@@ -25,24 +26,24 @@ class WorldBankService
      * Fetch a specific economic indicator for a country from World Bank API.
      * With 24-hour caching and request logging.
      *
-     * @param string $countryCode (ISO-2)
-     * @param string $metric ('gdp', 'inflation', 'population', 'export', 'import')
-     * @return array|null
+     * @param  string  $countryCode  (ISO-2)
+     * @param  string  $metric  ('gdp', 'inflation', 'population', 'export', 'import')
      */
     public function fetchIndicator(string $countryCode, string $metric): ?array
     {
         $countryCode = strtolower(trim($countryCode));
         $metric = strtolower(trim($metric));
 
-        if (!array_key_exists($metric, self::INDICATORS)) {
+        if (! array_key_exists($metric, self::INDICATORS)) {
             Log::error("Invalid economic metric requested: {$metric}");
+
             return null;
         }
 
         $indicatorCode = self::INDICATORS[$metric];
         $cacheKey = "world_bank_{$countryCode}_{$metric}";
 
-        return Cache::remember($cacheKey, 86400, function () use ($countryCode, $indicatorCode, $metric) {
+        return Cache::remember($cacheKey, 86400, function () use ($countryCode, $indicatorCode) {
             // Get data for past 5 years to find the most recent non-null entry
             $endpoint = "http://api.worldbank.org/v2/country/{$countryCode}/indicator/{$indicatorCode}?date=2019:2024&format=json";
             $startTime = microtime(true);
@@ -67,6 +68,7 @@ class WorldBankService
                 }
 
                 Log::warning("World Bank API returned status code {$responseStatus} for country {$countryCode}, indicator {$indicatorCode}.");
+
                 return null;
 
             } catch (\Exception $e) {
@@ -74,7 +76,8 @@ class WorldBankService
                 $executionTime = round(($endTime - $startTime) * 1000, 2);
 
                 $this->logApiCall($endpoint, 500, $executionTime);
-                Log::error("Failed to connect to World Bank API: " . $e->getMessage());
+                Log::error('Failed to connect to World Bank API: '.$e->getMessage());
+
                 return null;
             }
         });
@@ -82,9 +85,6 @@ class WorldBankService
 
     /**
      * Fetch all 5 key economic metrics for a country.
-     *
-     * @param string $countryCode
-     * @return array
      */
     public function fetchAllMetrics(string $countryCode): array
     {
@@ -94,22 +94,19 @@ class WorldBankService
             $results[$metric] = $data['value'] ?? null;
             $results["{$metric}_year"] = $data['year'] ?? null;
         }
+
         return $results;
     }
 
     /**
      * Log API request details to activity logs.
-     *
-     * @param string $endpoint
-     * @param int $status
-     * @param float $executionTime
      */
     protected function logApiCall(string $endpoint, int $status, float $executionTime): void
     {
         try {
             ActivityLog::create([
                 'log_type' => 'api_request',
-                'description' => "Panggilan World Bank API untuk endpoint " . parse_url($endpoint, PHP_URL_PATH),
+                'description' => 'Panggilan World Bank API untuk endpoint '.parse_url($endpoint, PHP_URL_PATH),
                 'metadata' => [
                     'api_name' => 'World Bank API',
                     'endpoint' => $endpoint,
@@ -118,15 +115,12 @@ class WorldBankService
                 ],
             ]);
         } catch (\Exception $e) {
-            Log::error("Failed to write API log: " . $e->getMessage());
+            Log::error('Failed to write API log: '.$e->getMessage());
         }
     }
 
     /**
      * Parse World Bank JSON records to get the most recent non-null value and its year.
-     *
-     * @param array $records
-     * @return array|null
      */
     protected function parseRecentValue(array $records): ?array
     {
@@ -135,31 +129,29 @@ class WorldBankService
             if (isset($record['value']) && $record['value'] !== null) {
                 return [
                     'year' => (int) $record['date'],
-                    'value' => $record['value']
+                    'value' => $record['value'],
                 ];
             }
         }
+
         return null;
     }
 
     /**
      * Synchronize economic indicators for a country using World Bank API.
      *
-     * @param string $code
-     * @param bool $forceRefresh
-     * @return \App\Models\Country
      * @throws \RuntimeException
      */
-    public function syncCountryEconomicData(string $code, bool $forceRefresh = false): \App\Models\Country
+    public function syncCountryEconomicData(string $code, bool $forceRefresh = false): Country
     {
         $code = strtoupper(trim($code));
 
-        $country = \App\Models\Country::where('code', $code)
+        $country = Country::where('code', $code)
             ->orWhere('iso2', $code)
             ->orWhere('iso3', $code)
             ->first();
 
-        if (!$country) {
+        if (! $country) {
             throw new \RuntimeException("Negara dengan kode '{$code}' tidak ditemukan di database lokal.");
         }
 
@@ -173,11 +165,11 @@ class WorldBankService
         if ($forceRefresh) {
             Cache::forget($cacheKey);
             foreach (array_keys(self::INDICATORS) as $metric) {
-                Cache::forget("world_bank_" . strtolower($apiCode) . "_{$metric}");
+                Cache::forget('world_bank_'.strtolower($apiCode)."_{$metric}");
             }
         }
 
-        if (!$forceRefresh && Cache::has($cacheKey)) {
+        if (! $forceRefresh && Cache::has($cacheKey)) {
             return $country;
         }
 
@@ -187,7 +179,7 @@ class WorldBankService
                 $data = $this->fetchIndicator($apiCode, $metric);
                 $metrics[$metric] = $data['value'] ?? null;
             } catch (\Exception $e) {
-                Log::error("Gagal mengambil metrik {$metric} untuk {$apiCode}: " . $e->getMessage());
+                Log::error("Gagal mengambil metrik {$metric} untuk {$apiCode}: ".$e->getMessage());
                 $metrics[$metric] = null;
             }
         }
@@ -221,7 +213,7 @@ class WorldBankService
             $this->logAudit("Berhasil menyelaraskan data ekonomi negara '{$country->name}' dari World Bank API.", [
                 'country_id' => $country->id,
                 'country_code' => $country->code,
-                'metrics_updated' => array_keys(array_filter($metrics, fn($v) => $v !== null))
+                'metrics_updated' => array_keys(array_filter($metrics, fn ($v) => $v !== null)),
             ]);
 
             Log::info("Data ekonomi negara '{$country->name}' ({$country->code}) berhasil diperbarui.");
@@ -232,16 +224,13 @@ class WorldBankService
 
     /**
      * Synchronize economic indicators for all countries.
-     *
-     * @param bool $forceRefresh
-     * @return array
      */
     public function syncAllEconomicData(bool $forceRefresh = false): array
     {
-        $countries = \App\Models\Country::all();
+        $countries = Country::all();
         $results = [
             'success' => [],
-            'failed' => []
+            'failed' => [],
         ];
 
         foreach ($countries as $country) {
@@ -249,24 +238,21 @@ class WorldBankService
                 $this->syncCountryEconomicData($country->code, $forceRefresh);
                 $results['success'][] = $country->code;
             } catch (\Exception $e) {
-                Log::error("Gagal menyinkronkan data ekonomi '{$country->code}' selama syncAll: " . $e->getMessage());
+                Log::error("Gagal menyinkronkan data ekonomi '{$country->code}' selama syncAll: ".$e->getMessage());
                 $results['failed'][] = [
                     'code' => $country->code,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ];
             }
         }
 
-        Log::info("Sinkronisasi data ekonomi seluruh negara selesai. Sukses: " . count($results['success']) . ", Gagal: " . count($results['failed']));
+        Log::info('Sinkronisasi data ekonomi seluruh negara selesai. Sukses: '.count($results['success']).', Gagal: '.count($results['failed']));
 
         return $results;
     }
 
     /**
      * Log audit trail to activity_logs.
-     *
-     * @param string $description
-     * @param array|null $metadata
      */
     protected function logAudit(string $description, ?array $metadata = null): void
     {
@@ -277,7 +263,7 @@ class WorldBankService
                 'metadata' => $metadata,
             ]);
         } catch (\Exception $e) {
-            Log::error("Gagal mencatat log audit ke database: " . $e->getMessage());
+            Log::error('Gagal mencatat log audit ke database: '.$e->getMessage());
         }
     }
 }

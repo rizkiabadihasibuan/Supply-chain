@@ -31,7 +31,7 @@ return new class extends Migration
                 'current_weather_wind_direction',
                 'current_weather_rain',
                 'current_weather_code',
-                'weather_forecast_7_days'
+                'weather_forecast_7_days',
             ]);
         });
     }

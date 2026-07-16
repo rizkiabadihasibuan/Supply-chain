@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
-use App\Services\WeatherService;
-use App\Services\RiskScoringEngine;
 use App\Models\Country;
+use App\Services\RiskScoringEngine;
+use App\Services\WeatherService;
 use Illuminate\Http\JsonResponse;
 
 class WeatherController extends Controller
 {
     protected $weatherService;
+
     protected $riskScoringEngine;
 
     public function __construct(WeatherService $weatherService, ?RiskScoringEngine $riskScoringEngine = null)
@@ -22,9 +21,6 @@ class WeatherController extends Controller
 
     /**
      * Sync local weather data with Open Meteo API.
-     *
-     * @param string $code
-     * @return JsonResponse
      */
     public function sync(string $code): JsonResponse
     {
@@ -41,20 +37,18 @@ class WeatherController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => "Data cuaca negara '{$country->name}' berhasil diperbarui dari Open Meteo API.",
-                'data' => $country->load('riskScores')
+                'data' => $country->load('riskScores'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => "Gagal melakukan sinkronisasi cuaca: " . $e->getMessage()
+                'message' => 'Gagal melakukan sinkronisasi cuaca: '.$e->getMessage(),
             ], 500);
         }
     }
 
     /**
      * Sync all local countries' weather data with Open Meteo API.
-     *
-     * @return JsonResponse
      */
     public function syncAll(): JsonResponse
     {
@@ -75,12 +69,12 @@ class WeatherController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => "Sinkronisasi cuaca seluruh negara selesai. Sukses: {$successCount}, Gagal: {$failedCount}.",
-                'data' => $results
+                'data' => $results,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => "Gagal melakukan sinkronisasi cuaca massal: " . $e->getMessage()
+                'message' => 'Gagal melakukan sinkronisasi cuaca massal: '.$e->getMessage(),
             ], 500);
         }
     }

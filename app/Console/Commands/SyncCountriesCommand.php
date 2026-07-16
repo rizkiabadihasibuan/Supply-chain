@@ -2,6 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\SyncCountryJob;
+use App\Models\Country;
+use App\Services\CountryService;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -28,7 +31,7 @@ class SyncCountriesCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(\App\Services\CountryService $countryService)
+    public function handle(CountryService $countryService)
     {
         $countryCode = $this->argument('country');
         $force = $this->option('force');
@@ -39,35 +42,40 @@ class SyncCountriesCommand extends Command
             $this->info("Memulai sinkronisasi untuk negara: {$countryCode}...");
 
             if ($queue) {
-                \App\Jobs\SyncCountryJob::dispatch($countryCode, $force);
+                SyncCountryJob::dispatch($countryCode, $force);
                 $this->info("Job sinkronisasi untuk '{$countryCode}' telah dikirim ke antrean.");
+
                 return self::SUCCESS;
             }
 
             try {
                 $country = $countryService->syncCountry($countryCode, $force);
                 $this->info("Sukses! Data negara '{$country->name}' ({$country->code}) berhasil diperbarui.");
+
                 return self::SUCCESS;
             } catch (\Exception $e) {
-                $this->error("Gagal menyinkronkan negara '{$countryCode}': " . $e->getMessage());
+                $this->error("Gagal menyinkronkan negara '{$countryCode}': ".$e->getMessage());
+
                 return self::FAILURE;
             }
         }
 
         // Sync all countries
-        $countries = \App\Models\Country::all();
+        $countries = Country::all();
         if ($countries->isEmpty()) {
-            $this->warn("Tidak ada data negara di database lokal untuk disinkronkan.");
+            $this->warn('Tidak ada data negara di database lokal untuk disinkronkan.');
+
             return self::SUCCESS;
         }
 
-        $this->info("Menyinkronkan " . $countries->count() . " negara dari REST Countries API...");
+        $this->info('Menyinkronkan '.$countries->count().' negara dari REST Countries API...');
 
         if ($queue) {
             foreach ($countries as $country) {
-                \App\Jobs\SyncCountryJob::dispatch($country->code, $force);
+                SyncCountryJob::dispatch($country->code, $force);
             }
-            $this->info("Seluruh job sinkronisasi negara telah dikirim ke antrean.");
+            $this->info('Seluruh job sinkronisasi negara telah dikirim ke antrean.');
+
             return self::SUCCESS;
         }
 
@@ -83,14 +91,14 @@ class SyncCountriesCommand extends Command
                 $successCount++;
             } catch (\Exception $e) {
                 $failedCount++;
-                $this->error("\nGagal menyinkronkan {$country->code}: " . $e->getMessage());
+                $this->error("\nGagal menyinkronkan {$country->code}: ".$e->getMessage());
             }
             $bar->advance();
         }
 
         $bar->finish();
-        $this->line("");
-        $this->info("Sinkronisasi massal selesai!");
+        $this->line('');
+        $this->info('Sinkronisasi massal selesai!');
         $this->info("Sukses: {$successCount}, Gagal: {$failedCount}");
 
         return $failedCount === 0 ? self::SUCCESS : self::FAILURE;

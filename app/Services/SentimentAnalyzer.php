@@ -2,13 +2,14 @@
 
 namespace App\Services;
 
-use App\Models\PositiveWord;
 use App\Models\NegativeWord;
+use App\Models\PositiveWord;
 use Illuminate\Support\Facades\Cache;
 
 class SentimentAnalyzer
 {
     protected ?array $positiveWords = null;
+
     protected ?array $negativeWords = null;
 
     /**
@@ -22,19 +23,16 @@ class SentimentAnalyzer
 
         // Cache lexicon words for 1 hour to avoid DB calls on every analysis
         $this->positiveWords = Cache::remember('lexicon_positive_words', 3600, function () {
-            return PositiveWord::pluck('word')->map(fn($w) => strtolower(trim($w)))->toArray();
+            return PositiveWord::pluck('word')->map(fn ($w) => strtolower(trim($w)))->toArray();
         });
 
         $this->negativeWords = Cache::remember('lexicon_negative_words', 3600, function () {
-            return NegativeWord::pluck('word')->map(fn($w) => strtolower(trim($w)))->toArray();
+            return NegativeWord::pluck('word')->map(fn ($w) => strtolower(trim($w)))->toArray();
         });
     }
 
     /**
      * Analyze a single piece of text and return its sentiment metrics.
-     *
-     * @param string $text
-     * @return array
      */
     public function analyzeText(string $text): array
     {
@@ -80,9 +78,6 @@ class SentimentAnalyzer
 
     /**
      * Analyze an array of articles and calculate overall percentages.
-     *
-     * @param array $articles
-     * @return array
      */
     public function analyzeArticles(array $articles): array
     {
@@ -106,7 +101,7 @@ class SentimentAnalyzer
 
         foreach ($articles as $article) {
             // Combine title and description for a richer sentiment context
-            $textToAnalyze = ($article['title'] ?? '') . ' ' . ($article['description'] ?? '');
+            $textToAnalyze = ($article['title'] ?? '').' '.($article['description'] ?? '');
             $analysis = $this->analyzeText($textToAnalyze);
 
             if ($analysis['sentiment'] === 'Positive') {

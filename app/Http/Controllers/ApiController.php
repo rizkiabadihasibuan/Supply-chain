@@ -4,20 +4,28 @@ namespace App\Http\Controllers;
 
 use App\Models\Country;
 use App\Models\Port;
-use App\Models\RiskScore;
-use App\Services\GNewsService;
-use App\Services\SentimentAnalyzer;
+use App\Models\Watchlist;
+use App\Services\CountryService;
+use App\Services\CurrencyService;
 use App\Services\ExchangeRateService;
+use App\Services\GNewsService;
 use App\Services\RiskScoringEngine;
-use Illuminate\Http\Request;
+use App\Services\SentimentAnalyzer;
+use App\Services\WeatherService;
+use App\Services\WorldBankService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class ApiController extends Controller
 {
     protected $gnewsService;
+
     protected $sentimentAnalyzer;
+
     protected $exchangeRateService;
+
     protected $riskScoringEngine;
 
     /**
@@ -38,27 +46,25 @@ class ApiController extends Controller
     /**
      * GET /api/countries
      * Retrieve all countries with their latest risk scores.
-     *
-     * @return JsonResponse
      */
     public function countries(Request $request): JsonResponse
     {
-        $weatherService = app(\App\Services\WeatherService::class);
-        $currencyService = app(\App\Services\CurrencyService::class);
-        $worldBankService = app(\App\Services\WorldBankService::class);
+        $weatherService = app(WeatherService::class);
+        $currencyService = app(CurrencyService::class);
+        $worldBankService = app(WorldBankService::class);
 
         $selectedCountryCode = strtoupper(trim($request->query('country', '')));
-        
+
         if ($selectedCountryCode) {
             $c = Country::where('code', $selectedCountryCode)->first();
             if ($c) {
                 // Auto sync general country data from REST Countries if missing
                 if ($c->latitude === null || $c->longitude === null || empty($c->currency_code)) {
                     try {
-                        $countryService = app(\App\Services\CountryService::class);
+                        $countryService = app(CountryService::class);
                         $c = $countryService->syncCountry($c->code, false);
                     } catch (\Exception $e) {
-                        \Illuminate\Support\Facades\Log::warning("Auto-sync REST Countries failed for {$c->code}: " . $e->getMessage());
+                        Log::warning("Auto-sync REST Countries failed for {$c->code}: ".$e->getMessage());
                     }
                 }
 
@@ -68,23 +74,23 @@ class ApiController extends Controller
                         $weatherService->syncWeather($c->code, false);
                     }
                 } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::warning("Auto-sync weather failed for {$c->code}: " . $e->getMessage());
+                    Log::warning("Auto-sync weather failed for {$c->code}: ".$e->getMessage());
                 }
 
                 // Auto sync currency if needed
                 try {
-                    if (!empty($c->currency_code)) {
+                    if (! empty($c->currency_code)) {
                         $currencyService->syncCountryCurrency($c->code, false);
                     }
                 } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::warning("Auto-sync currency failed for {$c->code}: " . $e->getMessage());
+                    Log::warning("Auto-sync currency failed for {$c->code}: ".$e->getMessage());
                 }
 
                 // Auto sync economic data if needed
                 try {
                     $worldBankService->syncCountryEconomicData($c->code, false);
                 } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::warning("Auto-sync economic data failed for {$c->code}: " . $e->getMessage());
+                    Log::warning("Auto-sync economic data failed for {$c->code}: ".$e->getMessage());
                 }
 
                 // Recalculate Risk Score
@@ -92,13 +98,14 @@ class ApiController extends Controller
                     $c->refresh();
                     $this->riskScoringEngine->calculateRisk($c);
                 } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::warning("Auto-risk calculation failed for {$c->code}: " . $e->getMessage());
+                    Log::warning("Auto-risk calculation failed for {$c->code}: ".$e->getMessage());
                 }
             }
         }
 
         $countries = Country::all()->map(function ($country) {
             $latestRisk = $country->riskScores()->latest()->first();
+
             return [
                 'id' => $country->id,
                 'code' => $country->code,
@@ -145,7 +152,7 @@ class ApiController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $countries
+            'data' => $countries,
         ]);
     }
 
@@ -153,9 +160,6 @@ class ApiController extends Controller
      * GET /api/risk
      * Retrieve detailed risk scores for a country.
      * Calculates on-the-fly if not calculated recently.
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function risk(Request $request): JsonResponse
     {
@@ -163,20 +167,20 @@ class ApiController extends Controller
         if (empty($code)) {
             return response()->json([
                 'success' => false,
-                'message' => "Parameter 'country' (kode negara) diperlukan."
+                'message' => "Parameter 'country' (kode negara) diperlukan.",
             ], 400);
         }
 
         $country = Country::where('code', $code)->first();
-        if (!$country) {
+        if (! $country) {
             return response()->json([
                 'success' => false,
-                'message' => "Negara dengan kode '{$code}' tidak ditemukan di database kami."
+                'message' => "Negara dengan kode '{$code}' tidak ditemukan di database kami.",
             ], 404);
         }
 
         $latestRisk = $country->riskScores()->latest()->first();
-        if (!$latestRisk) {
+        if (! $latestRisk) {
             $latestRisk = $this->riskScoringEngine->calculateRisk($country);
         }
 
@@ -192,23 +196,20 @@ class ApiController extends Controller
                 'total_risk' => (float) $latestRisk->total_risk_score,
                 'risk_level' => $latestRisk->risk_level,
                 'calculated_at' => $latestRisk->calculated_at,
-            ]
+            ],
         ]);
     }
 
     /**
      * GET /api/ports
      * Retrieve all ports, optionally filtered by country code.
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function ports(Request $request): JsonResponse
     {
         $code = strtoupper(trim($request->query('country', '')));
-        
+
         $query = Port::with('country');
-        if (!empty($code)) {
+        if (! empty($code)) {
             $query->whereHas('country', function ($q) use ($code) {
                 $q->where('code', $code);
             });
@@ -226,22 +227,19 @@ class ApiController extends Controller
                 'country' => [
                     'code' => $port->country->code,
                     'name' => $port->country->name,
-                ]
+                ],
             ];
         });
 
         return response()->json([
             'success' => true,
-            'data' => $ports
+            'data' => $ports,
         ]);
     }
 
     /**
      * GET /api/news
      * Retrieve news articles and analyze their sentiment score.
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function news(Request $request): JsonResponse
     {
@@ -249,15 +247,15 @@ class ApiController extends Controller
         if (empty($code)) {
             return response()->json([
                 'success' => false,
-                'message' => "Parameter 'country' (kode negara) diperlukan."
+                'message' => "Parameter 'country' (kode negara) diperlukan.",
             ], 400);
         }
 
         $country = Country::where('code', $code)->first();
-        if (!$country) {
+        if (! $country) {
             return response()->json([
                 'success' => false,
-                'message' => "Negara dengan kode '{$code}' tidak ditemukan."
+                'message' => "Negara dengan kode '{$code}' tidak ditemukan.",
             ], 404);
         }
 
@@ -274,17 +272,14 @@ class ApiController extends Controller
                     'neutral' => $analysis['neutral_percent'],
                     'negative' => $analysis['negative_percent'],
                 ],
-                'articles' => $analysis['articles']
-            ]
+                'articles' => $analysis['articles'],
+            ],
         ]);
     }
 
     /**
      * GET /api/currency
      * Retrieve exchange rates and simulated 7-day trend for Chart.js.
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function currency(Request $request): JsonResponse
     {
@@ -292,15 +287,15 @@ class ApiController extends Controller
         if (empty($code)) {
             return response()->json([
                 'success' => false,
-                'message' => "Parameter 'country' (kode negara) diperlukan."
+                'message' => "Parameter 'country' (kode negara) diperlukan.",
             ], 400);
         }
 
         $country = Country::where('code', $code)->first();
-        if (!$country) {
+        if (! $country) {
             return response()->json([
                 'success' => false,
-                'message' => "Negara dengan kode '{$code}' tidak ditemukan."
+                'message' => "Negara dengan kode '{$code}' tidak ditemukan.",
             ], 404);
         }
 
@@ -319,7 +314,7 @@ class ApiController extends Controller
 
         // Get currency history from database, fallback to simulated if empty
         $history = $country->exchange_rate_history;
-        if (empty($history) || !is_array($history)) {
+        if (empty($history) || ! is_array($history)) {
             $history = [];
             for ($i = 6; $i >= 0; $i--) {
                 $date = now()->subDays($i)->format('Y-m-d');
@@ -346,28 +341,26 @@ class ApiController extends Controller
                 'currency_name' => $country->currency_name ?? 'US Dollar',
                 'current_rate' => $currentRate,
                 'volatility' => $volatility,
-                'history' => $history
-            ]
+                'history' => $history,
+            ],
         ]);
     }
 
     /**
      * GET /api/watchlist
      * Retrieve the user's monitored countries with their latest risk scores.
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function getWatchlist(Request $request): JsonResponse
     {
         $user = $request->user();
-        
+
         $countries = Country::whereIn('id', function ($query) use ($user) {
             $query->select('country_id')
                 ->from('watchlists')
                 ->where('user_id', $user->id);
         })->get()->map(function ($country) {
             $latestRisk = $country->riskScores()->latest()->first();
+
             return [
                 'id' => $country->id,
                 'code' => $country->code,
@@ -382,16 +375,13 @@ class ApiController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $countries
+            'data' => $countries,
         ]);
     }
 
     /**
      * POST /api/watchlist/toggle
      * Toggle a country in the user's watchlist.
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function toggleWatchlist(Request $request): JsonResponse
     {
@@ -407,20 +397,20 @@ class ApiController extends Controller
         } else {
             return response()->json([
                 'success' => false,
-                'message' => "Parameter 'country_id' atau 'country_code' diperlukan."
+                'message' => "Parameter 'country_id' atau 'country_code' diperlukan.",
             ], 400);
         }
 
         $country = $query->first();
-        if (!$country) {
+        if (! $country) {
             return response()->json([
                 'success' => false,
-                'message' => "Negara tidak ditemukan."
+                'message' => 'Negara tidak ditemukan.',
             ], 404);
         }
 
         // Check if exists in watchlists table
-        $watchlistItem = \App\Models\Watchlist::where('user_id', $user->id)
+        $watchlistItem = Watchlist::where('user_id', $user->id)
             ->where('country_id', $country->id)
             ->first();
 
@@ -429,7 +419,7 @@ class ApiController extends Controller
             $attached = false;
             $message = "Negara '{$country->name}' berhasil dihapus dari daftar pantauan Anda.";
         } else {
-            \App\Models\Watchlist::create([
+            Watchlist::create([
                 'user_id' => $user->id,
                 'country_id' => $country->id,
             ]);
@@ -438,11 +428,11 @@ class ApiController extends Controller
         }
 
         // Keep user JSON column synchronized
-        $currentCodes = \App\Models\Watchlist::where('user_id', $user->id)
+        $currentCodes = Watchlist::where('user_id', $user->id)
             ->join('countries', 'watchlists.country_id', '=', 'countries.id')
             ->pluck('countries.code')
             ->toArray();
-        
+
         $user->watchlist_country_codes = $currentCodes;
         $user->save();
 
@@ -450,7 +440,7 @@ class ApiController extends Controller
             'success' => true,
             'attached' => $attached,
             'message' => $message,
-            'watchlist' => $currentCodes
+            'watchlist' => $currentCodes,
         ]);
     }
 }

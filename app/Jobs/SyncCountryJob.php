@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Services\CountryService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -10,6 +11,7 @@ class SyncCountryJob implements ShouldQueue
     use Queueable;
 
     public $countryCode;
+
     public $forceRefresh;
 
     /**
@@ -38,7 +40,7 @@ class SyncCountryJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(\App\Services\CountryService $countryService): void
+    public function handle(CountryService $countryService): void
     {
         $countryService->syncCountry($this->countryCode, $this->forceRefresh);
     }

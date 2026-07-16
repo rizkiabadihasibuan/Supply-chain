@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -16,6 +17,7 @@ class ProfileController extends Controller
     public function edit(): View
     {
         $user = Auth::user();
+
         return view('profile', compact('user'));
     }
 
@@ -24,13 +26,13 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         // Update password if requested
         if ($request->filled('new_password')) {
             // Check if current password is correct
-            if (!Hash::check($request->current_password, $user->password)) {
+            if (! Hash::check($request->current_password, $user->password)) {
                 return back()->withErrors([
                     'current_password' => 'Password saat ini yang Anda masukkan salah.',
                 ]);

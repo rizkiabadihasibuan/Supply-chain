@@ -2,18 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
-    'country_id', 
-    'port_code', 
-    'name', 
-    'latitude', 
-    'longitude', 
-    'waiting_time_hours', 
-    'congestion_rate'
+    'country_id',
+    'port_code',
+    'name',
+    'latitude',
+    'longitude',
+    'waiting_time_hours',
+    'congestion_rate',
 ])]
 class Port extends Model
 {

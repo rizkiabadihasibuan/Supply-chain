@@ -3,11 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\Country;
+use App\Models\RiskScore;
 use App\Models\Role;
 use App\Models\User;
-use App\Models\RiskScore;
-use App\Services\SentimentAnalyzer;
+use App\Services\GNewsService;
 use App\Services\RiskScoringEngine;
+use App\Services\SentimentAnalyzer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -18,6 +19,7 @@ class SentimentAndRiskTest extends TestCase
     use RefreshDatabase;
 
     protected $user;
+
     protected $country;
 
     protected function setUp(): void
@@ -30,7 +32,7 @@ class SentimentAndRiskTest extends TestCase
 
         $analystRole = Role::where('name', 'Analyst')->first();
         $this->user = User::factory()->create([
-            'role_id' => $analystRole->id
+            'role_id' => $analystRole->id,
         ]);
 
         // Create country
@@ -66,7 +68,7 @@ class SentimentAndRiskTest extends TestCase
         $analyzer = app(SentimentAnalyzer::class);
 
         // Text with: "increase" (positive) & "inflation", "war", "decrease" (negative)
-        $text = "Inflation increase while exports decrease due to war.";
+        $text = 'Inflation increase while exports decrease due to war.';
         $result = $analyzer->analyzeText($text);
 
         $this->assertEquals('Negative', $result['sentiment']);
@@ -93,7 +95,7 @@ class SentimentAndRiskTest extends TestCase
             [
                 'title' => 'Average market movement', // neutral
                 'description' => 'No major news.',
-            ]
+            ],
         ];
 
         $results = $analyzer->analyzeArticles($articles);
@@ -124,12 +126,12 @@ class SentimentAndRiskTest extends TestCase
             [
                 'title' => 'Regular trade update',
                 'description' => 'No keywords.',
-            ]
+            ],
         ];
 
         // Mock GNews response
         Http::fake([
-            'https://gnews.io/api/v4/search*' => Http::response(['articles' => $mockNews], 200)
+            'https://gnews.io/api/v4/search*' => Http::response(['articles' => $mockNews], 200),
         ]);
 
         // Volatility for EUR = 1.25 -> currencyRisk = 1.25 * 35 = 43.75
@@ -138,7 +140,7 @@ class SentimentAndRiskTest extends TestCase
         // Political Risk = 33.33 (Negative percent)
         // Expected weighted score: (0.30 * 10.0) + (0.20 * 17.5) + (0.10 * 43.75) + (0.40 * 33.33)
         // = 3.0 + 3.5 + 4.375 + 13.332 = 24.21%
-        
+
         $engine = app(RiskScoringEngine::class);
         $riskScore = $engine->calculateRisk($this->country);
 
@@ -169,20 +171,20 @@ class SentimentAndRiskTest extends TestCase
                 'region' => 'Europe',
                 'population' => 84000000,
                 'currencies' => [
-                    'EUR' => ['name' => 'Euro']
+                    'EUR' => ['name' => 'Euro'],
                 ],
                 'languages' => [
-                    'deu' => 'German'
+                    'deu' => 'German',
                 ],
                 'flags' => [
-                    'svg' => 'https://flagcdn.com/de.svg'
+                    'svg' => 'https://flagcdn.com/de.svg',
                 ],
                 'capital' => ['Berlin'],
                 'latlng' => [51.0, 9.0],
                 'capitalInfo' => [
-                    'latlng' => [52.52, 13.40]
-                ]
-            ]
+                    'latlng' => [52.52, 13.40],
+                ],
+            ],
         ];
 
         Http::fake([
@@ -195,18 +197,18 @@ class SentimentAndRiskTest extends TestCase
                     'weather_code' => 0,
                     'wind_speed_10m' => 5.0,
                     'wind_gusts_10m' => 10.0,
-                ]
+                ],
             ], 200),
             'https://open.er-api.com/v6/latest/USD' => Http::response([
                 'rates' => [
-                    'EUR' => 0.92
-                ]
+                    'EUR' => 0.92,
+                ],
             ], 200),
             'https://gnews.io/api/v4/search*' => Http::response([
                 'articles' => [
-                    ['title' => 'Germany trade crisis', 'description' => 'Delay and collapse of economy.']
-                ]
-            ], 200)
+                    ['title' => 'Germany trade crisis', 'description' => 'Delay and collapse of economy.'],
+                ],
+            ], 200),
         ]);
 
         $response = $this->actingAs($this->user)
@@ -218,7 +220,7 @@ class SentimentAndRiskTest extends TestCase
         $this->assertDatabaseHas('risk_scores', [
             'country_id' => $this->country->id,
         ]);
-        
+
         $latestScore = RiskScore::where('country_id', $this->country->id)->latest()->first();
         $this->assertNotNull($latestScore);
         // Crisis (negative), delay (negative), collapse (negative), economy (neutral/not seeded)
@@ -238,14 +240,14 @@ class SentimentAndRiskTest extends TestCase
                 'source' => ['name' => 'Reuters'],
                 'url' => 'https://example.com/1',
                 'publishedAt' => '2026-07-14T05:00:00Z',
-            ]
+            ],
         ];
 
         Http::fake([
-            'https://gnews.io/api/v4/search*' => Http::response(['articles' => $mockNews], 200)
+            'https://gnews.io/api/v4/search*' => Http::response(['articles' => $mockNews], 200),
         ]);
 
-        $service = app(\App\Services\GNewsService::class);
+        $service = app(GNewsService::class);
 
         // 1. First fetch -> calls HTTP API
         $articles = $service->fetchNews('DE', 'Germany');

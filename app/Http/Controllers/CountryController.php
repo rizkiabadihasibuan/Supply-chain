@@ -3,36 +3,36 @@
 namespace App\Http\Controllers;
 
 use App\Models\Country;
-use App\Services\RestCountriesService;
-use App\Services\WorldBankService;
-use App\Services\OpenMeteoService;
-use App\Services\ExchangeRateService;
-use App\Services\RiskScoringEngine;
 use App\Services\CountryService;
+use App\Services\CurrencyService;
+use App\Services\ExchangeRateService;
+use App\Services\OpenMeteoService;
+use App\Services\RestCountriesService;
+use App\Services\RiskScoringEngine;
+use App\Services\WeatherService;
+use App\Services\WorldBankService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 
 class CountryController extends Controller
 {
     protected $restCountriesService;
+
     protected $worldBankService;
+
     protected $openMeteoService;
+
     protected $exchangeRateService;
+
     protected $riskScoringEngine;
+
     protected $countryService;
 
     /**
      * CountryController constructor.
-     *
-     * @param RestCountriesService $restCountriesService
-     * @param WorldBankService $worldBankService
-     * @param OpenMeteoService $openMeteoService
-     * @param ExchangeRateService $exchangeRateService
-     * @param RiskScoringEngine $riskScoringEngine
-     * @param CountryService $countryService
      */
     public function __construct(
-        RestCountriesService $restCountriesService, 
+        RestCountriesService $restCountriesService,
         WorldBankService $worldBankService,
         OpenMeteoService $openMeteoService,
         ExchangeRateService $exchangeRateService,
@@ -49,9 +49,6 @@ class CountryController extends Controller
 
     /**
      * Retrieve country details from APIs (or Cache).
-     *
-     * @param string $code
-     * @return JsonResponse
      */
     public function detail(string $code): JsonResponse
     {
@@ -59,10 +56,10 @@ class CountryController extends Controller
         $restData = $this->restCountriesService->fetchByCode($code);
         $bankData = $this->worldBankService->fetchAllMetrics($code);
 
-        if (!$restData && empty($bankData)) {
+        if (! $restData && empty($bankData)) {
             return response()->json([
                 'success' => false,
-                'message' => "Detail negara dengan kode '{$code}' tidak dapat ditemukan atau API eksternal terganggu."
+                'message' => "Detail negara dengan kode '{$code}' tidak dapat ditemukan atau API eksternal terganggu.",
             ], 404);
         }
 
@@ -81,7 +78,7 @@ class CountryController extends Controller
         $latestRisk = $country ? $country->riskScores()->latest()->first() : null;
 
         $mergedData = array_merge(
-            $restData ?? [], 
+            $restData ?? [],
             $bankData,
             ['weather' => $weatherData],
             ['exchange_rate' => $currencyRate],
@@ -90,15 +87,12 @@ class CountryController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $mergedData
+            'data' => $mergedData,
         ]);
     }
 
     /**
      * Sync local country data with REST Countries & World Bank & Open-Meteo APIs.
-     *
-     * @param string $code
-     * @return JsonResponse
      */
     public function sync(string $code): JsonResponse
     {
@@ -113,15 +107,15 @@ class CountryController extends Controller
             $country = $this->countryService->syncCountry($code, true);
             $restSuccess = true;
         } catch (\Exception $e) {
-            Log::warning("Sinkronisasi REST Countries gagal untuk '{$code}': " . $e->getMessage());
+            Log::warning("Sinkronisasi REST Countries gagal untuk '{$code}': ".$e->getMessage());
         }
 
         // 2. Fetch from World Bank
         if ($this->worldBankService) {
             try {
                 $bankData = $this->worldBankService->fetchAllMetrics($code);
-                if (!empty($bankData)) {
-                    if (!$country) {
+                if (! empty($bankData)) {
+                    if (! $country) {
                         $country = Country::where('code', $code)->first();
                     }
                     if ($country) {
@@ -135,41 +129,41 @@ class CountryController extends Controller
                     }
                 }
             } catch (\Exception $e) {
-                Log::warning("Sinkronisasi World Bank gagal untuk '{$code}': " . $e->getMessage());
+                Log::warning("Sinkronisasi World Bank gagal untuk '{$code}': ".$e->getMessage());
             }
         }
 
-        if (!$country) {
+        if (! $country) {
             return response()->json([
                 'success' => false,
-                'message' => "Negara dengan kode '{$code}' tidak terdaftar di database lokal kami."
+                'message' => "Negara dengan kode '{$code}' tidak terdaftar di database lokal kami.",
             ], 404);
         }
 
-        if (!$restSuccess && !$bankSuccess) {
+        if (! $restSuccess && ! $bankSuccess) {
             return response()->json([
                 'success' => false,
-                'message' => "Gagal mengambil data terbaru dari REST Countries API dan World Bank API."
+                'message' => 'Gagal mengambil data terbaru dari REST Countries API dan World Bank API.',
             ], 502);
         }
 
         // 3. Sync weather if coordinates are available
-        $weatherService = app(\App\Services\WeatherService::class);
+        $weatherService = app(WeatherService::class);
         if ($weatherService && $country->latitude !== null && $country->longitude !== null) {
             try {
                 $weatherService->syncWeather($code, true);
             } catch (\Exception $e) {
-                Log::warning("Sinkronisasi WeatherService gagal untuk '{$code}': " . $e->getMessage());
+                Log::warning("Sinkronisasi WeatherService gagal untuk '{$code}': ".$e->getMessage());
             }
         }
 
         // 4. Sync currency if currency_code is available
-        $currencyService = app(\App\Services\CurrencyService::class);
-        if ($currencyService && !empty($country->currency_code)) {
+        $currencyService = app(CurrencyService::class);
+        if ($currencyService && ! empty($country->currency_code)) {
             try {
                 $currencyService->syncCountryCurrency($code, true);
             } catch (\Exception $e) {
-                Log::warning("Sinkronisasi CurrencyService gagal untuk '{$code}': " . $e->getMessage());
+                Log::warning("Sinkronisasi CurrencyService gagal untuk '{$code}': ".$e->getMessage());
             }
         }
 
@@ -178,21 +172,19 @@ class CountryController extends Controller
             try {
                 $this->riskScoringEngine->calculateRisk($country);
             } catch (\Exception $e) {
-                Log::warning("Penghitungan skor risiko gagal untuk '{$code}': " . $e->getMessage());
+                Log::warning("Penghitungan skor risiko gagal untuk '{$code}': ".$e->getMessage());
             }
         }
 
         return response()->json([
             'success' => true,
             'message' => "Data lokal negara '{$country->name}' berhasil disinkronisasikan dengan REST Countries, World Bank, dan Open-Meteo API.",
-            'data' => $country->load('riskScores')
+            'data' => $country->load('riskScores'),
         ]);
     }
 
     /**
      * Sync all local countries with REST Countries API.
-     *
-     * @return JsonResponse
      */
     public function syncAll(): JsonResponse
     {
@@ -213,21 +205,18 @@ class CountryController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => "Sinkronisasi seluruh negara selesai. Sukses: {$successCount}, Gagal: {$failedCount}.",
-                'data' => $results
+                'data' => $results,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => "Gagal melakukan sinkronisasi massal: " . $e->getMessage()
+                'message' => 'Gagal melakukan sinkronisasi massal: '.$e->getMessage(),
             ], 500);
         }
     }
 
     /**
      * Sync local country economic data with World Bank API.
-     *
-     * @param string $code
-     * @return JsonResponse
      */
     public function syncEconomic(string $code): JsonResponse
     {
@@ -244,20 +233,18 @@ class CountryController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => "Data ekonomi negara '{$country->name}' berhasil disinkronisasikan dengan World Bank API.",
-                'data' => $country->load('riskScores')
+                'data' => $country->load('riskScores'),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => "Gagal melakukan sinkronisasi data ekonomi: " . $e->getMessage()
+                'message' => 'Gagal melakukan sinkronisasi data ekonomi: '.$e->getMessage(),
             ], 500);
         }
     }
 
     /**
      * Sync all countries' economic data with World Bank API.
-     *
-     * @return JsonResponse
      */
     public function syncAllEconomic(): JsonResponse
     {
@@ -278,12 +265,12 @@ class CountryController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => "Sinkronisasi data ekonomi seluruh negara selesai. Sukses: {$successCount}, Gagal: {$failedCount}.",
-                'data' => $results
+                'data' => $results,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => "Gagal melakukan sinkronisasi data ekonomi massal: " . $e->getMessage()
+                'message' => 'Gagal melakukan sinkronisasi data ekonomi massal: '.$e->getMessage(),
             ], 500);
         }
     }
