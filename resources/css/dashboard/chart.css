@@ -1,0 +1,51 @@
+/* ============================================================
+   CHART CARD STYLES
+   ============================================================ */
+
+.chart-card-wrapper {
+    border-radius: 16px;
+    overflow: hidden;
+    height: 100%;
+}
+
+.chart-canvas-container {
+    position: relative;
+    width: 100%;
+    height: 240px;
+}
+
+@media (max-width: 768px) {
+    .chart-canvas-container {
+        height: 200px;
+    }
+}
+
+/* Chart header action buttons */
+.chart-action-btn {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    color: #64748B;
+    transition: background 0.18s ease, color 0.18s ease;
+    font-size: 0.85rem;
+}
+
+.chart-action-btn:hover {
+    background: #F1F5F9;
+    color: #2563EB;
+}
+
+/* Risk badge inline */
+.risk-badge-line {
+    font-size: 0.65rem;
+    padding: 2px 8px;
+    border-radius: 50px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}

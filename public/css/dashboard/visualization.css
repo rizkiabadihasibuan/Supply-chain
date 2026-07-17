@@ -1,0 +1,108 @@
+/* ============================================================
+   VISUALIZATION DASHBOARD - Main Styles
+   ============================================================ */
+
+:root {
+    --viz-primary: #2563EB;
+    --viz-sidebar: #123458;
+    --viz-bg: #F8FAFC;
+    --viz-card: #FFFFFF;
+    --viz-border: #E2E8F0;
+    --viz-radius: 16px;
+    --viz-shadow: 0 2px 12px rgba(18, 52, 88, 0.07);
+    --viz-shadow-hover: 0 10px 28px rgba(18, 52, 88, 0.12);
+    --viz-text: #1E293B;
+    --viz-text-secondary: #64748B;
+    --viz-success: #16A34A;
+    --viz-warning: #D97706;
+    --viz-danger: #DC2626;
+    --viz-info: #0284C7;
+}
+
+/* ============================================================
+   FADE IN ANIMATION
+   ============================================================ */
+@keyframes vizFadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes vizFadeInLeft {
+    from { opacity: 0; transform: translateX(-12px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes shimmer {
+    0%   { background-position: -500px 0; }
+    100% { background-position: 500px 0; }
+}
+
+.viz-fade-in {
+    animation: vizFadeIn 0.45s ease both;
+}
+
+.viz-fade-in-left {
+    animation: vizFadeInLeft 0.45s ease both;
+}
+
+/* Staggered delay for KPI cards */
+.viz-stagger-1 { animation-delay: 0.05s; }
+.viz-stagger-2 { animation-delay: 0.10s; }
+.viz-stagger-3 { animation-delay: 0.15s; }
+.viz-stagger-4 { animation-delay: 0.20s; }
+.viz-stagger-5 { animation-delay: 0.25s; }
+.viz-stagger-6 { animation-delay: 0.30s; }
+
+/* ============================================================
+   CARD BASE STYLES
+   ============================================================ */
+.viz-card {
+    background: var(--viz-card);
+    border-radius: var(--viz-radius) !important;
+    border: 1px solid var(--viz-border) !important;
+    box-shadow: var(--viz-shadow) !important;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.viz-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--viz-shadow-hover) !important;
+}
+
+/* ============================================================
+   KPI CARD
+   ============================================================ */
+.kpi-icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.kpi-value {
+    font-size: 1.65rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+}
+
+.kpi-trend {
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* ============================================================
+   SPIN ANIMATION
+   ============================================================ */
+@keyframes spin {
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.is-spinning {
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+}

@@ -1,0 +1,81 @@
+/* ============================================================
+   ANALYTICS TABLE STYLES
+   ============================================================ */
+
+.analytics-table-wrapper {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #E2E8F0;
+}
+
+.analytics-table thead th {
+    background-color: #F8FAFC;
+    color: #64748B;
+    font-size: 0.76rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #E2E8F0;
+    padding: 12px 16px;
+    white-space: nowrap;
+}
+
+.analytics-table tbody td {
+    font-size: 0.85rem;
+    padding: 12px 16px;
+    vertical-align: middle;
+    border-bottom: 1px solid #F1F5F9;
+    color: #374151;
+}
+
+.analytics-table tbody tr:hover {
+    background-color: #F8FAFC;
+}
+
+.analytics-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Country cell */
+.table-country-name {
+    font-weight: 600;
+    color: #1E293B;
+}
+
+.table-flag {
+    font-size: 1.15rem;
+    line-height: 1;
+}
+
+/* Status badge */
+.status-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 50px;
+    letter-spacing: 0.3px;
+}
+
+/* Table toolbar */
+.table-toolbar {
+    padding: 16px 20px;
+    border-bottom: 1px solid #E2E8F0;
+    background: #FAFCFF;
+    border-radius: 16px 16px 0 0;
+}
+
+.table-footer {
+    padding: 12px 20px;
+    border-top: 1px solid #E2E8F0;
+    background: #FAFCFF;
+    border-radius: 0 0 16px 16px;
+}
+
+/* Mobile: remove min-width to prevent overflow */
+@media (max-width: 576px) {
+    .analytics-table thead th,
+    .analytics-table tbody td {
+        font-size: 0.78rem;
+        padding: 10px 12px;
+    }
+}

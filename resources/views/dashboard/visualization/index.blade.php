@@ -1,371 +1,660 @@
+{{--
+    Data Visualization Dashboard - Milestone 3.10
+    resources/views/dashboard/visualization/index.blade.php
+
+    Layout:
+      Header → Toolbar → [Loading|Empty|Error|Main Content]
+      Main Content: Left (KPI + Charts + Table) | Right (Insight Panel)
+--}}
 @extends('layouts.app')
 
-@section('title', 'Data Visualization Dashboard - SupplyChain Platform')
+@section('title', 'Data Visualization Dashboard – SupplyChain Platform')
 
 @section('styles')
-<style>
-    {!! file_get_contents(resource_path('views/dashboard/visualization/css/visualization.css')) !!}
-</style>
+{{-- Modular CSS --}}
+<link rel="stylesheet" href="{{ asset('css/dashboard/visualization.css') }}">
+<link rel="stylesheet" href="{{ asset('css/dashboard/chart.css') }}">
+<link rel="stylesheet" href="{{ asset('css/dashboard/toolbar.css') }}">
+<link rel="stylesheet" href="{{ asset('css/dashboard/table.css') }}">
+<link rel="stylesheet" href="{{ asset('css/dashboard/responsive.css') }}">
 @endsection
 
 @section('content')
-<!-- Page Header Area -->
-<div class="row mb-4 align-items-center">
-    <div class="col-md-7">
-        <h4 class="fw-bold text-dark mb-1">Data Visualization Dashboard</h4>
-        <p class="text-secondary small mb-0">Visualisasikan kondisi ekonomi, nilai tukar, inflasi, dan tingkat risiko negara secara interaktif.</p>
-    </div>
-    <div class="col-md-5 d-flex justify-content-md-end align-items-center gap-3 mt-3 mt-md-0 flex-wrap">
-        <!-- Date Indicator -->
-        <span class="badge bg-white text-secondary border px-3 py-2 rounded-pill small d-flex align-items-center gap-1.5 shadow-sm">
-            <i class="bi bi-calendar3 text-primary"></i> 18 Juli 2026
-        </span>
-        <!-- Refresh Button -->
-        <button class="btn btn-primary btn-sm px-3 d-flex align-items-center gap-1.5" id="btn-refresh-charts" onclick="triggerChartsSync()" style="min-height: 38px;" aria-label="Segarkan data grafik">
-            <i class="bi bi-arrow-clockwise"></i> Segarkan Data
-        </button>
-        <!-- Export Button -->
-        <div class="dropdown">
-            <button class="btn btn-outline-primary btn-sm px-3 dropdown-toggle d-flex align-items-center gap-1.5" type="button" id="exportHeaderDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="min-height: 38px;">
-                <i class="bi bi-download"></i> Ekspor Data
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3" aria-labelledby="exportHeaderDropdown">
-                <li><button class="dropdown-item small" type="button" onclick="exportData('pdf')"><i class="bi bi-filetype-pdf text-danger me-2"></i>PDF</button></li>
-                <li><button class="dropdown-item small" type="button" onclick="exportData('csv')"><i class="bi bi-filetype-csv text-success me-2"></i>CSV</button></li>
-                <li><button class="dropdown-item small" type="button" onclick="exportData('xlsx')"><i class="bi bi-filetype-xls text-primary me-2"></i>Excel</button></li>
-            </ul>
-        </div>
-    </div>
-</div>
+<div class="viz-page-wrapper">
 
-<!-- Toolbar Area (Filter & Search) -->
-<x-toolbar>
-    <!-- Search Country -->
-    <div class="col-xl-3 col-lg-3 col-md-12 col-12">
-        <x-search-input placeholder="Cari negara..." id="search-chart-country" oninput="applyChartFilters()" />
-    </div>
-    
-    <!-- Dropdown Region -->
-    <div class="col-xl-2 col-lg-2 col-md-4 col-6">
-        <x-filter-dropdown id="filter-chart-region" onchange="applyChartFilters()">
-            <option value="all">Semua Wilayah</option>
-            <option value="asia">Asia</option>
-            <option value="europe">Eropa</option>
-            <option value="america">Amerika</option>
-            <option value="africa">Afrika</option>
-            <option value="oceania">Oceania</option>
-        </x-filter-dropdown>
-    </div>
+    {{-- ====================================================
+         PAGE HEADER
+         ==================================================== --}}
+    @include('dashboard.visualization.components.page-header')
 
-    <!-- Dropdown Year -->
-    <div class="col-xl-2 col-lg-2 col-md-4 col-6">
-        <x-filter-dropdown id="filter-chart-year" onchange="applyChartFilters()">
-            <option value="2026" selected>Tahun 2026</option>
-            <option value="2025">Tahun 2025</option>
-            <option value="2024">Tahun 2024</option>
-        </x-filter-dropdown>
-    </div>
+    {{-- ====================================================
+         TOOLBAR FILTER
+         ==================================================== --}}
+    @include('dashboard.visualization.components.toolbar-filter')
 
-    <!-- Dropdown Chart -->
-    <div class="col-xl-2 col-lg-2 col-md-4 col-6">
-        <x-filter-dropdown id="filter-chart-category" onchange="toggleChartsDisplay()">
-            <option value="all">Semua Grafik</option>
-            <option value="gdp">GDP Trend</option>
-            <option value="inflation">Inflation Trend</option>
-            <option value="currency">Currency Trend</option>
-            <option value="risk">Risk Trend</option>
-        </x-filter-dropdown>
-    </div>
+    {{-- ====================================================
+         LOADING SKELETON (shown first)
+         ==================================================== --}}
+    @include('dashboard.visualization.components.loading-placeholder')
 
-    <!-- Sorting Tool -->
-    <div class="col-xl-3 col-lg-3 col-md-12 col-6">
-        <x-filter-dropdown id="filter-chart-sort" onchange="applyChartFilters()">
-            <option value="name">Urutkan: Nama Negara</option>
-            <option value="gdp-desc">Urutkan: GDP Tertinggi</option>
-            <option value="inflation-desc">Urutkan: Inflasi Terbesar</option>
-            <option value="risk-desc">Urutkan: Risiko Terbesar</option>
-        </x-filter-dropdown>
-    </div>
+    {{-- ====================================================
+         EMPTY STATE
+         ==================================================== --}}
+    @include('dashboard.visualization.components.empty-state')
 
-    <!-- Right Actions: Extra Simulation Buttons -->
-    <x-slot name="simulations">
-        <button class="btn btn-light btn-sm px-3" style="min-height: 38px; height: 38px;" onclick="simulateSkeletonLoading()">
-            <i class="bi bi-hourglass-split me-2"></i>Simulasikan Loading
-        </button>
-        <button class="btn btn-light btn-sm px-3" style="min-height: 38px; height: 38px;" onclick="simulateEmptyState()">
-            <i class="bi bi-x-circle me-2"></i>Simulasikan Data Kosong
-        </button>
-        <button class="btn btn-light btn-sm px-3" style="min-height: 38px; height: 38px;" onclick="simulateErrorState()">
-            <i class="bi bi-exclamation-octagon me-2"></i>Simulasikan Error
-        </button>
-        <button class="btn btn-light btn-sm px-3" style="min-height: 38px; height: 38px;" onclick="resetFilters()">
-            <i class="bi bi-x me-2"></i>Reset Filter
-        </button>
-    </x-slot>
-</x-toolbar>
+    {{-- ====================================================
+         ERROR STATE
+         ==================================================== --}}
+    @include('dashboard.visualization.components.error-state')
 
-<!-- Skeleton Loading wrapper (using Bootstrap Placeholders) -->
-<div id="skeleton-container" style="display: none;" class="my-4">
-    <div class="row g-4">
-        <div class="col-12 col-md-8">
-            <!-- Table Skeleton -->
-            <div class="card p-4 border-0 mb-4">
-                <h5 class="placeholder-glow mb-3"><span class="placeholder col-6"></span></h5>
-                <div class="table-responsive">
-                    <table class="table mb-0">
-                        <thead>
-                            <tr>
-                                <th><span class="placeholder col-8"></span></th>
-                                <th><span class="placeholder col-8"></span></th>
-                                <th><span class="placeholder col-8"></span></th>
-                                <th><span class="placeholder col-8"></span></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @for ($i = 0; $i < 4; $i++)
-                            <tr>
-                                <td><span class="placeholder col-6"></span></td>
-                                <td><span class="placeholder col-4"></span></td>
-                                <td><span class="placeholder col-5"></span></td>
-                                <td><span class="placeholder col-7"></span></td>
-                            </tr>
-                            @endfor
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-4">
-            <!-- Sidebar Skeleton -->
-            <div class="card p-4 border-0 mb-4">
-                <div class="placeholder-glow">
-                    <span class="placeholder col-8 mb-3"></span>
-                    <span class="placeholder col-12 mb-2"></span>
-                    <span class="placeholder col-10"></span>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+    {{-- ====================================================
+         MAIN CONTENT (hidden until JS loads data)
+         ==================================================== --}}
+    <div id="mainContent" style="display:none;">
 
-<!-- Empty State Component -->
-<div id="empty-state-container" style="display: none;">
-    <x-empty-state title="Belum ada data analisis visual." description="Negara yang Anda cari tidak ditemukan dalam database analitik." onclick="resetFilters()" />
-</div>
+        {{-- ------------------------------------------------
+             KPI CARDS – 6 cards (2 per row on mobile, 3 on tablet, 6 on desktop)
+             ------------------------------------------------ --}}
+        <div class="row g-3 mb-4">
 
-<!-- Error State Component -->
-<div id="error-state-container" style="display: none;">
-    <x-error-state title="Gagal Menghubungkan Visualisasi." description="Koneksi satelit data makroekonomi terputus. Silakan coba kembali." onclick="retryFromError()" />
-</div>
-
-<!-- Main Content Grid -->
-<div id="main-content-grid" class="row g-4">
-    <!-- Kolom Kiri: KPI, Charts, & Analytics Table -->
-    <div class="col-lg-8">
-        <div class="d-flex flex-column gap-4">
-            
-            <!-- KPI SECTION: 6 Cards -->
-            <div class="row g-3">
-                <div class="col-6 col-md-4">
-                    <x-kpi-card title="GDP Global" value="$3.5T" description="Meningkat" icon="bi-cash-coin" type="primary" trend="+1.8%" :trendUp="true" statusBadge="Normal" statusBadgeType="success" />
-                </div>
-                <div class="col-6 col-md-4">
-                    <x-kpi-card title="Rerata Inflasi" value="+3.2%" description="Menurun" icon="bi-percent" type="warning" trend="-0.4%" :trendUp="true" statusBadge="Waspada" statusBadgeType="warning" />
-                </div>
-                <div class="col-6 col-md-4">
-                    <x-kpi-card title="Kurs USD/IDR" value="Rp16.250" description="Volatilitas Rendah" icon="bi-currency-exchange" type="success" trend="+0.2%" :trendUp="true" statusBadge="Stabil" statusBadgeType="success" />
-                </div>
-                <div class="col-6 col-md-4">
-                    <x-kpi-card title="Risk Score" value="2.80 / 5.0" description="Level Sedang" icon="bi-exclamation-triangle" type="warning" trend="+0.1" :trendUp="false" statusBadge="Sedang" statusBadgeType="warning" />
-                </div>
-                <div class="col-6 col-md-4">
-                    <x-kpi-card title="Populasi Terpantau" value="1.45B" description="Pertumbuhan Stabil" icon="bi-people" type="primary" trend="+0.5%" :trendUp="true" statusBadge="Normal" statusBadgeType="success" />
-                </div>
-                <div class="col-6 col-md-4">
-                    <x-kpi-card title="Last Update" value="Live" description="Terhubung World Bank" icon="bi-clock" type="success" trend="Satelit" :trendUp="true" statusBadge="Online" statusBadgeType="success" />
-                </div>
-            </div>
-
-            <!-- CHART SECTION: 4 Charts -->
-            <div class="row g-4" id="charts-grid-container">
-                <!-- GDP Trend (Line Chart) -->
-                <div class="col-md-6 chart-item-wrapper" id="chart-wrap-gdp">
-                    <x-chart-card title="GDP Trend" subtitle="Tren PDB Regional Terpantau" :showRefresh="true" refreshId="refresh-chart-gdp" :noBorder="true">
-                        <canvas id="gdpChartCanvas"></canvas>
-                    </x-chart-card>
-                </div>
-
-                <!-- Inflation Trend (Bar Chart) -->
-                <div class="col-md-6 chart-item-wrapper" id="chart-wrap-inflation">
-                    <x-chart-card title="Inflation Trend" subtitle="Tingkat Inflasi Bulanan Fokus" :showRefresh="true" refreshId="refresh-chart-inflation" :noBorder="true">
-                        <canvas id="inflationChartCanvas"></canvas>
-                    </x-chart-card>
-                </div>
-
-                <!-- Currency Trend (Area Chart) -->
-                <div class="col-md-6 chart-item-wrapper" id="chart-wrap-currency">
-                    <x-chart-card title="Currency Trend" subtitle="Volatilitas Kurs Rupiah terhadap USD" :showRefresh="true" refreshId="refresh-chart-currency" :noBorder="true">
-                        <canvas id="currencyChartCanvas"></canvas>
-                    </x-chart-card>
-                </div>
-
-                <!-- Risk Trend (Line Chart) -->
-                <div class="col-md-6 chart-item-wrapper" id="chart-wrap-risk">
-                    <x-chart-card title="Risk Trend" subtitle="Indeks Kerawanan Logistik Global" :showRefresh="true" refreshId="refresh-chart-risk" :noBorder="true">
-                        <canvas id="riskChartCanvas"></canvas>
-                    </x-chart-card>
-                </div>
-            </div>
-
-            <!-- ANALYTICS TABLE -->
-            <div class="card p-4 border-0 shadow-sm rounded-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-table text-primary me-2"></i>Matriks Perbandingan Makroekonomi</h5>
-                </div>
-                
-                <x-analytics-table id="visualization-macro-table">
-                    <thead>
-                        <tr>
-                            <th>Negara</th>
-                            <th>GDP (Triliun USD)</th>
-                            <th>Inflasi</th>
-                            <th>Exchange Rate</th>
-                            <th>Risk Score</th>
-                            <th>Last Update</th>
-                        </tr>
-                    </thead>
-                    <tbody id="macro-table-body">
-                        <!-- Indonesia -->
-                        <tr class="macro-table-row" data-name="Indonesia" data-region="asia" data-gdp="1.37" data-inflation="2.8" data-risk="1.25">
-                            <td data-label="Negara" class="fw-bold text-dark">🇮🇩 Indonesia</td>
-                            <td data-label="GDP">$1.37T</td>
-                            <td data-label="Inflasi" class="text-success fw-bold">+2.8%</td>
-                            <td data-label="Exchange Rate">Rp16.250 / USD</td>
-                            <td data-label="Risk Score"><x-badge type="success" text="Low (1.25)" /></td>
-                            <td data-label="Last Update">Baru Saja</td>
-                        </tr>
-
-                        <!-- China -->
-                        <tr class="macro-table-row" data-name="China" data-region="asia" data-gdp="17.9" data-inflation="1.8" data-risk="4.25">
-                            <td data-label="Negara" class="fw-bold text-dark">🇨🇳 China</td>
-                            <td data-label="GDP">$17.90T</td>
-                            <td data-label="Inflasi" class="text-success fw-bold">+1.8%</td>
-                            <td data-label="Exchange Rate">¥7.24 / USD</td>
-                            <td data-label="Risk Score"><span class="badge" style="background-color: #EF4444; color: white;">High (4.25)</span></td>
-                            <td data-label="Last Update">5 Menit Lalu</td>
-                        </tr>
-
-                        <!-- Amerika Serikat -->
-                        <tr class="macro-table-row" data-name="Amerika Serikat" data-region="america" data-gdp="25.4" data-inflation="3.4" data-risk="3.48">
-                            <td data-label="Negara" class="fw-bold text-dark">🇺🇸 Amerika Serikat</td>
-                            <td data-label="GDP">$25.40T</td>
-                            <td data-label="Inflasi" class="text-warning fw-bold">+3.4%</td>
-                            <td data-label="Exchange Rate">Base Currency (USD)</td>
-                            <td data-label="Risk Score"><x-badge type="warning" text="Medium (3.48)" /></td>
-                            <td data-label="Last Update">1 Jam Lalu</td>
-                        </tr>
-
-                        <!-- Belanda -->
-                        <tr class="macro-table-row" data-name="Belanda" data-region="europe" data-gdp="1.01" data-inflation="4.1" data-risk="1.85">
-                            <td data-label="Negara" class="fw-bold text-dark">🇳🇱 Belanda</td>
-                            <td data-label="GDP">$1.01T</td>
-                            <td data-label="Inflasi" class="text-danger fw-bold">+4.1%</td>
-                            <td data-label="Exchange Rate">€0.92 / USD</td>
-                            <td data-label="Risk Score"><x-badge type="success" text="Low (1.85)" /></td>
-                            <td data-label="Last Update">2 Jam Lalu</td>
-                        </tr>
-
-                        <!-- Sudan -->
-                        <tr class="macro-table-row" data-name="Sudan" data-region="africa" data-gdp="0.05" data-inflation="75.0" data-risk="4.80">
-                            <td data-label="Negara" class="fw-bold text-dark">🇸🇩 Sudan</td>
-                            <td data-label="GDP">$0.05T</td>
-                            <td data-label="Inflasi" class="text-danger fw-bold">+75.0%</td>
-                            <td data-label="Exchange Rate">SDG 601.5 / USD</td>
-                            <td data-label="Risk Score"><span class="badge bg-danger text-white">High (4.80)</span></td>
-                            <td data-label="Last Update">Kemarin</td>
-                        </tr>
-                    </tbody>
-                </x-analytics-table>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- Kolom Kanan: Insight Panel (Widgets List) -->
-    <div class="col-lg-4">
-        <div class="d-flex flex-column gap-3">
-            
-            <!-- Insight 1: Top Performing Country -->
-            <x-insight-card title="Top Performing Country" icon="bi-award-fill" badgeText="A+ Rank" badgeType="success">
-                <div class="text-center pb-3 border-bottom mb-3">
-                    <span class="fs-1 d-block mb-1">🇸🇬</span>
-                    <h6 class="fw-bold text-dark mb-1">Singapura</h6>
-                    <span class="text-secondary small d-block">Logistik & Distribusi Superb</span>
-                </div>
-                <div class="d-flex flex-column gap-2" style="font-size: 0.8rem;">
-                    <div class="d-flex justify-content-between">
-                        <span class="text-secondary">Efisiensi Port:</span>
-                        <span class="text-success fw-bold">98.5% (Tinggi)</span>
+            {{-- Card 1: GDP --}}
+            <div class="col-6 col-md-4 col-xl-2 viz-fade-in viz-stagger-1">
+                <div class="card viz-card p-4 h-100 d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="kpi-icon-box" style="background:rgba(37,99,235,0.09);">
+                            <i class="bi bi-cash-coin text-primary fs-5"></i>
+                        </div>
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill" style="font-size:.7rem;">Normal</span>
+                    </div>
+                    <div>
+                        <p class="text-secondary small fw-medium mb-1">GDP Global</p>
+                        <div class="kpi-value text-dark mb-1">$3.5T</div>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span class="kpi-trend text-success"><i class="bi bi-arrow-up-short"></i>+1.8%</span>
+                            <span class="text-secondary" style="font-size:.72rem;">Meningkat YoY</span>
+                        </div>
                     </div>
                 </div>
-            </x-insight-card>
+            </div>
 
-            <!-- Insight 2: Highest GDP -->
-            <x-insight-card title="Highest GDP" icon="bi-gem" badgeText="Leader" badgeType="primary">
-                <div class="d-flex justify-content-between align-items-center">
-                    <span class="text-dark fw-bold">🇺🇸 Amerika Serikat</span>
-                    <span class="badge bg-primary text-white">$25.40T</span>
+            {{-- Card 2: Inflation --}}
+            <div class="col-6 col-md-4 col-xl-2 viz-fade-in viz-stagger-2">
+                <div class="card viz-card p-4 h-100 d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="kpi-icon-box" style="background:rgba(217,119,6,0.09);">
+                            <i class="bi bi-percent text-warning fs-5"></i>
+                        </div>
+                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill" style="font-size:.7rem;">Waspada</span>
+                    </div>
+                    <div>
+                        <p class="text-secondary small fw-medium mb-1">Rata-rata Inflasi</p>
+                        <div class="kpi-value text-warning mb-1">3.2%</div>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span class="kpi-trend text-success"><i class="bi bi-arrow-down-short"></i>-0.4%</span>
+                            <span class="text-secondary" style="font-size:.72rem;">Mereda MoM</span>
+                        </div>
+                    </div>
                 </div>
-            </x-insight-card>
+            </div>
 
-            <!-- Insight 3: Highest Inflation -->
-            <x-insight-card title="Highest Inflation" icon="bi-percent" badgeText="Critical" badgeType="danger">
-                <div class="d-flex justify-content-between align-items-center text-danger">
-                    <span class="fw-bold">🇸🇩 Sudan</span>
-                    <span class="fw-bold fs-5">+75.0%</span>
+            {{-- Card 3: Exchange Rate --}}
+            <div class="col-6 col-md-4 col-xl-2 viz-fade-in viz-stagger-3">
+                <div class="card viz-card p-4 h-100 d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="kpi-icon-box" style="background:rgba(2,132,199,0.09);">
+                            <i class="bi bi-currency-exchange" style="color:#0284C7;font-size:1.2rem;"></i>
+                        </div>
+                        <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill" style="font-size:.7rem;">Stabil</span>
+                    </div>
+                    <div>
+                        <p class="text-secondary small fw-medium mb-1">Kurs USD/IDR</p>
+                        <div class="kpi-value text-dark mb-1" style="font-size:1.35rem;">Rp 16.250</div>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span class="kpi-trend text-danger"><i class="bi bi-arrow-up-short"></i>+0.3%</span>
+                            <span class="text-secondary" style="font-size:.72rem;">Volatilitas Rendah</span>
+                        </div>
+                    </div>
                 </div>
-            </x-insight-card>
+            </div>
 
-            <!-- Insight 4: Highest Risk -->
-            <x-insight-card title="Highest Risk" icon="bi-shield-exclamation" badgeText="Danger Zone" badgeType="danger">
-                <div class="d-flex justify-content-between align-items-center">
-                    <span class="text-dark">🇸🇩 Jalur Laut Merah Sudan</span>
-                    <span class="badge bg-danger text-white">4.80 / 5.0</span>
+            {{-- Card 4: Risk Score --}}
+            <div class="col-6 col-md-4 col-xl-2 viz-fade-in viz-stagger-4">
+                <div class="card viz-card p-4 h-100 d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="kpi-icon-box" style="background:rgba(220,38,38,0.09);">
+                            <i class="bi bi-exclamation-triangle text-danger fs-5"></i>
+                        </div>
+                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill" style="font-size:.7rem;">Sedang</span>
+                    </div>
+                    <div>
+                        <p class="text-secondary small fw-medium mb-1">Risk Score Global</p>
+                        <div class="kpi-value text-danger mb-1">2.80<span class="fs-6 fw-normal text-secondary">/5</span></div>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span class="kpi-trend text-danger"><i class="bi bi-arrow-up-short"></i>+0.1</span>
+                            <span class="text-secondary" style="font-size:.72rem;">Level Sedang</span>
+                        </div>
+                    </div>
                 </div>
-            </x-insight-card>
+            </div>
 
-            <!-- Insight 5: Strongest Currency -->
-            <x-insight-card title="Strongest Currency" icon="bi-cash" badgeText="Forex" badgeType="success">
-                <div class="d-flex justify-content-between align-items-center text-success">
-                    <span class="fw-bold">🇪🇺 Euro (EUR)</span>
-                    <span>+0.14% (Menguat)</span>
+            {{-- Card 5: Population --}}
+            <div class="col-6 col-md-4 col-xl-2 viz-fade-in viz-stagger-5">
+                <div class="card viz-card p-4 h-100 d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="kpi-icon-box" style="background:rgba(37,99,235,0.09);">
+                            <i class="bi bi-people text-primary fs-5"></i>
+                        </div>
+                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill" style="font-size:.7rem;">Normal</span>
+                    </div>
+                    <div>
+                        <p class="text-secondary small fw-medium mb-1">Populasi Terpantau</p>
+                        <div class="kpi-value text-dark mb-1">1.45B</div>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span class="kpi-trend text-success"><i class="bi bi-arrow-up-short"></i>+0.5%</span>
+                            <span class="text-secondary" style="font-size:.72rem;">Pertumbuhan Stabil</span>
+                        </div>
+                    </div>
                 </div>
-            </x-insight-card>
+            </div>
 
-            <!-- Insight 6: Best Economic Growth -->
-            <x-insight-card title="Best Economic Growth" icon="bi-arrow-up-right" badgeText="Expansion" badgeType="success">
-                <div class="d-flex justify-content-between align-items-center">
-                    <span class="text-dark">🇮🇩 Indonesia</span>
-                    <span class="text-success fw-bold">+5.05% YoY</span>
+            {{-- Card 6: Last Update --}}
+            <div class="col-6 col-md-4 col-xl-2 viz-fade-in viz-stagger-6">
+                <div class="card viz-card p-4 h-100 d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="kpi-icon-box" style="background:rgba(22,163,74,0.09);">
+                            <i class="bi bi-clock text-success fs-5"></i>
+                        </div>
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill" style="font-size:.7rem;">
+                            <span class="me-1">●</span>Live
+                        </span>
+                    </div>
+                    <div>
+                        <p class="text-secondary small fw-medium mb-1">Last Update</p>
+                        <div class="kpi-value text-dark mb-1" style="font-size:1.3rem;">Baru Saja</div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-secondary" style="font-size:.72rem;">Terhubung World Bank</span>
+                        </div>
+                    </div>
                 </div>
-            </x-insight-card>
+            </div>
 
-            <!-- Insight 7: Worst Economic Growth -->
-            <x-insight-card title="Worst Economic Growth" icon="bi-arrow-down-left" badgeText="Contraction" badgeType="danger">
-                <div class="d-flex justify-content-between align-items-center text-danger">
-                    <span>🇸🇩 Sudan</span>
-                    <span class="fw-bold">-18.3% YoY</span>
+        </div>{{-- /KPI row --}}
+
+        {{-- ------------------------------------------------
+             MAIN GRID: Left (Charts + Table) | Right (Insight)
+             ------------------------------------------------ --}}
+        <div class="row g-4">
+
+            {{-- ============================================
+                 LEFT COLUMN
+                 ============================================ --}}
+            <div class="col-12 col-lg-8 viz-main-left">
+
+                {{-- ----------------------------------------
+                     CHART GRID: 4 Charts in 2x2
+                     ---------------------------------------- --}}
+                <div class="row g-4 mb-4">
+
+                    {{-- CHART 1: GDP Trend (Line) --}}
+                    <div class="col-12 col-md-6 viz-chart-col viz-fade-in" id="chartWrap_gdp">
+                        <div class="card viz-card p-4 h-100">
+                            <div class="card-header border-0 bg-transparent p-0 d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-1">GDP Trend</h6>
+                                    <p class="text-secondary mb-0" style="font-size:.8rem;">Perkembangan GDP berdasarkan tahun.</p>
+                                </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <button class="chart-action-btn" onclick="ChartManager.refresh('gdp','btnRefreshGdp')" id="btnRefreshGdp" data-bs-toggle="tooltip" title="Segarkan grafik GDP">
+                                        <i class="bi bi-arrow-clockwise"></i>
+                                    </button>
+                                    <button class="chart-action-btn" onclick="alert('Simulasi expand GDP Chart')" data-bs-toggle="tooltip" title="Perluas Grafik">
+                                        <i class="bi bi-arrows-angle-expand"></i>
+                                    </button>
+                                    <div class="dropdown">
+                                        <button class="chart-action-btn" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3">
+                                            <li><button class="dropdown-item small py-2" onclick="alert('Simulasi unduh PNG...')"><i class="bi bi-image me-2"></i>Unduh PNG</button></li>
+                                            <li><button class="dropdown-item small py-2" onclick="TableManager.exportCSV()"><i class="bi bi-filetype-csv me-2"></i>Ekspor CSV</button></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-canvas-container">
+                                <canvas id="chartGdp"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- CHART 2: Inflation Trend (Bar – orange) --}}
+                    <div class="col-12 col-md-6 viz-chart-col viz-fade-in" id="chartWrap_inflation" style="animation-delay:.1s">
+                        <div class="card viz-card p-4 h-100">
+                            <div class="card-header border-0 bg-transparent p-0 d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-1">Inflation Trend</h6>
+                                    <p class="text-secondary mb-0" style="font-size:.8rem;">Perubahan tingkat inflasi.</p>
+                                </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <button class="chart-action-btn" onclick="ChartManager.refresh('inflation','btnRefreshInflation')" id="btnRefreshInflation" data-bs-toggle="tooltip" title="Segarkan grafik Inflasi">
+                                        <i class="bi bi-arrow-clockwise"></i>
+                                    </button>
+                                    <button class="chart-action-btn" onclick="alert('Simulasi expand Inflation Chart')" data-bs-toggle="tooltip" title="Perluas Grafik">
+                                        <i class="bi bi-arrows-angle-expand"></i>
+                                    </button>
+                                    <div class="dropdown">
+                                        <button class="chart-action-btn" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3">
+                                            <li><button class="dropdown-item small py-2" onclick="alert('Simulasi unduh PNG...')"><i class="bi bi-image me-2"></i>Unduh PNG</button></li>
+                                            <li><button class="dropdown-item small py-2" onclick="TableManager.exportCSV()"><i class="bi bi-filetype-csv me-2"></i>Ekspor CSV</button></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-canvas-container">
+                                <canvas id="chartInflation"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- CHART 3: Currency Trend (Area) --}}
+                    <div class="col-12 col-md-6 viz-chart-col viz-fade-in" id="chartWrap_currency" style="animation-delay:.2s">
+                        <div class="card viz-card p-4 h-100">
+                            <div class="card-header border-0 bg-transparent p-0 d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-1">Currency Trend</h6>
+                                    <p class="text-secondary mb-0" style="font-size:.8rem;">Perubahan kurs mata uang.</p>
+                                </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <button class="chart-action-btn" onclick="ChartManager.refresh('currency','btnRefreshCurrency')" id="btnRefreshCurrency" data-bs-toggle="tooltip" title="Segarkan grafik Kurs">
+                                        <i class="bi bi-arrow-clockwise"></i>
+                                    </button>
+                                    <button class="chart-action-btn" onclick="alert('Simulasi expand Currency Chart')" data-bs-toggle="tooltip" title="Perluas Grafik">
+                                        <i class="bi bi-arrows-angle-expand"></i>
+                                    </button>
+                                    <div class="dropdown">
+                                        <button class="chart-action-btn" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3">
+                                            <li><button class="dropdown-item small py-2" onclick="alert('Simulasi unduh PNG...')"><i class="bi bi-image me-2"></i>Unduh PNG</button></li>
+                                            <li><button class="dropdown-item small py-2" onclick="TableManager.exportCSV()"><i class="bi bi-filetype-csv me-2"></i>Ekspor CSV</button></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-canvas-container">
+                                <canvas id="chartCurrency"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- CHART 4: Risk Trend (Line – red) --}}
+                    <div class="col-12 col-md-6 viz-chart-col viz-fade-in" id="chartWrap_risk" style="animation-delay:.3s">
+                        <div class="card viz-card p-4 h-100">
+                            <div class="card-header border-0 bg-transparent p-0 d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                        <h6 class="fw-bold text-dark mb-0">Risk Trend</h6>
+                                        <span class="risk-badge-line bg-success bg-opacity-10 text-success border border-success border-opacity-25">Low &lt;2.0</span>
+                                        <span class="risk-badge-line bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25">Medium &lt;3.5</span>
+                                        <span class="risk-badge-line bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">High ≥3.5</span>
+                                    </div>
+                                    <p class="text-secondary mb-0" style="font-size:.8rem;">Perubahan tingkat risiko.</p>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                    <button class="chart-action-btn" onclick="ChartManager.refresh('risk','btnRefreshRisk')" id="btnRefreshRisk" data-bs-toggle="tooltip" title="Segarkan grafik Risiko">
+                                        <i class="bi bi-arrow-clockwise"></i>
+                                    </button>
+                                    <button class="chart-action-btn" onclick="alert('Simulasi expand Risk Chart')" data-bs-toggle="tooltip" title="Perluas Grafik">
+                                        <i class="bi bi-arrows-angle-expand"></i>
+                                    </button>
+                                    <div class="dropdown">
+                                        <button class="chart-action-btn" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3">
+                                            <li><button class="dropdown-item small py-2" onclick="alert('Simulasi unduh PNG...')"><i class="bi bi-image me-2"></i>Unduh PNG</button></li>
+                                            <li><button class="dropdown-item small py-2" onclick="TableManager.exportCSV()"><i class="bi bi-filetype-csv me-2"></i>Ekspor CSV</button></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-canvas-container">
+                                <canvas id="chartRisk"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>{{-- /chart grid --}}
+
+                {{-- ----------------------------------------
+                     ANALYTICS TABLE
+                     ---------------------------------------- --}}
+                <div class="card viz-card overflow-hidden viz-fade-in">
+
+                    {{-- Table Toolbar --}}
+                    <div class="table-toolbar d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-table text-primary"></i>
+                            <h6 class="fw-bold text-dark mb-0">Matriks Analisis Makroekonomi</h6>
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2" style="font-size:.72rem;">
+                                <span id="tableVisibleCount">6</span> negara
+                            </span>
+                        </div>
+
+                        {{-- Table search + export + refresh --}}
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            {{-- Show entries --}}
+                            <div class="d-flex align-items-center gap-2 me-2">
+                                <label class="text-secondary small mb-0">Tampilkan</label>
+                                <select class="form-select form-select-sm" style="width:68px; border-radius:8px;">
+                                    <option>10</option>
+                                    <option>25</option>
+                                    <option>50</option>
+                                </select>
+                            </div>
+
+                            {{-- Export dropdown --}}
+                            <div class="dropdown">
+                                <button class="btn btn-light btn-sm dropdown-toggle d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" style="height:34px; border-radius:8px; font-size:.82rem;">
+                                    <i class="bi bi-download"></i> Ekspor
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3">
+                                    <li><button class="dropdown-item small py-2" onclick="TableManager.exportPDF()"><i class="bi bi-filetype-pdf text-danger me-2"></i>PDF</button></li>
+                                    <li><button class="dropdown-item small py-2" onclick="TableManager.exportExcel()"><i class="bi bi-filetype-xls text-success me-2"></i>Excel</button></li>
+                                    <li><button class="dropdown-item small py-2" onclick="TableManager.exportCSV()"><i class="bi bi-filetype-csv text-info me-2"></i>CSV</button></li>
+                                    <li><button class="dropdown-item small py-2" onclick="TableManager.exportPrint()"><i class="bi bi-printer me-2"></i>Print</button></li>
+                                </ul>
+                            </div>
+
+                            {{-- Refresh --}}
+                            <button class="btn btn-light btn-sm d-flex align-items-center gap-1" onclick="ChartManager.refreshAll('btnRefreshPage')" style="height:34px; border-radius:8px; font-size:.82rem;" data-bs-toggle="tooltip" title="Segarkan data tabel">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Table --}}
+                    <div class="table-responsive">
+                        <table class="table analytics-table table-hover table-striped mb-0">
+                            <thead>
+                                <tr>
+                                    <th data-sort-col="name" onclick="TableManager.sortByColumn('name')" style="cursor:pointer; min-width:140px;">
+                                        Negara <i class="bi bi-arrow-down-up ms-1 text-muted opacity-50"></i>
+                                    </th>
+                                    <th data-sort-col="gdpRaw" onclick="TableManager.sortByColumn('gdpRaw')" style="cursor:pointer;">
+                                        GDP <i class="bi bi-arrow-down-up ms-1 text-muted opacity-50"></i>
+                                    </th>
+                                    <th data-sort-col="inflationRaw" onclick="TableManager.sortByColumn('inflationRaw')" style="cursor:pointer;">
+                                        Inflasi <i class="bi bi-arrow-down-up ms-1 text-muted opacity-50"></i>
+                                    </th>
+                                    <th>Exchange Rate</th>
+                                    <th data-sort-col="riskScore" onclick="TableManager.sortByColumn('riskScore')" style="cursor:pointer;">
+                                        Risk Score <i class="bi bi-arrow-down-up ms-1 text-muted opacity-50"></i>
+                                    </th>
+                                    <th>Populasi</th>
+                                    <th>Last Update</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="analyticsTableBody">
+
+                                @php
+                                $tableData = [
+                                    ['flag'=>'🇮🇩','name'=>'Indonesia','region'=>'asia','currency'=>'IDR','gdp'=>'$1.42T','gdpRaw'=>1.42,'inflation'=>'2.8%','inflationRaw'=>2.8,'rate'=>'Rp 16.250','riskScore'=>1.25,'riskLevel'=>'low','population'=>'279.1 Juta','lastUpdate'=>'Baru saja'],
+                                    ['flag'=>'🇨🇳','name'=>'China','region'=>'asia','currency'=>'CNY','gdp'=>'$17.90T','gdpRaw'=>17.90,'inflation'=>'1.8%','inflationRaw'=>1.8,'rate'=>'¥ 7.24','riskScore'=>4.25,'riskLevel'=>'high','population'=>'1.41 Miliar','lastUpdate'=>'5 Menit lalu'],
+                                    ['flag'=>'🇺🇸','name'=>'Amerika Serikat','region'=>'america','currency'=>'USD','gdp'=>'$28.20T','gdpRaw'=>28.20,'inflation'=>'3.4%','inflationRaw'=>3.4,'rate'=>'USD (Base)','riskScore'=>3.48,'riskLevel'=>'medium','population'=>'335.9 Juta','lastUpdate'=>'1 Jam lalu'],
+                                    ['flag'=>'🇳🇱','name'=>'Belanda','region'=>'europe','currency'=>'EUR','gdp'=>'$1.01T','gdpRaw'=>1.01,'inflation'=>'4.1%','inflationRaw'=>4.1,'rate'=>'€ 0.92','riskScore'=>1.85,'riskLevel'=>'low','population'=>'17.9 Juta','lastUpdate'=>'2 Jam lalu'],
+                                    ['flag'=>'🇸🇩','name'=>'Sudan','region'=>'africa','currency'=>'SDG','gdp'=>'$0.05T','gdpRaw'=>0.05,'inflation'=>'75.0%','inflationRaw'=>75.0,'rate'=>'SDG 601.5','riskScore'=>4.80,'riskLevel'=>'high','population'=>'47.9 Juta','lastUpdate'=>'Kemarin'],
+                                    ['flag'=>'🇸🇬','name'=>'Singapura','region'=>'asia','currency'=>'SGD','gdp'=>'$0.50T','gdpRaw'=>0.50,'inflation'=>'2.4%','inflationRaw'=>2.4,'rate'=>'S$ 1.34','riskScore'=>1.10,'riskLevel'=>'low','population'=>'5.9 Juta','lastUpdate'=>'30 Mnt lalu'],
+                                ];
+                                @endphp
+
+                                @foreach($tableData as $row)
+                                @php
+                                    $riskClass = match($row['riskLevel']) {
+                                        'high'   => 'danger',
+                                        'medium' => 'warning',
+                                        default  => 'success',
+                                    };
+                                    $riskLabel = match($row['riskLevel']) {
+                                        'high'   => 'High Risk',
+                                        'medium' => 'Medium Risk',
+                                        default  => 'Low Risk',
+                                    };
+                                    $inflationClass = $row['inflationRaw'] > 10 ? 'text-danger fw-bold' : ($row['inflationRaw'] > 5 ? 'text-warning fw-semibold' : 'text-success');
+                                @endphp
+                                <tr data-table-row
+                                    data-name="{{ strtolower($row['name']) }}"
+                                    data-region="{{ $row['region'] }}"
+                                    data-currency="{{ $row['currency'] }}"
+                                    data-risklevel="{{ $row['riskLevel'] }}"
+                                    data-gdpraw="{{ $row['gdpRaw'] }}"
+                                    data-inflationraw="{{ $row['inflationRaw'] }}"
+                                    data-riskscore="{{ $row['riskScore'] }}">
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="table-flag">{{ $row['flag'] }}</span>
+                                            <span class="table-country-name">{{ $row['name'] }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="fw-semibold">{{ $row['gdp'] }}</td>
+                                    <td class="{{ $inflationClass }}">{{ $row['inflation'] }}</td>
+                                    <td class="text-secondary">{{ $row['rate'] }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="fw-bold {{ $riskClass === 'danger' ? 'text-danger' : ($riskClass === 'warning' ? 'text-warning' : 'text-success') }}">
+                                                {{ $row['riskScore'] }}
+                                            </span>
+                                            <div class="progress flex-grow-1" style="height:5px; border-radius:4px; max-width:48px;">
+                                                <div class="progress-bar bg-{{ $riskClass }}" style="width:{{ ($row['riskScore'] / 5) * 100 }}%"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-secondary">{{ $row['population'] }}</td>
+                                    <td class="text-secondary" style="font-size:.82rem;">{{ $row['lastUpdate'] }}</td>
+                                    <td>
+                                        <span class="status-badge bg-{{ $riskClass }} bg-opacity-10 text-{{ $riskClass }} border border-{{ $riskClass }} border-opacity-25">
+                                            {{ $riskLabel }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                @endforeach
+
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {{-- Table Footer: Pagination placeholder --}}
+                    <div class="table-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <p class="text-secondary small mb-0">
+                            Menampilkan <span id="tableVisibleCount" class="fw-semibold text-dark">6</span> dari 6 negara
+                        </p>
+                        <nav aria-label="Pagination tabel analitik">
+                            <ul class="pagination pagination-sm mb-0">
+                                <li class="page-item disabled"><a class="page-link rounded-start-3" href="#">«</a></li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item disabled"><a class="page-link rounded-end-3" href="#">»</a></li>
+                            </ul>
+                        </nav>
+                    </div>
+
+                </div>{{-- /analytics table card --}}
+
+            </div>{{-- /left column --}}
+
+            {{-- ============================================
+                 RIGHT COLUMN – Insight Panel
+                 ============================================ --}}
+            <div class="col-12 col-lg-4 viz-main-right">
+                <div class="d-flex flex-column gap-3">
+
+                    {{-- Insight 1: Top Performing Country --}}
+                    <div class="card viz-card p-4 viz-fade-in" style="animation-delay:.05s">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-award-fill text-primary fs-5"></i> Top Performing
+                            </h6>
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill" style="font-size:.7rem;">A+ Rank</span>
+                        </div>
+                        <div class="text-center py-2 border-bottom mb-3">
+                            <span class="d-block mb-1" style="font-size:2rem;">🇸🇬</span>
+                            <h6 class="fw-bold text-dark mb-1">Singapura</h6>
+                            <p class="text-secondary small mb-0">Logistik &amp; Distribusi Superb</p>
+                        </div>
+                        <div class="d-flex flex-column gap-1">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-secondary small">Efisiensi Port</span>
+                                <span class="text-success fw-semibold small">98.5%</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-secondary small">Risk Score</span>
+                                <span class="text-success fw-semibold small">1.10 / 5</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-secondary small">Inflasi</span>
+                                <span class="text-dark fw-semibold small">2.4%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Insight 2: Highest GDP --}}
+                    <div class="card viz-card p-4 viz-fade-in" style="animation-delay:.10s">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-gem text-primary fs-5"></i> Highest GDP
+                            </h6>
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill" style="font-size:.7rem;">Leader</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-dark fw-bold">🇺🇸 Amerika Serikat</span>
+                            <span class="badge bg-primary text-white px-3 py-2 rounded-3">$28.20T</span>
+                        </div>
+                        <p class="text-secondary small mt-2 mb-0">Perekonomian terbesar di dunia dengan basis konsumsi yang kuat.</p>
+                    </div>
+
+                    {{-- Insight 3: Highest Inflation --}}
+                    <div class="card viz-card p-4 viz-fade-in" style="animation-delay:.15s">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-percent text-danger fs-5"></i> Highest Inflation
+                            </h6>
+                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill" style="font-size:.7rem;">Critical</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-dark">🇸🇩 Sudan</span>
+                            <span class="text-danger fw-bold fs-5">+75.0%</span>
+                        </div>
+                        <p class="text-secondary small mt-2 mb-0">Hiperinflasi akibat ketidakstabilan politik dan konflik bersenjata.</p>
+                    </div>
+
+                    {{-- Insight 4: Highest Risk --}}
+                    <div class="card viz-card p-4 viz-fade-in" style="animation-delay:.20s">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-shield-exclamation text-danger fs-5"></i> Highest Risk
+                            </h6>
+                            <span class="badge bg-danger text-white rounded-pill" style="font-size:.7rem;">Danger Zone</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-dark">🇸🇩 Jalur Laut Merah</span>
+                            <span class="badge bg-danger text-white px-3 py-2 rounded-3">4.80 / 5</span>
+                        </div>
+                        <p class="text-secondary small mt-2 mb-0">Gangguan logistik akibat konflik dan blokade jalur pelayaran.</p>
+                    </div>
+
+                    {{-- Insight 5: Strongest Currency --}}
+                    <div class="card viz-card p-4 viz-fade-in" style="animation-delay:.25s">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-currency-exchange text-success fs-5"></i> Strongest Currency
+                            </h6>
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill" style="font-size:.7rem;">Forex</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-dark">🇪🇺 Euro (EUR)</span>
+                            <span class="text-success fw-semibold">€ 0.92 / USD</span>
+                        </div>
+                        <p class="text-secondary small mt-2 mb-0">Menguat +0.14% terhadap Dollar minggu ini.</p>
+                    </div>
+
+                    {{-- Insight 6: Fastest Economic Growth --}}
+                    <div class="card viz-card p-4 viz-fade-in" style="animation-delay:.30s">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-graph-up-arrow text-success fs-5"></i> Fastest Growth
+                            </h6>
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill" style="font-size:.7rem;">Expansion</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-dark">🇮🇩 Indonesia</span>
+                            <span class="text-success fw-bold fs-6">+5.05% YoY</span>
+                        </div>
+                        <p class="text-secondary small mt-2 mb-0">Didorong pertumbuhan konsumsi domestik dan ekspor komoditas.</p>
+                    </div>
+
+                    {{-- Worst Growth --}}
+                    <div class="card viz-card p-4 viz-fade-in" style="animation-delay:.35s">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-graph-down-arrow text-danger fs-5"></i> Worst Growth
+                            </h6>
+                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill" style="font-size:.7rem;">Contraction</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center text-danger">
+                            <span class="fw-bold">🇸🇩 Sudan</span>
+                            <span class="fw-bold fs-6">-18.3% YoY</span>
+                        </div>
+                        <p class="text-secondary small mt-2 mb-0">Kontraksi ekonomi akibat ketidakstabilan geopolitik berkelanjutan.</p>
+                    </div>
+
                 </div>
-            </x-insight-card>
+            </div>{{-- /right column --}}
 
+        </div>{{-- /main row --}}
+
+    </div>{{-- /mainContent --}}
+
+    {{-- ====================================================
+         EXPORT TOAST Notification
+         ==================================================== --}}
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:9999;">
+        <div id="exportToast" class="toast border-0 shadow-sm rounded-3" role="alert" aria-live="assertive">
+            <div class="toast-header border-0" style="background:#2563EB;">
+                <i class="bi bi-download text-white me-2"></i>
+                <strong class="text-white me-auto">Ekspor Data</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body small" id="exportToastMsg">
+                Mempersiapkan ekspor data...
+            </div>
         </div>
     </div>
-</div>
+
+</div>{{-- /viz-page-wrapper --}}
 @endsection
 
 @section('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{{-- Chart.js CDN --}}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+{{-- Modular JS (inline from files to avoid Vite dependency) --}}
 <script>
-    {!! file_get_contents(resource_path('views/dashboard/visualization/js/visualization.js')) !!}
+{!! file_get_contents(resource_path('js/dashboard/placeholder-data.js')) !!}
+</script>
+<script>
+{!! file_get_contents(resource_path('js/dashboard/chart-manager.js')) !!}
+</script>
+<script>
+{!! file_get_contents(resource_path('js/dashboard/filter.js')) !!}
+</script>
+<script>
+{!! file_get_contents(resource_path('js/dashboard/table.js')) !!}
+</script>
+<script>
+{!! file_get_contents(resource_path('js/dashboard/visualization.js')) !!}
 </script>
 @endsection

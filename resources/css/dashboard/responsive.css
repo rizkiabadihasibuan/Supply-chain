@@ -1,0 +1,64 @@
+/* ============================================================
+   RESPONSIVE OVERRIDES - Visualization Dashboard
+   ============================================================ */
+
+/* ---- Desktop (≥ 1200px) ---- */
+@media (min-width: 1200px) {
+    .viz-chart-col { flex: 0 0 auto; width: 50%; }
+    .viz-insight-col { flex: 0 0 auto; width: 100%; }
+}
+
+/* ---- Laptop (≥ 992px) ---- */
+@media (min-width: 992px) {
+    .viz-main-left  { flex: 0 0 auto; width: 66.6667%; }
+    .viz-main-right { flex: 0 0 auto; width: 33.3333%; }
+}
+
+/* ---- Tablet (768px – 991px) ---- */
+@media (max-width: 991px) {
+    .viz-main-left,
+    .viz-main-right { width: 100%; }
+
+    .viz-chart-col { width: 100% !important; }
+
+    .viz-toolbar-row {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+}
+
+/* ---- Mobile (< 576px) ---- */
+@media (max-width: 575px) {
+    .viz-kpi-col { flex: 0 0 auto; width: 50%; }
+
+    .viz-toolbar-row .col {
+        width: 100%;
+        flex: 0 0 100%;
+    }
+
+    .viz-toolbar-search { width: 100% !important; }
+
+    /* Prevent horizontal scroll globally */
+    .viz-page-wrapper {
+        overflow-x: hidden;
+        max-width: 100%;
+    }
+
+    /* Full-width for chart and insight */
+    .viz-chart-col,
+    .viz-insight-col {
+        width: 100% !important;
+        padding-left: 0;
+        padding-right: 0;
+    }
+}
+
+/* No horizontal scroll safety net */
+.viz-page-wrapper,
+.viz-page-wrapper * {
+    box-sizing: border-box;
+}
+
+.viz-page-wrapper table {
+    min-width: unset;
+}
