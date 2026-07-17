@@ -65,8 +65,9 @@ Route::get('/404', function() {
 })->name('profile');
 
 Route::get('/visualization', function() {
-    return view('visualization.index');
+    return view('dashboard.visualization.index');
 })->name('visualization');
+
 
 
 Route::get('/countries/detail', function() {

@@ -1,0 +1,70 @@
+/* Custom CSS for Data Visualization Dashboard */
+
+.transition-hover {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.transition-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(18, 52, 88, 0.09) !important;
+}
+
+/* Spin animation for refresh button */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+    display: inline-block;
+}
+
+/* Table Responsive Mobile Card layout */
+@media (max-width: 768px) {
+    .table-responsive-card table, 
+    .table-responsive-card thead, 
+    .table-responsive-card tbody, 
+    .table-responsive-card th, 
+    .table-responsive-card td, 
+    .table-responsive-card tr {
+        display: block;
+    }
+    
+    .table-responsive-card thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    
+    .table-responsive-card tr {
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        margin-bottom: 12px;
+        padding: 8px;
+        background-color: #FFFFFF;
+    }
+    
+    .table-responsive-card td {
+        border: none;
+        position: relative;
+        padding-left: 50% !important;
+        text-align: right;
+        min-height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+    
+    .table-responsive-card td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 12px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        text-align: left;
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+}
