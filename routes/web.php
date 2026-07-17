@@ -26,6 +26,11 @@ Route::get('/monitoring', function() {
     return view('monitoring.index');
 })->name('monitoring');
 
+Route::get('/notifications', function() {
+    return view('notifications.index');
+})->name('notifications');
+
+
 
 Route::get('/countries/detail', function() {
     return view('countries.show');

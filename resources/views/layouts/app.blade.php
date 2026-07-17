@@ -790,13 +790,13 @@
                     </span>
 
                     <!-- Notification Button -->
-                    <button class="btn btn-light btn-sm rounded-circle p-2 position-relative border" style="background-color: #F8FAFC">
+                    <a href="{{ route('notifications') }}" class="btn btn-light btn-sm rounded-circle p-2 position-relative border" style="background-color: #F8FAFC" aria-label="Buka Notifikasi">
                         <i class="bi bi-bell text-secondary"></i>
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger text-light" style="font-size: 0.6rem; padding: 0.25em 0.4em;">
                             3
                             <span class="visually-hidden">notifikasi belum dibaca</span>
                         </span>
-                    </button>
+                    </a>
 
                     <div class="vr border-secondary opacity-25"></div>
 
