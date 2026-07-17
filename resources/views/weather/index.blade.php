@@ -1,76 +1,28 @@
 @extends('layouts.app')
 
-@section('title', 'Cuaca Global - SupplyChain Platform')
+@section('title', 'Global Weather Center - SupplyChain Platform')
 
 @section('content')
-<div class="container-fluid p-0">
+<div class="container-fluid p-0 fade-in-up">
 
-    <!-- Header Row -->
+    <!-- Breadcrumb & Header Action -->
     <div class="row g-4 mb-4">
         <div class="col-12">
-            <div class="card p-4 border-0 shadow-sm">
+            <div class="card p-4 border-0">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}"><i class="bi bi-house-door-fill me-1"></i>Beranda</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Global Weather Center</li>
+                    </ol>
+                </nav>
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                     <div>
-                        <nav aria-label="breadcrumb">
-                            <ol class="breadcrumb mb-1 bg-transparent p-0">
-                                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-decoration-none" style="color: var(--primary);"><i class="bi bi-house-door-fill me-1"></i>Beranda</a></li>
-                                <li class="breadcrumb-item active text-dark fw-medium" aria-current="page">Cuaca</li>
-                            </ol>
-                        </nav>
-                        <h4 class="fw-bold text-dark mb-0">Pemantauan Cuaca Global</h4>
+                        <h3 class="fw-bold text-dark mb-1">Global Weather Center</h3>
+                        <p class="text-secondary small mb-0">Pantau kondisi cuaca berbagai negara untuk membantu analisis risiko rantai pasok global.</p>
                     </div>
-                    
-                    <button class="btn btn-light border px-4" id="btn-refresh-weather">
-                        <i class="bi bi-arrow-clockwise me-2"></i>Segarkan Data
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Filter Card -->
-    <div class="row g-4 mb-4">
-        <div class="col-12">
-            <div class="card p-4 border-0 shadow-sm">
-                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-funnel-fill text-primary me-2"></i>Penyaring Data Iklim</h6>
-                
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label small text-secondary fw-semibold">Cari Negara</label>
-                        <input type="text" id="search-weather-country" class="form-control" placeholder="Ketik nama negara...">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label small text-secondary fw-semibold">Pilih Negara</label>
-                        <select id="select-weather-country" class="form-select">
-                            <option value="all">Semua Negara</option>
-                            <option value="ID">Indonesia</option>
-                            <option value="SG">Singapura</option>
-                            <option value="JP">Jepang</option>
-                            <option value="US">Amerika Serikat</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label small text-secondary fw-semibold">Pilih Benua</label>
-                        <select id="select-continent" class="form-select">
-                            <option value="all">Semua Benua</option>
-                            <option value="Asia">Asia</option>
-                            <option value="Eropa">Eropa</option>
-                            <option value="Amerika">Amerika</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small text-secondary fw-semibold">Kondisi Cuaca</label>
-                        <select id="select-condition" class="form-select">
-                            <option value="all">Semua Kondisi</option>
-                            <option value="Cerah">Cerah</option>
-                            <option value="Berawan">Berawan</option>
-                            <option value="Hujan">Hujan</option>
-                            <option value="Ekstrem">Kondisi Ekstrem</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button class="btn btn-light border w-100 py-2.5" id="btn-reset-filters">
-                            <i class="bi bi-trash3 me-1"></i> Reset
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary" id="btn-refresh-weather" onclick="triggerRefreshAnimation()" style="min-height: 44px;">
+                            <i class="bi bi-arrow-clockwise me-2"></i>Sinkronisasi Cuaca
                         </button>
                     </div>
                 </div>
@@ -78,109 +30,418 @@
         </div>
     </div>
 
-    <!-- Weather Summary (4 KPI Cards) -->
+    <!-- 4 Weather KPI Cards -->
     <div class="row g-4 mb-4">
-        <!-- KPI 1: Negara Dipantau -->
+        <!-- 1. Negara Dipantau -->
         <div class="col-xl-3 col-md-6">
-            <div class="card p-4 h-100 border-0 shadow-sm d-flex align-items-center justify-content-between">
+            <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
                 <div>
                     <span class="text-secondary small fw-medium d-block mb-1">Negara Dipantau</span>
-                    <h3 class="fw-bold text-dark mb-0" id="summary-monitored">195</h3>
-                    <span class="text-primary small fw-semibold"><i class="bi bi-globe2 me-1"></i>Cakupan Global</span>
+                    <h3 class="fw-bold text-dark mb-1">195</h3>
+                    <span class="text-secondary small d-block" style="font-size: 0.725rem;">Cakupan Stasiun Cuaca</span>
                 </div>
-                <div class="p-3 rounded-4" style="background-color: rgba(14, 165, 233, 0.1); color: var(--primary);">
+                <div class="p-3 rounded-4" style="background-color: rgba(37, 99, 235, 0.08); color: var(--primary);">
                     <i class="bi bi-globe2 fs-3"></i>
                 </div>
             </div>
         </div>
 
-        <!-- KPI 2: Suhu Rata-rata Global -->
+        <!-- 2. Cuaca Ekstrem -->
         <div class="col-xl-3 col-md-6">
-            <div class="card p-4 h-100 border-0 shadow-sm d-flex align-items-center justify-content-between">
+            <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
+                <div>
+                    <span class="text-secondary small fw-medium d-block mb-1">Cuaca Ekstrem</span>
+                    <h3 class="fw-bold text-danger mb-1" id="kpi-extremes">3</h3>
+                    <span class="text-danger small d-block" style="font-size: 0.725rem;"><i class="bi bi-cloud-lightning-rain-fill me-1"></i>Pelabuhan Terdampak</span>
+                </div>
+                <div class="p-3 rounded-4" style="background-color: rgba(239, 68, 68, 0.08); color: var(--danger);">
+                    <i class="bi bi-cloud-lightning fs-3"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Suhu Rata-rata Global -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
                 <div>
                     <span class="text-secondary small fw-medium d-block mb-1">Suhu Rata-rata Global</span>
-                    <h3 class="fw-bold text-dark mb-0">24.5°C</h3>
-                    <span class="text-success small fw-semibold"><i class="bi bi-thermometer-half me-1"></i>Kondisi Normal</span>
+                    <h3 class="fw-bold text-dark mb-1">24.5°C</h3>
+                    <span class="text-success small d-block" style="font-size: 0.725rem;"><i class="bi bi-check-circle-fill me-1"></i>Kondisi Normal</span>
                 </div>
-                <div class="p-3 rounded-4" style="background-color: rgba(34, 197, 94, 0.1); color: var(--success);">
+                <div class="p-3 rounded-4" style="background-color: rgba(34, 197, 94, 0.08); color: var(--success);">
                     <i class="bi bi-thermometer-half fs-3"></i>
                 </div>
             </div>
         </div>
 
-        <!-- KPI 3: Negara Dengan Cuaca Ekstrem -->
+        <!-- 4. Peringatan Cuaca -->
         <div class="col-xl-3 col-md-6">
-            <div class="card p-4 h-100 border-0 shadow-sm d-flex align-items-center justify-content-between">
+            <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
                 <div>
-                    <span class="text-secondary small fw-medium d-block mb-1">Cuaca Ekstrem</span>
-                    <h3 class="fw-bold text-danger mb-0">1 Negara</h3>
-                    <span class="text-danger small fw-semibold"><i class="bi bi-exclamation-triangle-fill me-1"></i>Amerika Serikat (Badai)</span>
+                    <span class="text-secondary small fw-medium d-block mb-1">Peringatan Cuaca</span>
+                    <h3 class="fw-bold text-warning mb-1" id="kpi-warnings">12</h3>
+                    <span class="text-warning small d-block" style="font-size: 0.725rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>Satelit Cuaca Aktif</span>
                 </div>
-                <div class="p-3 rounded-4" style="background-color: rgba(239, 68, 68, 0.1); color: var(--danger);">
-                    <i class="bi bi-exclamation-triangle-fill fs-3"></i>
-                </div>
-            </div>
-        </div>
-
-        <!-- KPI 4: Update Terakhir -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card p-4 h-100 border-0 shadow-sm d-flex align-items-center justify-content-between">
-                <div>
-                    <span class="text-secondary small fw-medium d-block mb-1">Pembaruan Terakhir</span>
-                    <h3 class="fw-bold text-dark mb-0">Baru Saja</h3>
-                    <span class="text-secondary small"><i class="bi bi-clock me-1"></i>Real-time update</span>
-                </div>
-                <div class="p-3 rounded-4" style="background-color: #F1F5F9; color: var(--text-secondary);">
-                    <i class="bi bi-arrow-repeat fs-3"></i>
+                <div class="p-3 rounded-4" style="background-color: rgba(245, 158, 11, 0.08); color: var(--warning);">
+                    <i class="bi bi-exclamation-triangle fs-3"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Main Workspace Rows -->
+    <!-- Search & Filters Container -->
     <div class="row g-4 mb-4">
-        
-        <!-- Left Column: Map & Graph -->
+        <div class="col-12">
+            <div class="card p-4 border-0">
+                <div class="row g-3 align-items-center">
+                    <!-- Search Input -->
+                    <div class="col-xl-4 col-lg-3 col-md-12">
+                        <div class="search-wrapper w-100">
+                            <i class="bi bi-search"></i>
+                            <input type="text" id="search-weather-input" placeholder="Cari negara atau kota..." class="form-control ps-5 w-100" style="min-height: 44px;" oninput="applyFilters()">
+                        </div>
+                    </div>
+
+                    <!-- Region Filter -->
+                    <div class="col-xl-2 col-lg-2 col-md-4 col-6">
+                        <select id="filter-region" class="form-select" style="min-height: 44px;" onchange="applyFilters()">
+                            <option value="all">Semua Benua</option>
+                            <option value="asia">Asia</option>
+                            <option value="europe">Eropa</option>
+                            <option value="africa">Afrika</option>
+                            <option value="america">Amerika</option>
+                            <option value="oceania">Oceania</option>
+                        </select>
+                    </div>
+
+                    <!-- Condition Filter -->
+                    <div class="col-xl-3 col-lg-3 col-md-4 col-6">
+                        <select id="filter-condition" class="form-select" style="min-height: 44px;" onchange="applyFilters()">
+                            <option value="all">Semua Kondisi Cuaca</option>
+                            <option value="cerah">Cerah</option>
+                            <option value="berawan">Berawan</option>
+                            <option value="hujan">Hujan</option>
+                            <option value="badai">Badai Ekstrem</option>
+                        </select>
+                    </div>
+
+                    <!-- Temp Filter -->
+                    <div class="col-xl-3 col-lg-4 col-md-4 col-12">
+                        <select id="filter-temp" class="form-select" style="min-height: 44px;" onchange="applyFilters()">
+                            <option value="all">Semua Tingkat Suhu</option>
+                            <option value="hot">Suhu Tinggi (>30°C)</option>
+                            <option value="mild">Suhu Sedang (15°C - 30°C)</option>
+                            <option value="cold">Suhu Dingin (<15°C)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Simulation bar -->
+                <div class="d-flex flex-wrap gap-2 mt-3 pt-3 border-top">
+                    <button class="btn btn-light btn-sm px-3" style="min-height: 38px; height: 38px;" onclick="simulateSkeletonLoading()">
+                        <i class="bi bi-hourglass-split me-2"></i>Simulasikan Loading
+                    </button>
+                    <button class="btn btn-light btn-sm px-3" style="min-height: 38px; height: 38px;" onclick="simulateEmptyState()">
+                        <i class="bi bi-x-circle me-2"></i>Simulasikan Data Kosong
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skeleton Loading Container -->
+    <div id="skeleton-container" class="row g-4 mb-4" style="display: none;">
+        <div class="col-lg-8">
+            <div class="d-flex flex-column gap-4">
+                <div class="card p-4 border-0 skeleton-card" style="height: 380px;">
+                    <div class="skeleton-shimmer" style="width: 100%; height: 100%; border-radius: 8px;"></div>
+                </div>
+                <div class="card p-4 border-0 skeleton-card" style="height: 200px;">
+                    <div class="skeleton-shimmer mb-3" style="width: 40%; height: 24px; border-radius: 4px;"></div>
+                    <div class="skeleton-shimmer" style="width: 100%; height: 120px; border-radius: 8px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card p-4 border-0 skeleton-card" style="height: 600px;">
+                <div class="skeleton-shimmer mb-4" style="width: 50%; height: 24px; border-radius: 4px;"></div>
+                <div class="skeleton-shimmer mb-3" style="width: 100%; height: 100px; border-radius: 12px;"></div>
+                <div class="skeleton-shimmer mb-3" style="width: 100%; height: 120px; border-radius: 12px;"></div>
+                <div class="skeleton-shimmer" style="width: 100%; height: 180px; border-radius: 12px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State Container -->
+    <div id="empty-state-container" class="row g-4 mb-4" style="display: none;">
+        <div class="col-12">
+            <div class="card p-5 border-0 text-center d-flex flex-column align-items-center justify-content-center" style="min-height: 380px;">
+                <svg viewBox="0 0 200 120" style="width: 160px; height: 100px;" class="mb-3.5">
+                    <rect x="30" y="30" width="140" height="70" rx="12" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-dasharray="4 4" />
+                    <circle cx="100" cy="65" r="20" fill="rgba(6, 182, 212, 0.05)" stroke="rgba(6, 182, 212, 0.2)" stroke-width="1.5" />
+                    <path d="M100,25 C115,25 125,35 125,45 C125,50 115,65 100,85 C85,65 75,50 75,45 C75,35 85,25 100,25 Z" fill="none" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="3 3" />
+                    <path d="M92,60 L108,68 M108,60 L92,68" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" />
+                </svg>
+                <h5 class="fw-bold text-dark mb-1">Belum ada data cuaca.</h5>
+                <p class="text-secondary small mb-3.5" style="max-width: 320px;">Sesuaikan kata kunci pencarian Anda untuk memantau data iklim port.</p>
+                <button class="btn btn-primary px-4" style="min-height: 44px;" onclick="resetFilters()">Reset Filter</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Layout Grid -->
+    <div id="main-content-grid" class="row g-4">
+        <!-- Kolom Kiri (Peta, Overview, Forecast, Alerts) -->
         <div class="col-lg-8">
             <div class="d-flex flex-column gap-4">
                 
-                <!-- World Map Weather Overlay -->
-                <div class="card p-4 border-0 shadow-sm">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-map text-primary me-2"></i>Radar Cuaca Spasial Dunia</h6>
-                        <span class="badge badge-info text-uppercase" style="font-size: 0.65rem;">Satelit Pemantau</span>
+                <!-- SECTION 1: Global Weather Map -->
+                <div class="card p-4 border-0">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-3">
+                        <div>
+                            <h5 class="fw-bold text-dark mb-1"><i class="bi bi-map text-primary me-2"></i>Radar & Kondisi Cuaca Pelabuhan Global</h5>
+                            <p class="text-secondary small mb-0">Tekan titik pelabuhan untuk melihat laporan cuaca terperinci.</p>
+                        </div>
+                        <!-- Layer Filters -->
+                        <div class="d-flex gap-2">
+                            <span class="badge bg-light text-secondary border px-3 py-2 d-flex align-items-center"><i class="bi bi-layers me-1.5 text-primary"></i>Layer: Pelabuhan</span>
+                        </div>
                     </div>
-                    
-                    <div class="border rounded-4 d-flex align-items-center justify-content-center overflow-hidden position-relative" style="height: 400px; background-color: #FAFCFF; background-image: radial-gradient(#E2E8F0 1.2px, transparent 1.2px); background-size: 24px 24px;">
-                        <div class="text-center position-relative z-index-1">
-                            <div class="p-3 rounded-circle d-inline-block border mb-3" style="background-color: rgba(14, 165, 233, 0.08); border-color: rgba(14, 165, 233, 0.2) !important;">
-                                <i class="bi bi-radar fs-2 text-primary"></i>
-                            </div>
-                            <h6 class="text-dark fw-bold mb-1">Visualisasi Radar Cuaca Global</h6>
-                            <p class="text-secondary small mb-0">Integrasi peta spasial cuaca Leaflet.js siap dipasang pada tahap pengerjaan berikutnya.</p>
+
+                    <!-- Interactive Weather Map Area -->
+                    <div class="position-relative border rounded-4 overflow-hidden d-flex align-items-center justify-content-center" style="height: 420px; background-color: #FAFCFF !important; background-image: radial-gradient(#E2E8F0 1.2px, transparent 1.2px); background-size: 24px 24px;">
+                        
+                        <!-- Zoom controls -->
+                        <div class="position-absolute top-0 start-0 m-3 d-flex flex-column gap-1.5" style="z-index: 10;">
+                            <button class="btn btn-light btn-sm border p-2 d-flex align-items-center justify-content-center" onclick="zoomWeatherMap(1.2)" style="width: 36px; height: 36px; min-height: 36px;">
+                                <i class="bi bi-zoom-in"></i>
+                            </button>
+                            <button class="btn btn-light btn-sm border p-2 d-flex align-items-center justify-content-center" onclick="zoomWeatherMap(0.8)" style="width: 36px; height: 36px; min-height: 36px;">
+                                <i class="bi bi-zoom-out"></i>
+                            </button>
+                            <button class="btn btn-light btn-sm border p-2 d-flex align-items-center justify-content-center" onclick="resetWeatherMapZoom()" style="width: 36px; height: 36px; min-height: 36px;">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                        </div>
+
+                        <!-- Legend -->
+                        <div class="position-absolute bottom-0 start-0 m-3 bg-white p-2.5 rounded-3 border d-flex flex-column gap-1" style="z-index: 10; font-size: 0.75rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                            <span class="fw-bold text-dark mb-1">Iklim Radar</span>
+                            <div class="d-flex align-items-center"><i class="bi bi-sun-fill text-warning me-1.5"></i> Cerah</div>
+                            <div class="d-flex align-items-center"><i class="bi bi-cloud-sun-fill text-primary me-1.5"></i> Berawan</div>
+                            <div class="d-flex align-items-center"><i class="bi bi-cloud-rain-heavy-fill text-primary me-1.5"></i> Hujan</div>
+                            <div class="d-flex align-items-center"><i class="bi bi-cloud-lightning-rain-fill text-danger me-1.5"></i> Badai Ekstrem</div>
+                        </div>
+
+                        <!-- SVG Map -->
+                        <div id="weather-map-container" class="w-100 h-100 d-flex align-items-center justify-content-center" style="transition: transform 0.3s ease; transform-origin: center;">
+                            <svg viewBox="0 0 1000 500" class="w-100 h-100" style="max-height: 400px;">
+                                <g fill="#E2E8F0" stroke="#FFFFFF" stroke-width="1.5">
+                                    <path d="M100,80 L200,60 L280,100 L250,180 L200,200 L150,150 Z" />
+                                    <path d="M250,220 L320,250 L280,380 L240,420 L220,300 Z" />
+                                    <path d="M300,30 L380,20 L350,70 L280,60 Z" />
+                                    <path d="M450,60 L600,40 L850,50 L900,120 L800,280 L700,250 L600,280 L520,220 L420,120 Z" />
+                                    <path d="M460,180 L560,160 L630,220 L580,350 L520,380 L480,260 Z" />
+                                    <path d="M780,320 L880,300 L850,380 L760,360 Z" />
+                                </g>
+
+                                <!-- Weather Nodes -->
+                                <g id="weather-markers">
+                                    <!-- Tanjung Priok -->
+                                    <g class="weather-marker" data-city="Jakarta" data-country="Indonesia" data-port="Tanjung Priok" data-temp="28" data-cond="Hujan" data-icon="bi-cloud-rain-heavy-fill" data-hum="85" data-wind="12" data-press="1011" data-rain="4.2" data-uv="3" data-impact="low" data-region="asia" onclick="selectWeatherNode(this)">
+                                        <circle cx="570" cy="220" r="14" fill="rgba(37, 99, 235, 0.15)" stroke="var(--primary)" stroke-width="1" />
+                                        <circle cx="570" cy="220" r="5" fill="var(--primary)" />
+                                    </g>
+                                    <!-- Singapore -->
+                                    <g class="weather-marker" data-city="Singapura" data-country="Singapura" data-port="Port of Singapore" data-temp="31" data-cond="Cerah" data-icon="bi-sun-fill" data-hum="60" data-wind="8" data-press="1013" data-rain="0.0" data-uv="9" data-impact="low" data-region="asia" onclick="selectWeatherNode(this)">
+                                        <circle cx="650" cy="230" r="14" fill="rgba(37, 99, 235, 0.15)" stroke="var(--primary)" stroke-width="1" />
+                                        <circle cx="650" cy="230" r="5" fill="var(--primary)" />
+                                    </g>
+                                    <!-- Shanghai -->
+                                    <g class="weather-marker" data-city="Shanghai" data-country="China" data-port="Port of Shanghai" data-temp="24" data-cond="Badai" data-icon="bi-cloud-lightning-rain-fill" data-hum="95" data-wind="45" data-press="998" data-rain="25.0" data-uv="1" data-impact="high" data-region="asia" onclick="selectWeatherNode(this)">
+                                        <circle cx="780" cy="120" r="18" fill="rgba(239, 68, 68, 0.2)" stroke="var(--danger)" stroke-width="1.5" class="weather-pulse" />
+                                        <circle cx="780" cy="120" r="6" fill="var(--danger)" />
+                                    </g>
+                                    <!-- Rotterdam -->
+                                    <g class="weather-marker" data-city="Rotterdam" data-country="Belanda" data-port="Port of Rotterdam" data-temp="17" data-cond="Berawan" data-icon="bi-cloud-sun-fill" data-hum="70" data-wind="22" data-press="1012" data-rain="0.5" data-uv="4" data-impact="medium" data-region="europe" onclick="selectWeatherNode(this)">
+                                        <circle cx="520" cy="130" r="14" fill="rgba(37, 99, 235, 0.15)" stroke="var(--primary)" stroke-width="1" />
+                                        <circle cx="520" cy="130" r="5" fill="var(--primary)" />
+                                    </g>
+                                    <!-- Los Angeles -->
+                                    <g class="weather-marker" data-city="Los Angeles" data-country="Amerika Serikat" data-port="Port of Los Angeles" data-temp="21" data-cond="Mendung" data-icon="bi-cloud-fill" data-hum="65" data-wind="10" data-press="1015" data-rain="0.0" data-uv="6" data-impact="low" data-region="america" onclick="selectWeatherNode(this)">
+                                        <circle cx="150" cy="110" r="14" fill="rgba(37, 99, 235, 0.15)" stroke="var(--primary)" stroke-width="1" />
+                                        <circle cx="150" cy="110" r="5" fill="var(--primary)" />
+                                    </g>
+                                    <!-- New York -->
+                                    <g class="weather-marker" data-city="New York" data-country="Amerika Serikat" data-port="Port of New York" data-temp="25" data-cond="Cerah" data-icon="bi-sun-fill" data-hum="55" data-wind="15" data-press="1014" data-rain="0.0" data-uv="7" data-impact="low" data-region="america" onclick="selectWeatherNode(this)">
+                                        <circle cx="180" cy="130" r="14" fill="rgba(37, 99, 235, 0.15)" stroke="var(--primary)" stroke-width="1" />
+                                        <circle cx="180" cy="130" r="5" fill="var(--primary)" />
+                                    </g>
+                                    <!-- Santos -->
+                                    <g class="weather-marker" data-city="Santos" data-country="Brasil" data-port="Port of Santos" data-temp="26" data-cond="Hujan" data-icon="bi-cloud-rain-heavy-fill" data-hum="80" data-wind="18" data-press="1010" data-rain="5.5" data-uv="5" data-impact="low" data-region="america" onclick="selectWeatherNode(this)">
+                                        <circle cx="270" cy="260" r="14" fill="rgba(37, 99, 235, 0.15)" stroke="var(--primary)" stroke-width="1" />
+                                        <circle cx="270" cy="260" r="5" fill="var(--primary)" />
+                                    </g>
+                                    <!-- Durban -->
+                                    <g class="weather-marker" data-city="Durban" data-country="Afrika Selatan" data-port="Port of Durban" data-temp="19" data-cond="Berawan" data-icon="bi-cloud-sun-fill" data-hum="72" data-wind="14" data-press="1016" data-rain="0.2" data-uv="4" data-impact="low" data-region="africa" onclick="selectWeatherNode(this)">
+                                        <circle cx="500" cy="240" r="14" fill="rgba(37, 99, 235, 0.15)" stroke="var(--primary)" stroke-width="1" />
+                                        <circle cx="500" cy="240" r="5" fill="var(--primary)" />
+                                    </g>
+                                </g>
+                            </svg>
                         </div>
                     </div>
                 </div>
 
-                <!-- Weather Trend Global Chart -->
-                <div class="card p-4 border-0 shadow-sm">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-graph-up text-primary me-2"></i>Grafik Perubahan Suhu Port Utama (7 Hari Terakhir)</h6>
-                        <span class="badge badge-info text-uppercase" style="font-size: 0.65rem;">Chart.js Engine</span>
+                <!-- SECTION 2: Weather Overview -->
+                <div class="card p-4 border-0">
+                    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-info-circle-fill text-primary me-2"></i>Rincian Parameter Meteorologi</h5>
+                    <p class="text-secondary small mb-4">Informasi mendetail cuaca teritorial untuk pelabuhan yang dipilih.</p>
+                    
+                    <div class="row g-3 text-center">
+                        <div class="col-6 col-md-4 col-lg-2">
+                            <div class="p-3 border rounded-4 bg-light" style="background-color: #F8FAFC !important;">
+                                <i class="bi bi-thermometer-half text-danger fs-3 mb-1.5 d-block"></i>
+                                <span class="text-secondary small d-block mb-1">Suhu</span>
+                                <h6 class="fw-bold text-dark mb-0" id="ov-temp">28°C</h6>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4 col-lg-2">
+                            <div class="p-3 border rounded-4 bg-light" style="background-color: #F8FAFC !important;">
+                                <i class="bi bi-moisture text-info fs-3 mb-1.5 d-block"></i>
+                                <span class="text-secondary small d-block mb-1">Kelembapan</span>
+                                <h6 class="fw-bold text-dark mb-0" id="ov-humidity">85%</h6>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4 col-lg-2">
+                            <div class="p-3 border rounded-4 bg-light" style="background-color: #F8FAFC !important;">
+                                <i class="bi bi-wind text-primary fs-3 mb-1.5 d-block"></i>
+                                <span class="text-secondary small d-block mb-1">Angin</span>
+                                <h6 class="fw-bold text-dark mb-0" id="ov-wind">12 km/j</h6>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4 col-lg-2">
+                            <div class="p-3 border rounded-4 bg-light" style="background-color: #F8FAFC !important;">
+                                <i class="bi bi-speedometer text-success fs-3 mb-1.5 d-block"></i>
+                                <span class="text-secondary small d-block mb-1">Tekanan</span>
+                                <h6 class="fw-bold text-dark mb-0" id="ov-pressure">1011 hPa</h6>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4 col-lg-2">
+                            <div class="p-3 border rounded-4 bg-light" style="background-color: #F8FAFC !important;">
+                                <i class="bi bi-cloud-drizzle text-primary fs-3 mb-1.5 d-block"></i>
+                                <span class="text-secondary small d-block mb-1">Curah Hujan</span>
+                                <h6 class="fw-bold text-dark mb-0" id="ov-rainfall">4.2 mm</h6>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-4 col-lg-2">
+                            <div class="p-3 border rounded-4 bg-light" style="background-color: #F8FAFC !important;">
+                                <i class="bi bi-sun text-warning fs-3 mb-1.5 d-block"></i>
+                                <span class="text-secondary small d-block mb-1">Indeks UV</span>
+                                <h6 class="fw-bold text-dark mb-0" id="ov-uv">3 / Sangat Rendah</h6>
+                            </div>
+                        </div>
                     </div>
+                </div>
 
-                    <div class="border rounded-4 position-relative d-flex align-items-center justify-content-center overflow-hidden" style="height: 250px; background-color: #FAFCFF;">
-                        <svg viewBox="0 0 500 200" class="w-100 h-100 position-absolute top-0 start-0 opacity-25" style="pointer-events: none;">
-                            <path d="M 0 120 Q 100 130, 200 90 T 400 110 T 500 50" fill="none" stroke="var(--primary)" stroke-width="3"></path>
-                            <path d="M 0 120 Q 100 130, 200 90 T 400 110 T 500 50 L 500 200 L 0 200 Z" fill="rgba(14, 165, 233, 0.05)"></path>
-                            <line x1="0" y1="50" x2="500" y2="50" stroke="#E2E8F0" stroke-dasharray="4"></line>
-                            <line x1="0" y1="100" x2="500" y2="100" stroke="#E2E8F0" stroke-dasharray="4"></line>
-                            <line x1="0" y1="150" x2="500" y2="150" stroke="#E2E8F0" stroke-dasharray="4"></line>
-                        </svg>
-                        <div class="text-center position-relative z-index-1">
-                            <i class="bi bi-activity fs-3 text-secondary mb-1.5 d-block"></i>
-                            <h6 class="text-dark fw-bold mb-1">Tren Suhu Historis</h6>
-                            <p class="text-secondary small mb-0">Grafik Chart.js untuk fluktuasi cuaca akan dirender secara dinamis.</p>
+                <!-- SECTION 3: Forecast (7 Days Horizontal Scrollable) -->
+                <div class="card p-4 border-0">
+                    <h5 class="fw-bold text-dark mb-1"><i class="bi bi-calendar3 text-primary me-2"></i>Prakiraan Cuaca 7 Hari Mendatang</h5>
+                    <p class="text-secondary small mb-3">Geser ke kanan untuk melihat proyeksi cuaca 1 minggu ke depan.</p>
+                    
+                    <!-- Horizontal Scroll Container -->
+                    <div class="d-flex flex-nowrap gap-3 pb-2 forecast-scroll-container overflow-x-auto">
+                        <!-- Day 1 -->
+                        <div class="card p-3 border text-center flex-shrink-0" style="width: 110px; background-color: #FAFCFF !important;">
+                            <span class="text-secondary small d-block mb-1">Sabtu</span>
+                            <i class="bi bi-cloud-rain-fill text-primary fs-3 mb-2"></i>
+                            <h6 class="fw-bold text-dark mb-1" style="font-size: 0.85rem;">28°C / 24°C</h6>
+                            <span class="badge badge-info" style="font-size: 0.6rem;">Hujan</span>
+                        </div>
+                        <!-- Day 2 -->
+                        <div class="card p-3 border text-center flex-shrink-0" style="width: 110px; background-color: #FAFCFF !important;">
+                            <span class="text-secondary small d-block mb-1">Minggu</span>
+                            <i class="bi bi-cloud-sun-fill text-primary fs-3 mb-2"></i>
+                            <h6 class="fw-bold text-dark mb-1" style="font-size: 0.85rem;">29°C / 25°C</h6>
+                            <span class="badge badge-info" style="font-size: 0.6rem;">Berawan</span>
+                        </div>
+                        <!-- Day 3 -->
+                        <div class="card p-3 border text-center flex-shrink-0" style="width: 110px; background-color: #FAFCFF !important;">
+                            <span class="text-secondary small d-block mb-1">Senin</span>
+                            <i class="bi bi-sun-fill text-warning fs-3 mb-2"></i>
+                            <h6 class="fw-bold text-dark mb-1" style="font-size: 0.85rem;">31°C / 26°C</h6>
+                            <span class="badge badge-success" style="font-size: 0.6rem;">Cerah</span>
+                        </div>
+                        <!-- Day 4 -->
+                        <div class="card p-3 border text-center flex-shrink-0" style="width: 110px; background-color: #FAFCFF !important;">
+                            <span class="text-secondary small d-block mb-1">Selasa</span>
+                            <i class="bi bi-sun-fill text-warning fs-3 mb-2"></i>
+                            <h6 class="fw-bold text-dark mb-1" style="font-size: 0.85rem;">32°C / 26°C</h6>
+                            <span class="badge badge-success" style="font-size: 0.6rem;">Cerah</span>
+                        </div>
+                        <!-- Day 5 -->
+                        <div class="card p-3 border text-center flex-shrink-0" style="width: 110px; background-color: #FAFCFF !important;">
+                            <span class="text-secondary small d-block mb-1">Rabu</span>
+                            <i class="bi bi-cloud-rain-heavy-fill text-primary fs-3 mb-2"></i>
+                            <h6 class="fw-bold text-dark mb-1" style="font-size: 0.85rem;">27°C / 23°C</h6>
+                            <span class="badge badge-info" style="font-size: 0.6rem;">Hujan Lebat</span>
+                        </div>
+                        <!-- Day 6 -->
+                        <div class="card p-3 border text-center flex-shrink-0" style="width: 110px; background-color: #FAFCFF !important;">
+                            <span class="text-secondary small d-block mb-1">Kamis</span>
+                            <i class="bi bi-cloud-lightning-rain-fill text-danger fs-3 mb-2"></i>
+                            <h6 class="fw-bold text-dark mb-1" style="font-size: 0.85rem;">26°C / 22°C</h6>
+                            <span class="badge badge-danger" style="font-size: 0.6rem;">Badai</span>
+                        </div>
+                        <!-- Day 7 -->
+                        <div class="card p-3 border text-center flex-shrink-0" style="width: 110px; background-color: #FAFCFF !important;">
+                            <span class="text-secondary small d-block mb-1">Jumat</span>
+                            <i class="bi bi-cloud-sun-fill text-primary fs-3 mb-2"></i>
+                            <h6 class="fw-bold text-dark mb-1" style="font-size: 0.85rem;">29°C / 24°C</h6>
+                            <span class="badge badge-info" style="font-size: 0.6rem;">Berawan</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 4: Extreme Weather Alert -->
+                <div class="card p-4 border-0">
+                    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-lightning-charge-fill text-danger me-2"></i>Peringatan Cuaca Buruk Koridor Logistik</h5>
+                    
+                    <div class="d-flex flex-column gap-3">
+                        <!-- Alert 1 -->
+                        <div class="p-3 border rounded-4 bg-light d-flex align-items-center justify-content-between alert-item" data-name="Amerika Serikat" data-city="New York" data-cond="badai">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-snow2 text-primary fs-3 me-3"></i>
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-1">Amerika Serikat | Badai Salju Kritis (Port of New York)</h6>
+                                    <p class="text-secondary small mb-0">Penundaan bongkar kargo kontainer selama 24 jam ke depan.</p>
+                                </div>
+                            </div>
+                            <span class="badge bg-danger text-white px-2.5 py-1.5 rounded-pill">Sangat Tinggi</span>
+                        </div>
+
+                        <!-- Alert 2 -->
+                        <div class="p-3 border rounded-4 bg-light d-flex align-items-center justify-content-between alert-item" data-name="China" data-city="Shanghai" data-cond="badai">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-cloud-lightning-rain-fill text-danger fs-3 me-3"></i>
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-1">China | Badai Tropis Ekstrem (Port of Shanghai)</h6>
+                                    <p class="text-secondary small mb-0">Kapal dilarang sandar di dermaga utama karena angin kencang (45 knot).</p>
+                                </div>
+                            </div>
+                            <span class="badge bg-danger text-white px-2.5 py-1.5 rounded-pill">Kritis</span>
+                        </div>
+
+                        <!-- Alert 3 -->
+                        <div class="p-3 border rounded-4 bg-light d-flex align-items-center justify-content-between alert-item" data-name="Afrika Selatan" data-city="Durban" data-cond="cerah">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-thermometer-sun text-warning fs-3 me-3"></i>
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-1">Afrika Selatan | Gelombang Panas Menghambat Operasional (Port of Durban)</h6>
+                                    <p class="text-secondary small mb-0">Pembatasan jam kerja buruh pelabuhan di luar ruangan demi kesehatan.</p>
+                                </div>
+                            </div>
+                            <span class="badge bg-warning text-dark px-2.5 py-1.5 rounded-pill">Sedang</span>
                         </div>
                     </div>
                 </div>
@@ -188,132 +449,108 @@
             </div>
         </div>
 
-        <!-- Right Column: Detail Cuaca & Riwayat -->
+        <!-- Kolom Kanan (Widgets) -->
         <div class="col-lg-4">
             <div class="d-flex flex-column gap-4">
                 
-                <!-- Detail Cuaca Negara -->
-                <div class="card p-4 border-0 shadow-sm" id="weather-detail-panel">
-                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-cloud-sun-fill text-primary me-2"></i>Detail Cuaca Negara</h6>
+                <!-- WIDGET 1: Current Weather Widget -->
+                <div class="card p-4 border-0">
+                    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-geo-alt-fill text-primary me-2"></i>Stasiun Terpilih</h5>
                     
                     <div class="text-center pb-3 border-bottom mb-3">
-                        <span id="wd-flag" class="fs-1 d-block mb-1">🇮🇩</span>
-                        <h5 id="wd-name" class="fw-bold text-dark mb-1">Indonesia</h5>
-                        <div class="d-flex align-items-center justify-content-center gap-1.5 mt-2">
-                            <i class="bi bi-cloud-rain-heavy-fill text-primary fs-3" id="wd-icon"></i>
-                            <h2 class="fw-bold text-dark mb-0 ms-1" id="wd-temp">28°C</h2>
+                        <span id="cur-modal-flag" class="fs-1 d-block mb-1">🇮🇩</span>
+                        <h5 id="cur-modal-city" class="fw-bold text-dark mb-1">Jakarta</h5>
+                        <span id="cur-modal-port" class="text-secondary small d-block mb-2">Tanjung Priok, Indonesia</span>
+                        <div class="d-flex align-items-center justify-content-center gap-1.5">
+                            <i id="cur-modal-icon" class="bi bi-cloud-rain-heavy-fill text-primary fs-2"></i>
+                            <h2 id="cur-modal-temp" class="fw-bold text-dark mb-0 ms-1">28°C</h2>
                         </div>
-                        <span id="wd-condition" class="badge badge-info mt-2">Hujan Ringan</span>
+                        <span id="cur-modal-status" class="badge badge-info mt-2">Hujan</span>
                     </div>
 
-                    <div class="d-flex flex-column gap-2.5">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-secondary small">Kelembapan Udara</span>
-                            <span id="wd-humidity" class="text-dark fw-semibold small">85%</span>
+                    <div class="d-flex flex-column gap-2.5" style="font-size: 0.825rem;">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-secondary">Kelembapan:</span>
+                            <span id="cur-modal-humidity" class="text-dark fw-semibold">85%</span>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-secondary small">Kecepatan Angin</span>
-                            <span id="wd-wind" class="text-dark fw-semibold small">12 km/jam</span>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-secondary">Kecepatan Angin:</span>
+                            <span id="cur-modal-wind" class="text-dark fw-semibold">12 km/jam</span>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-secondary small">Tekanan Udara</span>
-                            <span id="wd-pressure" class="text-dark fw-semibold small">1011 hPa</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-secondary small">Curah Hujan</span>
-                            <span id="wd-rainfall" class="text-dark fw-semibold small">4.2 mm</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-                            <span class="text-secondary small">Kondisi Langit</span>
-                            <span id="wd-sky" class="text-dark fw-semibold small">Mendung Tebal</span>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-secondary">Tekanan Udara:</span>
+                            <span id="cur-modal-pressure" class="text-dark fw-semibold">1011 hPa</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Riwayat Cuaca (Timeline) -->
-                <div class="card p-4 border-0 shadow-sm">
-                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-clock-history text-primary me-2"></i>Log Cuaca Buruk (Jalur Rantai Pasok)</h6>
+                <!-- WIDGET 2: Weather Impact Badge Indicator -->
+                <div class="card p-4 border-0 text-center">
+                    <h5 class="fw-bold text-dark mb-3 text-start"><i class="bi bi-shield-exclamation text-primary me-2"></i>Dampak Rantai Pasok</h5>
+                    <p class="text-secondary small text-start mb-3">Penilaian gangguan cuaca saat ini terhadap rute kapal kontainer logistik.</p>
                     
-                    <div class="d-flex flex-column gap-3">
-                        <div class="p-2.5 border rounded-3 bg-light" style="background-color: #F8FAFC !important;">
-                            <span class="badge bg-danger text-light mb-1" style="font-size: 0.65rem;">Badai Salju</span>
-                            <h6 class="fw-bold text-dark small mb-1">Badai Musim Dingin melanda Pantai Timur AS</h6>
-                            <p class="text-secondary small mb-1" style="font-size: 0.775rem;">Operasional Port of New York ditunda sementara.</p>
-                            <span class="text-secondary" style="font-size: 0.65rem;"><i class="bi bi-clock me-1"></i>3 jam yang lalu</span>
+                    <div class="p-3 border rounded-4" id="cur-impact-box" style="background-color: rgba(34, 197, 94, 0.06); border-color: rgba(34, 197, 94, 0.15) !important;">
+                        <span class="fw-bold text-success d-block mb-1" id="cur-impact-title"><i class="bi bi-check-circle-fill me-1.5"></i>Dampak Rendah (Aman)</span>
+                        <p class="text-secondary small mb-0" id="cur-impact-desc">Jalur pelayaran laut dan penumpukan logistik gudang berjalan normal tanpa gangguan.</p>
+                    </div>
+                </div>
+
+                <!-- WIDGET 3: Top 5 Hottest & Top 5 Coldest -->
+                <div class="card p-4 border-0">
+                    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-thermometer-high text-primary me-2"></i>Ekstrem Suhu Global</h5>
+                    
+                    <!-- Hottest -->
+                    <div class="mb-3.5">
+                        <h6 class="fw-bold text-danger mb-2.5" style="font-size: 0.85rem;"><i class="bi bi-caret-up-fill me-1"></i>Top 5 Terpanas</h6>
+                        <div class="d-flex flex-column gap-2" style="font-size: 0.8rem;">
+                            <div class="d-flex justify-content-between border-bottom pb-1"><span>🇸🇩 Sudan (Khartoum)</span><span class="text-danger fw-bold">42°C</span></div>
+                            <div class="d-flex justify-content-between border-bottom pb-1"><span>🇾🇪 Yaman (Sana'a)</span><span class="text-danger fw-bold">40°C</span></div>
+                            <div class="d-flex justify-content-between border-bottom pb-1"><span>🇸🇦 Arab Saudi (Riyadh)</span><span class="text-danger fw-bold">39°C</span></div>
+                            <div class="d-flex justify-content-between border-bottom pb-1"><span>🇪🇬 Mesir (Kairo)</span><span class="text-danger fw-bold">38°C</span></div>
+                            <div class="d-flex justify-content-between"><span>🇮🇶 Irak (Baghdad)</span><span class="text-danger fw-bold">37°C</span></div>
                         </div>
-                        <div class="p-2.5 border rounded-3 bg-light" style="background-color: #F8FAFC !important;">
-                            <span class="badge bg-warning text-dark mb-1" style="font-size: 0.65rem;">Kabut Tebal</span>
-                            <h6 class="fw-bold text-dark small mb-1">Jarak Pandang Pelabuhan Tokyo Menurun</h6>
-                            <p class="text-secondary small mb-1" style="font-size: 0.775rem;">Kecepatan kapal masuk dibatasi 5 knot demi keselamatan.</p>
-                            <span class="text-secondary" style="font-size: 0.65rem;"><i class="bi bi-clock me-1"></i>12 jam yang lalu</span>
+                    </div>
+
+                    <!-- Coldest -->
+                    <div class="border-top pt-3">
+                        <h6 class="fw-bold text-primary mb-2.5" style="font-size: 0.85rem;"><i class="bi bi-caret-down-fill me-1"></i>Top 5 Terdingin</h6>
+                        <div class="d-flex flex-column gap-2" style="font-size: 0.8rem;">
+                            <div class="d-flex justify-content-between border-bottom pb-1"><span>🇷🇺 Rusia (Siberia)</span><span class="text-primary fw-bold">-15°C</span></div>
+                            <div class="d-flex justify-content-between border-bottom pb-1"><span>🇨🇦 Kanada (Nunavut)</span><span class="text-primary fw-bold">-10°C</span></div>
+                            <div class="d-flex justify-content-between border-bottom pb-1"><span>🇬🇱 Greenland (Nuuk)</span><span class="text-primary fw-bold">-8°C</span></div>
+                            <div class="d-flex justify-content-between border-bottom pb-1"><span>🇳🇴 Norwegia (Oslo)</span><span class="text-primary fw-bold">-2°C</span></div>
+                            <div class="d-flex justify-content-between"><span>🇮🇸 Islandia (Reykjavik)</span><span class="text-primary fw-bold">-1°C</span></div>
                         </div>
                     </div>
                 </div>
 
-            </div>
-        </div>
+                <!-- WIDGET 4: Recent Weather Update -->
+                <div class="card p-4 border-0">
+                    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-clock-history text-primary me-2"></i>Log Pembaruan Cuaca</h5>
+                    
+                    <div style="position: relative; padding-left: 20px;">
+                        <div style="position: absolute; left: 6px; top: 8px; bottom: 8px; width: 2px; background-color: #E2E8F0;"></div>
+                        
+                        <div class="position-relative mb-3.5">
+                            <div class="position-absolute rounded-circle" style="left: -19px; top: 4px; width: 10px; height: 10px; background-color: var(--success); border: 2px solid #FFFFFF;"></div>
+                            <div class="small">
+                                <span class="text-dark fw-bold d-block">Open-Meteo API Sukses</span>
+                                <span class="text-secondary d-block" style="font-size: 0.725rem;">Sinkronisasi cuaca Port of Singapore diperbarui.</span>
+                                <span class="text-secondary small" style="font-size: 0.65rem;"><i class="bi bi-clock me-1"></i>Baru saja</span>
+                            </div>
+                        </div>
 
-    </div>
-
-    <!-- Row 6: Daftar Negara (Table) -->
-    <div class="row g-4">
-        <div class="col-12">
-            <div class="card p-4 border-0 shadow-sm">
-                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-list-ul text-primary me-2"></i>Daftar Pemantauan Kondisi Cuaca Negara</h6>
-                
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0" id="weather-table">
-                        <thead>
-                            <tr>
-                                <th>Negara</th>
-                                <th>Suhu</th>
-                                <th>Kondisi Cuaca</th>
-                                <th>Kelembapan</th>
-                                <th>Kecepatan Angin</th>
-                                <th>Status Operasional Port</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr class="weather-row" data-id="ID" data-name="Indonesia" data-flag="🇮🇩" data-temp="28°C" data-cond="Hujan Ringan" data-icon="bi-cloud-rain-heavy-fill" data-humidity="85%" data-wind="12 km/jam" data-pressure="1011 hPa" data-rainfall="4.2 mm" data-sky="Mendung Tebal" data-continent="Asia" data-status="Normal">
-                                <td class="fw-bold text-dark"><span class="me-2">🇮🇩</span>Indonesia</td>
-                                <td>28°C</td>
-                                <td><span class="badge badge-info">Hujan Ringan</span></td>
-                                <td>85%</td>
-                                <td>12 km/jam</td>
-                                <td><span class="badge badge-success">Normal</span></td>
-                                <td><button class="btn btn-light btn-sm border px-3 btn-select-weather">Pilih</button></td>
-                            </tr>
-                            <tr class="weather-row" data-id="SG" data-name="Singapura" data-flag="🇸🇬" data-temp="31°C" data-cond="Cerah" data-icon="bi-sun-fill" data-humidity="60%" data-wind="8 km/jam" data-pressure="1013 hPa" data-rainfall="0.0 mm" data-sky="Cerah Berawan" data-continent="Asia" data-status="Normal">
-                                <td class="fw-bold text-dark"><span class="me-2">🇸🇬</span>Singapura</td>
-                                <td>31°C</td>
-                                <td><span class="badge badge-success">Cerah</span></td>
-                                <td>60%</td>
-                                <td>8 km/jam</td>
-                                <td><span class="badge badge-success">Normal</span></td>
-                                <td><button class="btn btn-light btn-sm border px-3 btn-select-weather">Pilih</button></td>
-                            </tr>
-                            <tr class="weather-row" data-id="JP" data-name="Jepang" data-flag="🇯🇵" data-temp="25°C" data-cond="Berawan" data-icon="bi-cloud-sun-fill" data-humidity="72%" data-wind="15 km/jam" data-pressure="1009 hPa" data-rainfall="0.5 mm" data-sky="Awan Tersebar" data-continent="Asia" data-status="Normal">
-                                <td class="fw-bold text-dark"><span class="me-2">🇯🇵</span>Jepang</td>
-                                <td>25°C</td>
-                                <td><span class="badge badge-info">Berawan</span></td>
-                                <td>72%</td>
-                                <td>15 km/jam</td>
-                                <td><span class="badge badge-success">Normal</span></td>
-                                <td><button class="btn btn-light btn-sm border px-3 btn-select-weather">Pilih</button></td>
-                            </tr>
-                            <tr class="weather-row" data-id="US" data-name="Amerika Serikat" data-flag="🇺🇸" data-temp="-2°C" data-cond="Badai Salju" data-icon="bi-snow" data-humidity="95%" data-wind="45 km/jam" data-pressure="998 hPa" data-rainfall="25.0 mm" data-sky="Badai Salju Kritis" data-continent="Amerika" data-status="Ekstrem">
-                                <td class="fw-bold text-dark"><span class="me-2">🇺🇸</span>Amerika Serikat</td>
-                                <td>-2°C</td>
-                                <td><span class="badge badge-danger">Badai Salju</span></td>
-                                <td>95%</td>
-                                <td>45 km/jam</td>
-                                <td><span class="badge badge-danger">Tertunda</span></td>
-                                <td><button class="btn btn-light btn-sm border px-3 btn-select-weather">Pilih</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                        <div class="position-relative">
+                            <div class="position-absolute rounded-circle" style="left: -19px; top: 4px; width: 10px; height: 10px; background-color: var(--danger); border: 2px solid #FFFFFF;"></div>
+                            <div class="small">
+                                <span class="text-dark fw-bold d-block">Peringatan Badai Aktif</span>
+                                <span class="text-secondary d-block" style="font-size: 0.725rem;">Pemberitahuan Badai Shanghai diteruskan ke kapal.</span>
+                                <span class="text-secondary small" style="font-size: 0.65rem;"><i class="bi bi-clock me-1"></i>30 menit yang lalu</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -324,134 +561,271 @@
 @section('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const rows = document.querySelectorAll('.weather-row');
-        const searchInput = document.getElementById('search-weather-country');
-        const selectCountry = document.getElementById('select-weather-country');
-        const selectContinent = document.getElementById('select-continent');
-        const selectCondition = document.getElementById('select-condition');
-        const btnReset = document.getElementById('btn-reset-filters');
-        const btnRefresh = document.getElementById('btn-refresh-weather');
-
-        // Detail elements
-        const wdFlag = document.getElementById('wd-flag');
-        const wdName = document.getElementById('wd-name');
-        const wdTemp = document.getElementById('wd-temp');
-        const wdIcon = document.getElementById('wd-icon');
-        const wdCondition = document.getElementById('wd-condition');
-        const wdHumidity = document.getElementById('wd-humidity');
-        const wdWind = document.getElementById('wd-wind');
-        const wdPressure = document.getElementById('wd-pressure');
-        const wdRainfall = document.getElementById('wd-rainfall');
-        const wdSky = document.getElementById('wd-sky');
-
-        // Function to update detail panel
-        function selectWeather(row) {
-            const data = row.dataset;
-            wdFlag.textContent = data.flag;
-            wdName.textContent = data.name;
-            wdTemp.textContent = data.temp;
-            wdCondition.textContent = data.cond;
-
-            // Class icon set
-            wdIcon.className = 'bi ' + data.icon + ' fs-3';
-            if (data.status === 'Ekstrem') {
-                wdIcon.style.color = 'var(--danger)';
-                wdCondition.className = 'badge badge-danger';
-            } else if (data.cond === 'Cerah') {
-                wdIcon.style.color = 'var(--warning)';
-                wdCondition.className = 'badge badge-success';
-            } else {
-                wdIcon.style.color = 'var(--primary)';
-                wdCondition.className = 'badge badge-info';
-            }
-
-            wdHumidity.textContent = data.humidity;
-            wdWind.textContent = data.wind;
-            wdPressure.textContent = data.pressure;
-            wdRainfall.textContent = data.rainfall;
-            wdSky.textContent = data.sky;
-        }
-
-        // Click row events
-        rows.forEach(row => {
-            row.querySelector('.btn-select-weather').addEventListener('click', function(e) {
-                e.stopPropagation();
-                selectWeather(row);
-                rows.forEach(r => r.classList.remove('table-primary'));
-                row.classList.add('table-primary');
-            });
-            row.addEventListener('click', function() {
-                selectWeather(row);
-                rows.forEach(r => r.classList.remove('table-primary'));
-                row.classList.add('table-primary');
-            });
-        });
-
-        // Filter event listeners
-        searchInput.addEventListener('input', filterWeather);
-        selectCountry.addEventListener('change', filterWeather);
-        selectContinent.addEventListener('change', filterWeather);
-        selectCondition.addEventListener('change', filterWeather);
-
-        function filterWeather() {
-            const query = searchInput.value.toLowerCase();
-            const countryId = selectCountry.value;
-            const continent = selectContinent.value;
-            const condition = selectCondition.value;
-
-            rows.forEach(row => {
-                const name = row.dataset.name.toLowerCase();
-                const id = row.dataset.id;
-                const cont = row.dataset.continent;
-                const cond = row.dataset.cond;
-                const status = row.dataset.status;
-
-                let matchesSearch = name.includes(query);
-                let matchesCountry = (countryId === 'all' || id === countryId);
-                let matchesContinent = (continent === 'all' || cont === continent);
-                
-                let matchesCondition = true;
-                if (condition === 'Ekstrem') {
-                    matchesCondition = (status === 'Ekstrem');
-                } else if (condition !== 'all') {
-                    matchesCondition = cond.includes(condition);
-                }
-
-                if (matchesSearch && matchesCountry && matchesContinent && matchesCondition) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        }
-
-        // Reset button
-        btnReset.addEventListener('click', function() {
-            searchInput.value = '';
-            selectCountry.value = 'all';
-            selectContinent.value = 'all';
-            selectCondition.value = 'all';
-            filterWeather();
-        });
-
-        // Refresh button mock
-        btnRefresh.addEventListener('click', function() {
-            btnRefresh.innerHTML = '<i class="bi bi-arrow-clockwise animate-spin me-2"></i>Memuat...';
-            setTimeout(() => {
-                btnRefresh.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Segarkan Data';
-                alert('Sinkronisasi data cuaca Open-Meteo API berhasil disimulasikan!');
-            }, 1000);
-        });
+        // Initial simulated loading transition
+        setTimeout(() => {
+            document.getElementById('skeleton-container').style.display = 'none';
+            document.getElementById('main-content-grid').style.display = 'flex';
+        }, 800);
     });
-</script>
-<style>
-    .animate-spin {
-        animation: spin 1s linear infinite;
-        display: inline-block;
+
+    // Map Zooming Simulation
+    let mapZoomScale = 1;
+    function zoomWeatherMap(factor) {
+        mapZoomScale *= factor;
+        if (mapZoomScale < 0.6) mapZoomScale = 0.6;
+        if (mapZoomScale > 3.0) mapZoomScale = 3.0;
+        document.getElementById('weather-map-container').style.transform = `scale(${mapZoomScale})`;
     }
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+
+    function resetWeatherMapZoom() {
+        mapZoomScale = 1;
+        document.getElementById('weather-map-container').style.transform = `scale(1)`;
+    }
+
+    // Node Selection & Sidebar Widget Update
+    function selectWeatherNode(node) {
+        const city = node.getAttribute('data-city');
+        const country = node.getAttribute('data-country');
+        const port = node.getAttribute('data-port');
+        const temp = node.getAttribute('data-temp');
+        const cond = node.getAttribute('data-cond');
+        const icon = node.getAttribute('data-icon');
+        const hum = node.getAttribute('data-hum');
+        const wind = node.getAttribute('data-wind');
+        const press = node.getAttribute('data-press');
+        const rain = node.getAttribute('data-rain');
+        const uv = node.getAttribute('data-uv');
+        const impact = node.getAttribute('data-impact');
+
+        // Flag matcher
+        let flag = '🌍';
+        if (country.includes('Indonesia')) flag = '🇮🇩';
+        if (country.includes('Singapura')) flag = '🇸🇬';
+        if (country.includes('China')) flag = '🇨🇳';
+        if (country.includes('Belanda')) flag = '🇳🇱';
+        if (country.includes('Amerika')) flag = '🇺🇸';
+        if (country.includes('Brasil')) flag = '🇧🇷';
+        if (country.includes('Afrika')) flag = '🇿🇦';
+
+        // Update current weather widget
+        document.getElementById('cur-modal-flag').textContent = flag;
+        document.getElementById('cur-modal-city').textContent = city;
+        document.getElementById('cur-modal-port').textContent = `${port}, ${country}`;
+        document.getElementById('cur-modal-icon').className = `bi ${icon} text-primary fs-2`;
+        document.getElementById('cur-modal-temp').textContent = `${temp}°C`;
+        
+        const statusBadge = document.getElementById('cur-modal-status');
+        statusBadge.textContent = cond;
+        if (cond === 'Badai') {
+            statusBadge.className = 'badge badge-danger';
+            document.getElementById('cur-modal-icon').className = `bi ${icon} text-danger fs-2`;
+        } else if (cond === 'Cerah') {
+            statusBadge.className = 'badge badge-success';
+            document.getElementById('cur-modal-icon').className = `bi ${icon} text-warning fs-2`;
+        } else {
+            statusBadge.className = 'badge badge-info';
+        }
+
+        document.getElementById('cur-modal-humidity').textContent = `${hum}%`;
+        document.getElementById('cur-modal-wind').textContent = `${wind} km/jam`;
+        document.getElementById('cur-modal-pressure').textContent = `${press} hPa`;
+
+        // Update meteorological overview row
+        document.getElementById('ov-temp').textContent = `${temp}°C`;
+        document.getElementById('ov-humidity').textContent = `${hum}%`;
+        document.getElementById('ov-wind').textContent = `${wind} km/j`;
+        document.getElementById('ov-pressure').textContent = `${press} hPa`;
+        document.getElementById('ov-rainfall').textContent = `${rain} mm`;
+        document.getElementById('ov-uv').textContent = `${uv} / ` + (uv > 7 ? 'Sangat Tinggi' : (uv > 4 ? 'Sedang' : 'Rendah'));
+
+        // Update Weather Impact Badge indicator widget
+        const impactBox = document.getElementById('cur-impact-box');
+        const impactTitle = document.getElementById('cur-impact-title');
+        const impactDesc = document.getElementById('cur-impact-desc');
+
+        if (impact === 'high') {
+            impactBox.style.backgroundColor = 'rgba(239, 68, 68, 0.06)';
+            impactBox.style.borderColor = 'rgba(239, 68, 68, 0.15)';
+            impactTitle.className = 'fw-bold text-danger d-block mb-1';
+            impactTitle.innerHTML = '<i class="bi bi-exclamation-octagon-fill me-1.5"></i>Dampak Tinggi (Bahaya)';
+            impactDesc.textContent = 'Cuaca buruk ekstrem. Jalur pelayaran ditunda dan proses bongkar muat kargo pelabuhan dihentikan sementara.';
+        } else if (impact === 'medium') {
+            impactBox.style.backgroundColor = 'rgba(245, 158, 11, 0.06)';
+            impactBox.style.borderColor = 'rgba(245, 158, 11, 0.15)';
+            impactTitle.className = 'fw-bold text-warning d-block mb-1';
+            impactTitle.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1.5"></i>Dampak Sedang (Hambatan)';
+            impactDesc.textContent = 'Kecepatan kapal masuk dibatasi. Terdapat potensi waktu antrean truk penjemputan kontainer bertambah panjang.';
+        } else {
+            impactBox.style.backgroundColor = 'rgba(34, 197, 94, 0.06)';
+            impactBox.style.borderColor = 'rgba(34, 197, 94, 0.15)';
+            impactTitle.className = 'fw-bold text-success d-block mb-1';
+            impactTitle.innerHTML = '<i class="bi bi-check-circle-fill me-1.5"></i>Dampak Rendah (Aman)';
+            impactDesc.textContent = 'Jalur pelayaran laut dan penumpukan logistik gudang berjalan normal tanpa gangguan.';
+        }
+    }
+
+    // Client-side Filters & Search
+    function applyFilters() {
+        const query = document.getElementById('search-weather-input').value.toLowerCase();
+        const region = document.getElementById('filter-region').value;
+        const condition = document.getElementById('filter-condition').value;
+        const tempRange = document.getElementById('filter-temp').value;
+
+        const markers = Array.from(document.querySelectorAll('.weather-marker'));
+        const alertItems = Array.from(document.querySelectorAll('.alert-item'));
+        
+        let visibleCount = 0;
+
+        markers.forEach(marker => {
+            const city = marker.getAttribute('data-city').toLowerCase();
+            const country = marker.getAttribute('data-country').toLowerCase();
+            const port = marker.getAttribute('data-port').toLowerCase();
+            const markerRegion = marker.getAttribute('data-region');
+            const cond = marker.getAttribute('data-cond').toLowerCase();
+            const temp = parseInt(marker.getAttribute('data-temp'));
+
+            const matchesSearch = city.includes(query) || country.includes(query) || port.includes(query);
+            const matchesRegion = (region === 'all' || markerRegion === region);
+            const matchesCondition = (condition === 'all' || cond === condition);
+            
+            let matchesTemp = true;
+            if (tempRange === 'hot') matchesTemp = temp > 30;
+            else if (tempRange === 'mild') matchesTemp = temp >= 15 && temp <= 30;
+            else if (tempRange === 'cold') matchesTemp = temp < 15;
+
+            if (matchesSearch && matchesRegion && matchesCondition && matchesTemp) {
+                marker.style.display = 'block';
+                visibleCount++;
+            } else {
+                marker.style.display = 'none';
+            }
+        });
+
+        // Filter alerts list too for visual consistency
+        alertItems.forEach(item => {
+            const alertName = item.getAttribute('data-name').toLowerCase();
+            const alertCity = item.getAttribute('data-city').toLowerCase();
+            const alertCond = item.getAttribute('data-cond').toLowerCase();
+
+            const matchesSearch = alertName.includes(query) || alertCity.includes(query);
+            const matchesCondition = (condition === 'all' || alertCond === condition);
+
+            if (matchesSearch && matchesCondition) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        // Toggle Grid or Empty State
+        const grid = document.getElementById('main-content-grid');
+        const emptyState = document.getElementById('empty-state-container');
+
+        if (visibleCount === 0) {
+            grid.style.display = 'none';
+            emptyState.style.display = 'flex';
+        } else {
+            grid.style.display = 'flex';
+            emptyState.style.display = 'none';
+        }
+    }
+
+    // Refresh simulation trigger
+    function triggerRefreshAnimation() {
+        const btn = document.getElementById('btn-refresh-weather');
+        btn.innerHTML = '<i class="bi bi-arrow-clockwise animate-spin me-2"></i>Sinkronisasi...';
+        btn.disabled = true;
+
+        setTimeout(() => {
+            btn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Sinkronisasi Cuaca';
+            btn.disabled = false;
+            alert('Pembaruan data cuaca Open-Meteo API berhasil disimulasikan!');
+        }, 1200);
+    }
+
+    // Skeleton loader simulation
+    function simulateSkeletonLoading() {
+        document.getElementById('main-content-grid').style.display = 'none';
+        document.getElementById('empty-state-container').style.display = 'none';
+        document.getElementById('skeleton-container').style.display = 'flex';
+
+        setTimeout(() => {
+            document.getElementById('skeleton-container').style.display = 'none';
+            document.getElementById('main-content-grid').style.display = 'flex';
+            applyFilters();
+        }, 800);
+    }
+
+    // Empty state simulation
+    function simulateEmptyState() {
+        document.getElementById('search-weather-input').value = 'KotaXyzTidakAda';
+        applyFilters();
+    }
+
+    // Reset filters
+    function resetFilters() {
+        document.getElementById('search-weather-input').value = '';
+        document.getElementById('filter-region').value = 'all';
+        document.getElementById('filter-condition').value = 'all';
+        document.getElementById('filter-temp').value = 'all';
+        applyFilters();
+    }
+</script>
+
+<style>
+    /* Forecast scroll style */
+    .forecast-scroll-container {
+        scrollbar-width: thin;
+        scrollbar-color: var(--border-color) transparent;
+        padding-bottom: 8px;
+    }
+
+    /* Map pulses for extreme warning nodes */
+    .weather-pulse {
+        animation: weather-pulse-ring 1.8s infinite;
+    }
+
+    @keyframes weather-pulse-ring {
+        0% {
+            stroke-width: 1.5;
+            stroke: rgba(239, 68, 68, 0.4);
+        }
+        50% {
+            stroke-width: 3.5;
+            stroke: rgba(239, 68, 68, 0.8);
+        }
+        100% {
+            stroke-width: 1.5;
+            stroke: rgba(239, 68, 68, 0.4);
+        }
+    }
+
+    /* Shimmer cards */
+    .skeleton-card {
+        background-color: #FFFFFF;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--border-color) !important;
+        border-radius: var(--radius-custom) !important;
+    }
+
+    .skeleton-shimmer {
+        background: #F1F5F9;
+        background-image: linear-gradient(to right, #F1F5F9 0%, #E2E8F0 20%, #F1F5F9 40%, #F1F5F9 100%);
+        background-repeat: no-repeat;
+        background-size: 800px 100%;
+        display: inline-block;
+        position: relative;
+        animation: shimmer-animation 1.5s linear infinite forwards;
+    }
+
+    @keyframes shimmer-animation {
+        0% {
+            background-position: -468px 0;
+        }
+        100% {
+            background-position: 468px 0;
+        }
     }
 </style>
 @endsection
