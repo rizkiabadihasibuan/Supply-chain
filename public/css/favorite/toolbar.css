@@ -1,0 +1,47 @@
+/* ============================================================
+   FAVORITE – Toolbar Styles
+   resources/css/favorite/toolbar.css
+   ============================================================ */
+
+.fav-toolbar {
+    background:    #FFFFFF;
+    border:        1px solid #E2E8F0;
+    border-radius: 16px;
+    padding:       16px 20px;
+    box-shadow:    0 2px 8px rgba(18, 52, 88, 0.05);
+}
+
+.fav-toolbar .form-control,
+.fav-toolbar .form-select {
+    border-radius:  10px;
+    border:         1px solid #E2E8F0;
+    font-size:      .84rem;
+    height:         40px;
+    background:     #F8FAFC;
+    transition:     border-color .18s, box-shadow .18s;
+}
+.fav-toolbar .form-control:focus,
+.fav-toolbar .form-select:focus {
+    border-color: #2563EB;
+    box-shadow:   0 0 0 3px rgba(37, 99, 235, .12);
+    background:   #FFFFFF;
+}
+
+.fav-toolbar .input-group-text {
+    background:    #F8FAFC;
+    border-color:  #E2E8F0;
+    border-radius: 10px 0 0 10px;
+    color:         #94A3B8;
+    height:        40px;
+}
+
+.fav-toolbar-btn {
+    height:       40px;
+    padding:      0 14px;
+    border-radius: 10px;
+    font-size:    .84rem;
+    display:      inline-flex;
+    align-items:  center;
+    gap:          6px;
+    white-space:  nowrap;
+}

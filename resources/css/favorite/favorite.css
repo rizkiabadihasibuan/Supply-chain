@@ -1,0 +1,155 @@
+/* ============================================================
+   FAVORITE MONITORING LIST – Main Stylesheet
+   resources/css/favorite/favorite.css
+   ============================================================ */
+
+:root {
+    --fav-primary:    #2563EB;
+    --fav-sidebar:    #123458;
+    --fav-bg:         #F8FAFC;
+    --fav-card:       #FFFFFF;
+    --fav-border:     #E2E8F0;
+    --fav-radius:     16px;
+    --fav-shadow:     0 2px 12px rgba(18, 52, 88, 0.07);
+    --fav-shadow-hov: 0 10px 28px rgba(18, 52, 88, 0.12);
+    --fav-low:        #16A34A;
+    --fav-medium:     #D97706;
+    --fav-high:       #DC2626;
+}
+
+/* ── Animations ─────────────────────────────────────── */
+@keyframes favFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.fav-fade  { animation: favFadeIn .4s ease both; }
+.fav-s1    { animation-delay: .04s; }
+.fav-s2    { animation-delay: .08s; }
+.fav-s3    { animation-delay: .12s; }
+.fav-s4    { animation-delay: .16s; }
+
+.is-spinning {
+    animation: spin .7s linear infinite;
+    display: inline-block;
+}
+
+/* ── Base card ───────────────────────────────────────── */
+.fav-card {
+    background:    var(--fav-card);
+    border-radius: var(--fav-radius) !important;
+    border:        1px solid var(--fav-border) !important;
+    box-shadow:    var(--fav-shadow) !important;
+    transition:    transform .22s ease, box-shadow .22s ease;
+}
+.fav-card:hover {
+    transform:  translateY(-4px);
+    box-shadow: var(--fav-shadow-hov) !important;
+}
+
+/* ── KPI Stat card ───────────────────────────────────── */
+.fav-stat-icon {
+    width:           48px;
+    height:          48px;
+    border-radius:   12px;
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    flex-shrink:     0;
+    font-size:       1.25rem;
+}
+
+.fav-stat-value {
+    font-size:      1.6rem;
+    font-weight:    700;
+    line-height:    1.2;
+    letter-spacing: -.4px;
+}
+
+/* ── Country card ────────────────────────────────────── */
+.fav-country-card {
+    position:      relative;
+    border-radius: var(--fav-radius) !important;
+    border:        1px solid var(--fav-border) !important;
+    background:    var(--fav-card);
+    box-shadow:    var(--fav-shadow);
+    transition:    transform .22s ease, box-shadow .22s ease;
+    overflow:      hidden;
+}
+.fav-country-card:hover {
+    transform:  translateY(-5px);
+    box-shadow: var(--fav-shadow-hov) !important;
+}
+
+/* Coloured top border for risk level */
+.fav-country-card.risk-low    { border-top: 3px solid var(--fav-low)    !important; }
+.fav-country-card.risk-medium { border-top: 3px solid var(--fav-medium) !important; }
+.fav-country-card.risk-high   { border-top: 3px solid var(--fav-high)   !important; }
+
+.fav-country-flag {
+    font-size:   2.4rem;
+    line-height: 1;
+}
+
+/* Card quick-action bar */
+.fav-card-actions {
+    display:         flex;
+    gap:             6px;
+    justify-content: stretch;
+}
+.fav-card-actions .btn {
+    flex:         1;
+    font-size:    .78rem;
+    padding:      5px 4px;
+    border-radius: 8px;
+    white-space:  nowrap;
+}
+
+/* Info rows inside card */
+.fav-info-row {
+    display:         flex;
+    justify-content: space-between;
+    align-items:     center;
+    padding:         5px 0;
+    font-size:       .84rem;
+    border-bottom:   1px solid #F1F5F9;
+}
+.fav-info-row:last-child { border-bottom: none; }
+
+/* ── Risk badge ──────────────────────────────────────── */
+.risk-badge {
+    font-size:    .7rem;
+    font-weight:  600;
+    padding:      3px 10px;
+    border-radius: 50px;
+    letter-spacing: .3px;
+}
+.risk-badge.low    { background: rgba(22,163,74,.1);  color: #16A34A; border: 1px solid rgba(22,163,74,.25); }
+.risk-badge.medium { background: rgba(217,119,6,.1);  color: #D97706; border: 1px solid rgba(217,119,6,.25); }
+.risk-badge.high   { background: rgba(220,38,38,.1);  color: #DC2626; border: 1px solid rgba(220,38,38,.25); }
+
+/* ── Progress bar for risk ───────────────────────────── */
+.fav-risk-bar { height: 5px; border-radius: 4px; }
+
+/* ── Remove favourite button (top-right corner) ─────── */
+.fav-remove-btn {
+    position:   absolute;
+    top:        12px;
+    right:      12px;
+    width:      28px;
+    height:     28px;
+    border-radius: 50%;
+    background: rgba(220,38,38,.08);
+    border:     none;
+    display:    flex;
+    align-items: center;
+    justify-content: center;
+    color:      #DC2626;
+    font-size:  .8rem;
+    transition: background .18s;
+    cursor:     pointer;
+}
+.fav-remove-btn:hover { background: rgba(220,38,38,.18); }
