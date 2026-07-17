@@ -30,6 +30,39 @@ Route::get('/notifications', function() {
     return view('notifications.index');
 })->name('notifications');
 
+Route::get('/login', function() {
+    return view('auth.login');
+})->name('login');
+
+Route::get('/register', function() {
+    return view('auth.register');
+})->name('register');
+
+Route::get('/forgot-password', function() {
+    return view('auth.forgot-password');
+})->name('forgot-password');
+
+Route::get('/reset-password', function() {
+    return view('auth.reset-password');
+})->name('reset-password');
+
+Route::get('/verify-email', function() {
+    return view('auth.verify-email');
+})->name('verify-email');
+
+Route::get('/session-expired', function() {
+    return view('auth.session-expired');
+})->name('session-expired');
+
+Route::get('/403', function() {
+    return view('errors.403');
+})->name('403');
+
+Route::get('/404', function() {
+    return view('errors.404');
+})->name('404');
+
+
 
 
 Route::get('/countries/detail', function() {
