@@ -3,312 +3,694 @@
 @section('title', 'Negara - SupplyChain Platform')
 
 @section('content')
-<div class="container-fluid p-0">
+<div class="container-fluid p-0 fade-in-up">
 
-    <!-- Header & Filter Row -->
+    <!-- Header & Breadcrumb -->
     <div class="row g-4 mb-4">
         <div class="col-12">
-            <div class="card p-4 border-0 shadow-sm">
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div class="card p-4 border-0">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}"><i class="bi bi-house-door-fill me-1"></i>Beranda</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Negara</li>
+                    </ol>
+                </nav>
+                <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h4 class="fw-bold text-dark mb-1">Pengawasan Risiko Negara</h4>
-                        <p class="text-secondary small mb-0">Kelola dan monitor indikator risiko, ekonomi, serta cuaca port negara mitra logistik.</p>
+                        <h3 class="fw-bold text-dark mb-1">Negara</h3>
+                        <p class="text-secondary small mb-0">Pantau seluruh negara yang menjadi bagian dari rantai pasok global.</p>
                     </div>
-                    
-                    <!-- Filters -->
-                    <div class="d-flex flex-wrap gap-2.5">
-                        <div class="search-wrapper">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Summary (4 Cards) -->
+    <div class="row g-4 mb-4">
+        <!-- Card 1: Total Negara -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
+                <div>
+                    <span class="text-secondary small fw-medium d-block mb-1">Total Negara</span>
+                    <h3 class="fw-bold text-dark mb-1" id="stat-total">12</h3>
+                    <span class="text-secondary small d-block" style="font-size: 0.75rem;">Cakupan Global Terpantau</span>
+                </div>
+                <div class="p-3 rounded-4" style="background-color: rgba(37, 99, 235, 0.08); color: var(--primary);">
+                    <i class="bi bi-globe2 fs-3"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Negara Risiko Tinggi -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
+                <div>
+                    <span class="text-secondary small fw-medium d-block mb-1">Risiko Tinggi</span>
+                    <h3 class="fw-bold text-danger mb-1" id="stat-high">3</h3>
+                    <span class="text-danger small d-block" style="font-size: 0.75rem;"><i class="bi bi-exclamation-octagon-fill me-1"></i>Butuh Tindakan Segera</span>
+                </div>
+                <div class="p-3 rounded-4" style="background-color: rgba(239, 68, 68, 0.08); color: var(--danger);">
+                    <i class="bi bi-shield-exclamation fs-3"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 3: Negara Risiko Sedang -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
+                <div>
+                    <span class="text-secondary small fw-medium d-block mb-1">Risiko Sedang</span>
+                    <h3 class="fw-bold text-warning mb-1" id="stat-medium">3</h3>
+                    <span class="text-warning small d-block" style="font-size: 0.75rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>Dalam Pengawasan Ketat</span>
+                </div>
+                <div class="p-3 rounded-4" style="background-color: rgba(245, 158, 11, 0.08); color: var(--warning);">
+                    <i class="bi bi-shield-slash fs-3"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 4: Negara Risiko Rendah -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
+                <div>
+                    <span class="text-secondary small fw-medium d-block mb-1">Risiko Rendah</span>
+                    <h3 class="fw-bold text-success mb-1" id="stat-low">6</h3>
+                    <span class="text-success small d-block" style="font-size: 0.75rem;"><i class="bi bi-shield-check me-1"></i>Jalur Logistik Stabil</span>
+                </div>
+                <div class="p-3 rounded-4" style="background-color: rgba(34, 197, 94, 0.08); color: var(--success);">
+                    <i class="bi bi-shield-check fs-3"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search, Filter & Sort Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card p-4 border-0">
+                <div class="row g-3 align-items-center">
+                    <!-- Search Bar -->
+                    <div class="col-xl-4 col-lg-3 col-md-12">
+                        <div class="search-wrapper w-100">
                             <i class="bi bi-search"></i>
-                            <input type="text" id="search-country" placeholder="Cari negara..." class="form-control ps-5" style="width: 200px;">
+                            <input type="text" id="search-country-input" placeholder="Cari negara atau ibukota..." class="form-control ps-5 w-100" style="min-height: 44px;" oninput="applyFiltersAndSearch()">
                         </div>
-                        <select id="filter-risk" class="form-select" style="width: 180px;">
+                    </div>
+
+                    <!-- Dropdown Region -->
+                    <div class="col-xl-2 col-lg-2 col-md-4 col-6">
+                        <select id="filter-region-select" class="form-select" style="min-height: 44px;" onchange="applyFiltersAndSearch()">
+                            <option value="all">Semua Wilayah</option>
+                            <option value="asia">Asia</option>
+                            <option value="europe">Eropa</option>
+                            <option value="africa">Afrika</option>
+                            <option value="america">Amerika</option>
+                            <option value="oceania">Oceania</option>
+                        </select>
+                    </div>
+
+                    <!-- Dropdown Risk -->
+                    <div class="col-xl-2 col-lg-2 col-md-4 col-6">
+                        <select id="filter-risk-select" class="form-select" style="min-height: 44px;" onchange="applyFiltersAndSearch()">
                             <option value="all">Semua Risiko</option>
                             <option value="high">Risiko Tinggi</option>
                             <option value="medium">Risiko Sedang</option>
                             <option value="low">Risiko Rendah</option>
                         </select>
                     </div>
+
+                    <!-- Dropdown Status -->
+                    <div class="col-xl-2 col-lg-2 col-md-4 col-6">
+                        <select id="filter-status-select" class="form-select" style="min-height: 44px;" onchange="applyFiltersAndSearch()">
+                            <option value="all">Semua Status</option>
+                            <option value="aktif">Aktif</option>
+                            <option value="tidak-aktif">Tidak Aktif</option>
+                        </select>
+                    </div>
+
+                    <!-- Dropdown Sorting -->
+                    <div class="col-xl-2 col-lg-3 col-md-12 col-6">
+                        <select id="sort-select" class="form-select" style="min-height: 44px;" onchange="applyFiltersAndSearch()">
+                            <option value="nama">Urutkan: Nama</option>
+                            <option value="risk-desc">Urutkan: Risiko Tertinggi</option>
+                            <option value="risk-asc">Urutkan: Risiko Terendah</option>
+                            <option value="gdp-desc">Urutkan: GDP Terbesar</option>
+                            <option value="pop-desc">Urutkan: Populasi Terbanyak</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Simulation Buttons bar -->
+                <div class="d-flex flex-wrap gap-2 mt-3 pt-3 border-top">
+                    <button class="btn btn-light btn-sm px-3" style="min-height: 38px; height: 38px;" onclick="simulateSkeletonLoading()">
+                        <i class="bi bi-hourglass-split me-2"></i>Simulasikan Loading
+                    </button>
+                    <button class="btn btn-light btn-sm px-3" style="min-height: 38px; height: 38px;" onclick="simulateEmptyState()">
+                        <i class="bi bi-x-circle me-2"></i>Simulasikan Data Kosong
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Main Workspace Row -->
-    <div class="row g-4">
-        
-        <!-- Left Column: Mini-Map and Table -->
-        <div class="col-lg-8">
-            <div class="d-flex flex-column gap-4">
-                
-                <!-- Mini-Map Box -->
-                <div class="card p-4 border-0 shadow-sm">
-                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-geo-alt-fill text-primary me-2"></i>Area Geografis Terpantau</h6>
-                    <div class="border rounded-4 d-flex align-items-center justify-content-center overflow-hidden position-relative" style="height: 200px; background-color: #FAFCFF; background-image: radial-gradient(#E2E8F0 1.2px, transparent 1.2px); background-size: 20px 20px;">
-                        <div class="text-center position-relative z-index-1 p-3">
-                            <span class="badge badge-info mb-2 text-uppercase" style="font-size: 0.65rem;">Radar Pemantau</span>
-                            <h6 class="text-dark fw-semibold mb-1">Visualisasi Koordinat Mini-Map</h6>
-                            <p class="text-secondary small mb-0">Modul peta mini Leaflet.js tersemat secara statis di area ini.</p>
-                        </div>
-                        <div class="position-absolute w-100 h-100 top-0 start-0 opacity-10" style="border: 2px dashed rgba(14, 165, 233, 0.3); pointer-events: none;"></div>
-                    </div>
+    <!-- Skeleton Loading Container (Hidden after simulation loads) -->
+    <div id="skeleton-container" class="row g-4 mb-4">
+        @for ($i = 0; $i < 8; $i++)
+        <div class="col-xl-3 col-lg-4 col-md-6">
+            <div class="card p-4 border-0 h-100 skeleton-card">
+                <div class="skeleton-shimmer" style="width: 50px; height: 35px; border-radius: 6px; mb-3"></div>
+                <div class="skeleton-shimmer" style="width: 70%; height: 20px; border-radius: 4px; mb-2"></div>
+                <div class="skeleton-shimmer" style="width: 40%; height: 14px; border-radius: 4px; mb-4"></div>
+                <div class="d-flex flex-column gap-2 mb-4">
+                    <div class="skeleton-shimmer" style="width: 90%; height: 12px; border-radius: 4px;"></div>
+                    <div class="skeleton-shimmer" style="width: 80%; height: 12px; border-radius: 4px;"></div>
+                    <div class="skeleton-shimmer" style="width: 70%; height: 12px; border-radius: 4px;"></div>
                 </div>
-
-                <!-- Country Table -->
-                <div class="card p-4 border-0 shadow-sm">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-table text-primary me-2"></i>Daftar Pengawasan Negara</h6>
-                        <button class="btn btn-light btn-sm border px-3" onclick="location.reload();">
-                            <i class="bi bi-arrow-clockwise"></i> Perbarui Data
-                        </button>
-                    </div>
-
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0" id="countries-table">
-                            <thead>
-                                <tr>
-                                    <th>Kode</th>
-                                    <th>Nama Negara</th>
-                                    <th>Kawasan</th>
-                                    <th>Populasi</th>
-                                    <th>Indeks Risiko</th>
-                                    <th>Status Hub</th>
-                                    <th>Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr class="country-row" data-country-id="ID" data-name="Indonesia" data-flag="🇮🇩" data-gdp="USD 1.37 Triliun" data-inflation="2.8%" data-pop="275 Juta" data-curr="Rupiah (IDR)" data-weather="28°C / Hujan" data-risk="0.12" data-risk-level="success" data-status="Terhubung">
-                                    <td class="fw-bold text-dark">ID</td>
-                                    <td>Indonesia</td>
-                                    <td>Asia Tenggara</td>
-                                    <td>275 Juta</td>
-                                    <td><span class="badge badge-success">Rendah - 0.12</span></td>
-                                    <td><i class="bi bi-check-circle-fill text-success me-1"></i> Terhubung</td>
-                                    <td>
-                                        <div class="d-flex gap-1">
-                                            <button class="btn btn-light btn-sm border px-2.5 btn-select-country">Pilih</button>
-                                            <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-2.5 text-decoration-none" style="font-size: 0.775rem;">Detail</a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr class="country-row" data-country-id="SG" data-name="Singapura" data-flag="🇸🇬" data-gdp="USD 466 Miliar" data-inflation="1.9%" data-pop="5.9 Juta" data-curr="Dolar Singapura (SGD)" data-weather="31°C / Cerah" data-risk="0.08" data-risk-level="success" data-status="Terhubung">
-                                    <td class="fw-bold text-dark">SG</td>
-                                    <td>Singapura</td>
-                                    <td>Asia Tenggara</td>
-                                    <td>5.9 Juta</td>
-                                    <td><span class="badge badge-success">Rendah - 0.08</span></td>
-                                    <td><i class="bi bi-check-circle-fill text-success me-1"></i> Terhubung</td>
-                                    <td>
-                                        <div class="d-flex gap-1">
-                                            <button class="btn btn-light btn-sm border px-2.5 btn-select-country">Pilih</button>
-                                            <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-2.5 text-decoration-none" style="font-size: 0.775rem;">Detail</a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr class="country-row" data-country-id="JP" data-name="Jepang" data-flag="🇯🇵" data-gdp="USD 4.23 Triliun" data-inflation="2.5%" data-pop="125 Juta" data-curr="Yen Jepang (JPY)" data-weather="25°C / Berawan" data-risk="2.80" data-risk-level="warning" data-status="Siaga">
-                                    <td class="fw-bold text-dark">JP</td>
-                                    <td>Jepang</td>
-                                    <td>Asia Timur</td>
-                                    <td>125 Juta</td>
-                                    <td><span class="badge badge-warning">Sedang - 2.80</span></td>
-                                    <td><i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> Siaga</td>
-                                    <td>
-                                        <div class="d-flex gap-1">
-                                            <button class="btn btn-light btn-sm border px-2.5 btn-select-country">Pilih</button>
-                                            <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-2.5 text-decoration-none" style="font-size: 0.775rem;">Detail</a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr class="country-row" data-country-id="US" data-name="Amerika Serikat" data-flag="🇺🇸" data-gdp="USD 26.85 Triliun" data-inflation="3.2%" data-pop="333 Juta" data-curr="Dolar AS (USD)" data-weather="19°C / Berangin" data-risk="4.89" data-risk-level="danger" data-status="Gangguan">
-                                    <td class="fw-bold text-dark">US</td>
-                                    <td>Amerika Serikat</td>
-                                    <td>Amerika Utara</td>
-                                    <td>333 Juta</td>
-                                    <td><span class="badge badge-danger">Tinggi - 4.89</span></td>
-                                    <td><i class="bi bi-x-circle-fill text-danger me-1"></i> Gangguan</td>
-                                    <td>
-                                        <div class="d-flex gap-1">
-                                            <button class="btn btn-light btn-sm border px-2.5 btn-select-country">Pilih</button>
-                                            <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-2.5 text-decoration-none" style="font-size: 0.775rem;">Detail</a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <div class="skeleton-shimmer mt-auto" style="width: 100%; height: 44px; border-radius: 10px;"></div>
             </div>
         </div>
-
-        <!-- Right Column: Detail and Stats -->
-        <div class="col-lg-4">
-            <div class="d-flex flex-column gap-4">
-                
-                <!-- Detail Negara Panel -->
-                <div class="card p-4 border-0 shadow-sm" id="detail-panel">
-                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-info-circle-fill text-primary me-2"></i>Detail Negara Terpilih</h6>
-                    
-                    <div class="text-center pb-3 border-bottom mb-3">
-                        <span id="detail-flag" class="fs-1 d-block mb-1">🇮🇩</span>
-                        <h5 id="detail-name" class="fw-bold text-dark mb-1">Indonesia</h5>
-                        <span id="detail-status" class="badge badge-success">Terhubung</span>
-                    </div>
-
-                    <div class="d-flex flex-column gap-2.5">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-secondary small">Produk Domestik Bruto (GDP)</span>
-                            <span id="detail-gdp" class="text-dark fw-semibold small">USD 1.37 Triliun</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-secondary small">Tingkat Inflasi</span>
-                            <span id="detail-inflation" class="text-dark fw-semibold small">2.8%</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-secondary small">Total Populasi</span>
-                            <span id="detail-pop" class="text-dark fw-semibold small">275 Juta</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-secondary small">Mata Uang</span>
-                            <span id="detail-curr" class="text-dark fw-semibold small">Rupiah (IDR)</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-secondary small">Kondisi Cuaca Port</span>
-                            <span id="detail-weather" class="text-dark fw-semibold small">28°C / Hujan</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-                            <span class="text-dark fw-bold small">Skor Indeks Risiko</span>
-                            <span id="detail-risk" class="badge badge-success">Rendah - 0.12</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Statistik Widget Panel -->
-                <div class="card p-4 border-0 shadow-sm">
-                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-pie-chart-fill text-primary me-2"></i>Penyebaran Kategori Risiko</h6>
-                    <div class="border rounded-4 bg-light p-3 text-center d-flex flex-column align-items-center justify-content-center" style="height: 160px; background-color: #FAFCFF !important;">
-                        <!-- Vector Donut Mockup -->
-                        <div class="position-relative d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                            <svg viewBox="0 0 36 36" class="w-100 h-100 transform -rotate-90">
-                                <circle cx="18" cy="18" r="15.915" fill="none" stroke="#E2E8F0" stroke-width="3"></circle>
-                                <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--danger)" stroke-dasharray="25 75" stroke-dashoffset="100" stroke-width="4"></circle>
-                                <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--warning)" stroke-dasharray="25 75" stroke-dashoffset="75" stroke-width="4"></circle>
-                                <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--success)" stroke-dasharray="50 50" stroke-dashoffset="50" stroke-width="4"></circle>
-                            </svg>
-                        </div>
-                        <span class="text-secondary small mt-2 d-block" style="font-size: 0.75rem;">Sebaran: 50% Rendah | 25% Sedang | 25% Tinggi</span>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
+        @endfor
     </div>
+
+    <!-- Empty State Container (Displayed if no results) -->
+    <div id="empty-state-container" class="row g-4 mb-4" style="display: none;">
+        <div class="col-12">
+            <div class="card p-5 border-0 text-center d-flex flex-column align-items-center justify-content-center" style="min-height: 380px;">
+                <!-- Premium SVG Empty State Illustration -->
+                <svg viewBox="0 0 200 120" style="width: 160px; height: 100px;" class="mb-3.5">
+                    <rect x="30" y="30" width="140" height="70" rx="12" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-dasharray="4 4" />
+                    <circle cx="100" cy="55" r="22" fill="rgba(37, 99, 235, 0.05)" stroke="rgba(37, 99, 235, 0.2)" stroke-width="1.5" />
+                    <path d="M92,55 L108,55 M100,47 L100,63" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" />
+                    <line x1="45" y1="45" x2="65" y2="45" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round" />
+                    <line x1="45" y1="55" x2="55" y2="55" stroke="#E2E8F0" stroke-width="2" stroke-linecap="round" />
+                    <line x1="135" y1="75" x2="155" y2="75" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round" />
+                </svg>
+                <h5 class="fw-bold text-dark mb-1">Belum ada negara yang tersedia.</h5>
+                <p class="text-secondary small mb-3.5" style="max-width: 320px;">Silakan atur kembali kata kunci pencarian atau penyaringan filter Anda.</p>
+                <button class="btn btn-primary px-4" style="min-height: 44px;" onclick="resetFiltersAndSearch()">Setel Ulang Filter</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Countries Grid (Fades in) -->
+    <div id="countries-grid" class="row g-4 mb-4" style="display: none;">
+        <!-- Card 1: Indonesia -->
+        <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" data-name="Indonesia" data-capital="Jakarta" data-region="asia" data-risk-level="low" data-risk-score="1.25" data-pop="275000000" data-gdp="1370000000000" data-status="aktif">
+            <div class="card p-4 border-0 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="fs-1">🇮🇩</span>
+                    <span class="badge badge-success">Risiko Rendah</span>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">Indonesia</h5>
+                <span class="text-secondary small d-block mb-3.5"><i class="bi bi-geo-alt me-1"></i>Ibukota: Jakarta</span>
+                
+                <div class="d-flex flex-column gap-2 mb-4" style="font-size: 0.825rem;">
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Wilayah:</span><span class="text-dark fw-medium">Asia</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Populasi:</span><span class="text-dark fw-medium">275 Juta</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">GDP Est:</span><span class="text-dark fw-medium">USD 1.37 T</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Cuaca Port:</span><span class="text-dark fw-medium">28°C / Hujan</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Kurs Utama:</span><span class="text-dark fw-medium">IDR (Rupiah)</span></div>
+                </div>
+
+                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
+                    <span class="text-success small fw-semibold"><span class="pulse-indicator"></span>Aktif</span>
+                    <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-3">Lihat Detail</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Singapura -->
+        <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" data-name="Singapura" data-capital="Singapura" data-region="asia" data-risk-level="low" data-risk-score="0.95" data-pop="5900000" data-gdp="466000000000" data-status="aktif">
+            <div class="card p-4 border-0 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="fs-1">🇸🇬</span>
+                    <span class="badge badge-success">Risiko Rendah</span>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">Singapura</h5>
+                <span class="text-secondary small d-block mb-3.5"><i class="bi bi-geo-alt me-1"></i>Ibukota: Singapura</span>
+                
+                <div class="d-flex flex-column gap-2 mb-4" style="font-size: 0.825rem;">
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Wilayah:</span><span class="text-dark fw-medium">Asia</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Populasi:</span><span class="text-dark fw-medium">5.9 Juta</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">GDP Est:</span><span class="text-dark fw-medium">USD 466 M</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Cuaca Port:</span><span class="text-dark fw-medium">31°C / Cerah</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Kurs Utama:</span><span class="text-dark fw-medium">SGD (Dolar SG)</span></div>
+                </div>
+
+                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
+                    <span class="text-success small fw-semibold"><span class="pulse-indicator"></span>Aktif</span>
+                    <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-3">Lihat Detail</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 3: Amerika Serikat -->
+        <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" data-name="Amerika Serikat" data-capital="Washington D.C." data-region="america" data-risk-level="medium" data-risk-score="3.48" data-pop="333000000" data-gdp="26850000000000" data-status="aktif">
+            <div class="card p-4 border-0 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="fs-1">🇺🇸</span>
+                    <span class="badge badge-warning">Risiko Sedang</span>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">Amerika Serikat</h5>
+                <span class="text-secondary small d-block mb-3.5"><i class="bi bi-geo-alt me-1"></i>Ibukota: Washington D.C.</span>
+                
+                <div class="d-flex flex-column gap-2 mb-4" style="font-size: 0.825rem;">
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Wilayah:</span><span class="text-dark fw-medium">Amerika</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Populasi:</span><span class="text-dark fw-medium">333 Juta</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">GDP Est:</span><span class="text-dark fw-medium">USD 26.85 T</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Cuaca Port:</span><span class="text-dark fw-medium">19°C / Cerah</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Kurs Utama:</span><span class="text-dark fw-medium">USD (Dolar AS)</span></div>
+                </div>
+
+                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
+                    <span class="text-success small fw-semibold"><span class="pulse-indicator"></span>Aktif</span>
+                    <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-3">Lihat Detail</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 4: China -->
+        <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" data-name="China" data-capital="Beijing" data-region="asia" data-risk-level="high" data-risk-score="4.92" data-pop="1410000000" data-gdp="17900000000000" data-status="aktif">
+            <div class="card p-4 border-0 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="fs-1">🇨🇳</span>
+                    <span class="badge badge-danger">Risiko Tinggi</span>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">China</h5>
+                <span class="text-secondary small d-block mb-3.5"><i class="bi bi-geo-alt me-1"></i>Ibukota: Beijing</span>
+                
+                <div class="d-flex flex-column gap-2 mb-4" style="font-size: 0.825rem;">
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Wilayah:</span><span class="text-dark fw-medium">Asia</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Populasi:</span><span class="text-dark fw-medium">1.41 Miliar</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">GDP Est:</span><span class="text-dark fw-medium">USD 17.9 T</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Cuaca Port:</span><span class="text-dark fw-medium">24°C / Badai</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Kurs Utama:</span><span class="text-dark fw-medium">CNY (Yuan)</span></div>
+                </div>
+
+                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
+                    <span class="text-success small fw-semibold"><span class="pulse-indicator"></span>Aktif</span>
+                    <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-3">Lihat Detail</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 5: Belanda -->
+        <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" data-name="Belanda" data-capital="Amsterdam" data-region="europe" data-risk-level="low" data-risk-score="1.85" data-pop="17800000" data-gdp="1090000000000" data-status="aktif">
+            <div class="card p-4 border-0 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="fs-1">🇳🇱</span>
+                    <span class="badge badge-success">Risiko Rendah</span>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">Belanda</h5>
+                <span class="text-secondary small d-block mb-3.5"><i class="bi bi-geo-alt me-1"></i>Ibukota: Amsterdam</span>
+                
+                <div class="d-flex flex-column gap-2 mb-4" style="font-size: 0.825rem;">
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Wilayah:</span><span class="text-dark fw-medium">Eropa</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Populasi:</span><span class="text-dark fw-medium">17.8 Juta</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">GDP Est:</span><span class="text-dark fw-medium">USD 1.09 T</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Cuaca Port:</span><span class="text-dark fw-medium">17°C / Berawan</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Kurs Utama:</span><span class="text-dark fw-medium">EUR (Euro)</span></div>
+                </div>
+
+                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
+                    <span class="text-success small fw-semibold"><span class="pulse-indicator"></span>Aktif</span>
+                    <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-3">Lihat Detail</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 6: Sudan -->
+        <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" data-name="Sudan" data-capital="Khartoum" data-region="africa" data-risk-level="high" data-risk-score="4.80" data-pop="46000000" data-gdp="34000000000" data-status="tidak-aktif">
+            <div class="card p-4 border-0 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="fs-1">🇸🇩</span>
+                    <span class="badge badge-danger">Risiko Tinggi</span>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">Sudan</h5>
+                <span class="text-secondary small d-block mb-3.5"><i class="bi bi-geo-alt me-1"></i>Ibukota: Khartoum</span>
+                
+                <div class="d-flex flex-column gap-2 mb-4" style="font-size: 0.825rem;">
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Wilayah:</span><span class="text-dark fw-medium">Afrika</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Populasi:</span><span class="text-dark fw-medium">46 Juta</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">GDP Est:</span><span class="text-dark fw-medium">USD 34 Miliar</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Cuaca Port:</span><span class="text-dark fw-medium">38°C / Berdebu</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Kurs Utama:</span><span class="text-dark fw-medium">SDG (Pound Sudan)</span></div>
+                </div>
+
+                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
+                    <span class="text-danger small fw-semibold"><i class="bi bi-x-circle-fill me-1"></i>Tidak Aktif</span>
+                    <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-3">Lihat Detail</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 7: Yaman -->
+        <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" data-name="Yaman" data-capital="Sana'a" data-region="asia" data-risk-level="high" data-risk-score="4.50" data-pop="33000000" data-gdp="21000000000" data-status="tidak-aktif">
+            <div class="card p-4 border-0 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="fs-1">🇾🇪</span>
+                    <span class="badge badge-danger">Risiko Tinggi</span>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">Yaman</h5>
+                <span class="text-secondary small d-block mb-3.5"><i class="bi bi-geo-alt me-1"></i>Ibukota: Sana'a</span>
+                
+                <div class="d-flex flex-column gap-2 mb-4" style="font-size: 0.825rem;">
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Wilayah:</span><span class="text-dark fw-medium">Asia</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Populasi:</span><span class="text-dark fw-medium">33 Juta</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">GDP Est:</span><span class="text-dark fw-medium">USD 21 Miliar</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Cuaca Port:</span><span class="text-dark fw-medium">35°C / Cerah</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Kurs Utama:</span><span class="text-dark fw-medium">YER (Riyal)</span></div>
+                </div>
+
+                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
+                    <span class="text-danger small fw-semibold"><i class="bi bi-x-circle-fill me-1"></i>Tidak Aktif</span>
+                    <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-3">Lihat Detail</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 8: Brasil -->
+        <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" data-name="Brasil" data-capital="Brasilia" data-region="america" data-risk-level="low" data-risk-score="2.35" data-pop="215000000" data-gdp="1920000000000" data-status="aktif">
+            <div class="card p-4 border-0 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="fs-1">🇧🇷</span>
+                    <span class="badge badge-success">Risiko Rendah</span>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">Brasil</h5>
+                <span class="text-secondary small d-block mb-3.5"><i class="bi bi-geo-alt me-1"></i>Ibukota: Brasilia</span>
+                
+                <div class="d-flex flex-column gap-2 mb-4" style="font-size: 0.825rem;">
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Wilayah:</span><span class="text-dark fw-medium">Amerika</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Populasi:</span><span class="text-dark fw-medium">215 Juta</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">GDP Est:</span><span class="text-dark fw-medium">USD 1.92 T</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Cuaca Port:</span><span class="text-dark fw-medium">26°C / Badai</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Kurs Utama:</span><span class="text-dark fw-medium">BRL (Real)</span></div>
+                </div>
+
+                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
+                    <span class="text-success small fw-semibold"><span class="pulse-indicator"></span>Aktif</span>
+                    <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-3">Lihat Detail</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 9: Jerman -->
+        <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" data-name="Jerman" data-capital="Berlin" data-region="europe" data-risk-level="low" data-risk-score="1.20" data-pop="83000000" data-gdp="4070000000000" data-status="aktif">
+            <div class="card p-4 border-0 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="fs-1">🇩🇪</span>
+                    <span class="badge badge-success">Risiko Rendah</span>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">Jerman</h5>
+                <span class="text-secondary small d-block mb-3.5"><i class="bi bi-geo-alt me-1"></i>Ibukota: Berlin</span>
+                
+                <div class="d-flex flex-column gap-2 mb-4" style="font-size: 0.825rem;">
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Wilayah:</span><span class="text-dark fw-medium">Eropa</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Populasi:</span><span class="text-dark fw-medium">83 Juta</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">GDP Est:</span><span class="text-dark fw-medium">USD 4.07 T</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Cuaca Port:</span><span class="text-dark fw-medium">19°C / Mendung</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Kurs Utama:</span><span class="text-dark fw-medium">EUR (Euro)</span></div>
+                </div>
+
+                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
+                    <span class="text-success small fw-semibold"><span class="pulse-indicator"></span>Aktif</span>
+                    <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-3">Lihat Detail</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 10: Jepang -->
+        <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" data-name="Jepang" data-capital="Tokyo" data-region="asia" data-risk-level="low" data-risk-score="1.30" data-pop="125000000" data-gdp="4230000000000" data-status="aktif">
+            <div class="card p-4 border-0 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="fs-1">🇯🇵</span>
+                    <span class="badge badge-success">Risiko Rendah</span>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">Jepang</h5>
+                <span class="text-secondary small d-block mb-3.5"><i class="bi bi-geo-alt me-1"></i>Ibukota: Tokyo</span>
+                
+                <div class="d-flex flex-column gap-2 mb-4" style="font-size: 0.825rem;">
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Wilayah:</span><span class="text-dark fw-medium">Asia</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Populasi:</span><span class="text-dark fw-medium">125 Juta</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">GDP Est:</span><span class="text-dark fw-medium">USD 4.23 T</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Cuaca Port:</span><span class="text-dark fw-medium">22°C / Cerah</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Kurs Utama:</span><span class="text-dark fw-medium">JPY (Yen)</span></div>
+                </div>
+
+                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
+                    <span class="text-success small fw-semibold"><span class="pulse-indicator"></span>Aktif</span>
+                    <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-3">Lihat Detail</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 11: Somalia -->
+        <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" data-name="Somalia" data-capital="Mogadishu" data-region="africa" data-risk-level="high" data-risk-score="4.70" data-pop="17000000" data-gdp="8000000000" data-status="tidak-aktif">
+            <div class="card p-4 border-0 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="fs-1">🇸🇴</span>
+                    <span class="badge badge-danger">Risiko Tinggi</span>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">Somalia</h5>
+                <span class="text-secondary small d-block mb-3.5"><i class="bi bi-geo-alt me-1"></i>Ibukota: Mogadishu</span>
+                
+                <div class="d-flex flex-column gap-2 mb-4" style="font-size: 0.825rem;">
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Wilayah:</span><span class="text-dark fw-medium">Afrika</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Populasi:</span><span class="text-dark fw-medium">17 Juta</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">GDP Est:</span><span class="text-dark fw-medium">USD 8 Miliar</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Cuaca Port:</span><span class="text-dark fw-medium">31°C / Cerah</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Kurs Utama:</span><span class="text-dark fw-medium">SOS (Shilling)</span></div>
+                </div>
+
+                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
+                    <span class="text-danger small fw-semibold"><i class="bi bi-x-circle-fill me-1"></i>Tidak Aktif</span>
+                    <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-3">Lihat Detail</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 12: Australia -->
+        <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" data-name="Australia" data-capital="Canberra" data-region="oceania" data-risk-level="low" data-risk-score="1.45" data-pop="26000000" data-gdp="1680000000000" data-status="aktif">
+            <div class="card p-4 border-0 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="fs-1">🇦🇺</span>
+                    <span class="badge badge-success">Risiko Rendah</span>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">Australia</h5>
+                <span class="text-secondary small d-block mb-3.5"><i class="bi bi-geo-alt me-1"></i>Ibukota: Canberra</span>
+                
+                <div class="d-flex flex-column gap-2 mb-4" style="font-size: 0.825rem;">
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Wilayah:</span><span class="text-dark fw-medium">Oceania</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Populasi:</span><span class="text-dark fw-medium">26 Juta</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">GDP Est:</span><span class="text-dark fw-medium">USD 1.68 T</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Cuaca Port:</span><span class="text-dark fw-medium">14°C / Cerah</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Kurs Utama:</span><span class="text-dark fw-medium">AUD (Dolar Aus)</span></div>
+                </div>
+
+                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
+                    <span class="text-success small fw-semibold"><span class="pulse-indicator"></span>Aktif</span>
+                    <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-3">Lihat Detail</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <div id="pagination-container" class="row g-4" style="display: none;">
+        <div class="col-12">
+            <div class="card p-4 border-0 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                <span class="text-secondary small" id="pagination-info">Menampilkan 1-12 dari 12 data Negara</span>
+                
+                <nav aria-label="Navigasi Halaman">
+                    <ul class="pagination">
+                        <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1" aria-disabled="true"><i class="bi bi-chevron-left"></i></a></li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item"><a class="page-link" href="#"><i class="bi bi-chevron-right"></i></a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
 </div>
 @endsection
 
 @section('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const rows = document.querySelectorAll('.country-row');
-        const searchInput = document.getElementById('search-country');
-        const filterSelect = document.getElementById('filter-risk');
-
-        // Elements of the detail panel to update
-        const detailFlag = document.getElementById('detail-flag');
-        const detailName = document.getElementById('detail-name');
-        const detailStatus = document.getElementById('detail-status');
-        const detailGdp = document.getElementById('detail-gdp');
-        const detailInflation = document.getElementById('detail-inflation');
-        const detailPop = document.getElementById('detail-pop');
-        const detailCurr = document.getElementById('detail-curr');
-        const detailWeather = document.getElementById('detail-weather');
-        const detailRisk = document.getElementById('detail-risk');
-
-        // Function to update the side detail panel based on clicked country row
-        function selectCountry(row) {
-            const data = row.dataset;
-            detailFlag.textContent = data.flag;
-            detailName.textContent = data.name;
-            detailStatus.textContent = data.status;
-
-            // Update status badge class
-            detailStatus.className = 'badge';
-            if (data.riskLevel === 'success') {
-                detailStatus.classList.add('badge-success');
-            } else if (data.riskLevel === 'warning') {
-                detailStatus.classList.add('badge-warning');
-            } else {
-                detailStatus.classList.add('badge-danger');
-            }
-
-            detailGdp.textContent = data.gdp;
-            detailInflation.textContent = data.inflation;
-            detailPop.textContent = data.pop;
-            detailCurr.textContent = data.curr;
-            detailWeather.textContent = data.weather;
-            detailRisk.textContent = (data.riskLevel === 'success' ? 'Rendah - ' : data.riskLevel === 'warning' ? 'Sedang - ' : 'Tinggi - ') + data.risk;
-
-            detailRisk.className = 'badge';
-            if (data.riskLevel === 'success') {
-                detailRisk.classList.add('badge-success');
-            } else if (data.riskLevel === 'warning') {
-                detailRisk.classList.add('badge-warning');
-            } else {
-                detailRisk.classList.add('badge-danger');
-            }
-        }
-
-        // Attach event listeners to Pick/Pilih buttons
-        rows.forEach(row => {
-            row.querySelector('.btn-select-country').addEventListener('click', function(e) {
-                e.stopPropagation();
-                selectCountry(row);
-                // Highlight row
-                rows.forEach(r => r.classList.remove('table-primary'));
-                row.classList.add('table-primary');
-            });
-            row.addEventListener('click', function() {
-                selectCountry(row);
-                rows.forEach(r => r.classList.remove('table-primary'));
-                row.classList.add('table-primary');
-            });
-        });
-
-        // Search filter
-        searchInput.addEventListener('input', function() {
-            filterRows();
-        });
-
-        // Dropdown filter
-        filterSelect.addEventListener('change', function() {
-            filterRows();
-        });
-
-        function filterRows() {
-            const query = searchInput.value.toLowerCase();
-            const riskFilter = filterSelect.value;
-
-            rows.forEach(row => {
-                const name = row.dataset.name.toLowerCase();
-                const level = row.dataset.riskLevel; // success, warning, danger
-                
-                let matchesSearch = name.includes(query);
-                let matchesRisk = true;
-
-                if (riskFilter === 'high') {
-                    matchesRisk = (level === 'danger');
-                } else if (riskFilter === 'medium') {
-                    matchesRisk = (level === 'warning');
-                } else if (riskFilter === 'low') {
-                    matchesRisk = (level === 'success');
-                }
-
-                if (matchesSearch && matchesRisk) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        }
+        // Initial simulated loading
+        setTimeout(() => {
+            document.getElementById('skeleton-container').style.display = 'none';
+            document.getElementById('countries-grid').style.display = 'flex';
+            document.getElementById('pagination-container').style.display = 'block';
+            updateStatistics();
+        }, 800);
     });
+
+    // Skeleton loading simulator trigger
+    function simulateSkeletonLoading() {
+        document.getElementById('countries-grid').style.display = 'none';
+        document.getElementById('pagination-container').style.display = 'none';
+        document.getElementById('empty-state-container').style.display = 'none';
+        document.getElementById('skeleton-container').style.display = 'flex';
+        
+        setTimeout(() => {
+            document.getElementById('skeleton-container').style.display = 'none';
+            applyFiltersAndSearch();
+        }, 800);
+    }
+
+    // Empty state simulator trigger
+    function simulateEmptyState() {
+        document.getElementById('search-country-input').value = 'NegaraXyzYangTidakAda';
+        applyFiltersAndSearch();
+    }
+
+    // Reset filters
+    function resetFiltersAndSearch() {
+        document.getElementById('search-country-input').value = '';
+        document.getElementById('filter-region-select').value = 'all';
+        document.getElementById('filter-risk-select').value = 'all';
+        document.getElementById('filter-status-select').value = 'all';
+        document.getElementById('sort-select').value = 'nama';
+        applyFiltersAndSearch();
+    }
+
+    // Dynamic Filter, Search and Sort Logic (client-side ES6)
+    function applyFiltersAndSearch() {
+        const query = document.getElementById('search-country-input').value.toLowerCase();
+        const region = document.getElementById('filter-region-select').value;
+        const risk = document.getElementById('filter-risk-select').value;
+        const status = document.getElementById('filter-status-select').value;
+        const sortVal = document.getElementById('sort-select').value;
+
+        const grid = document.getElementById('countries-grid');
+        const cards = Array.from(document.querySelectorAll('.country-card-item'));
+        
+        let visibleCount = 0;
+
+        cards.forEach(card => {
+            const name = card.getAttribute('data-name').toLowerCase();
+            const capital = card.getAttribute('data-capital').toLowerCase();
+            const cardRegion = card.getAttribute('data-region');
+            const cardRisk = card.getAttribute('data-risk-level');
+            const cardStatus = card.getAttribute('data-status');
+
+            const matchesSearch = name.includes(query) || capital.includes(query);
+            const matchesRegion = (region === 'all' || cardRegion === region);
+            const matchesRisk = (risk === 'all' || cardRisk === risk);
+            const matchesStatus = (status === 'all' || cardStatus === status);
+
+            if (matchesSearch && matchesRegion && matchesRisk && matchesStatus) {
+                card.style.display = 'block';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Sorting implementation
+        if (visibleCount > 0) {
+            cards.sort((a, b) => {
+                if (sortVal === 'nama') {
+                    return a.getAttribute('data-name').localeCompare(b.getAttribute('data-name'));
+                } else if (sortVal === 'risk-desc') {
+                    return parseFloat(b.getAttribute('data-risk-score')) - parseFloat(a.getAttribute('data-risk-score'));
+                } else if (sortVal === 'risk-asc') {
+                    return parseFloat(a.getAttribute('data-risk-score')) - parseFloat(b.getAttribute('data-risk-score'));
+                } else if (sortVal === 'gdp-desc') {
+                    return parseFloat(b.getAttribute('data-gdp')) - parseFloat(a.getAttribute('data-gdp'));
+                } else if (sortVal === 'pop-desc') {
+                    return parseFloat(b.getAttribute('data-pop')) - parseFloat(a.getAttribute('data-pop'));
+                }
+                return 0;
+            });
+
+            // Append sorted cards back to grid
+            cards.forEach(card => grid.appendChild(card));
+        }
+
+        // Toggle Grid or Empty State views
+        const emptyState = document.getElementById('empty-state-container');
+        const pagination = document.getElementById('pagination-container');
+
+        if (visibleCount === 0) {
+            grid.style.display = 'none';
+            pagination.style.display = 'none';
+            emptyState.style.display = 'flex';
+        } else {
+            grid.style.display = 'flex';
+            pagination.style.display = 'block';
+            emptyState.style.display = 'none';
+            document.getElementById('pagination-info').textContent = `Menampilkan 1-${visibleCount} dari ${visibleCount} data Negara`;
+        }
+    }
+
+    // Dynamic Summary Stats Update based on current listings
+    function updateStatistics() {
+        const cards = Array.from(document.querySelectorAll('.country-card-item'));
+        let total = cards.length;
+        let high = 0;
+        let medium = 0;
+        let low = 0;
+
+        cards.forEach(card => {
+            const risk = card.getAttribute('data-risk-level');
+            if (risk === 'high') high++;
+            else if (risk === 'medium') medium++;
+            else if (risk === 'low') low++;
+        });
+
+        document.getElementById('stat-total').textContent = total;
+        document.getElementById('stat-high').textContent = high;
+        document.getElementById('stat-medium').textContent = medium;
+        document.getElementById('stat-low').textContent = low;
+    }
 </script>
+
+<style>
+    /* Skeleton Loading placeholder style */
+    .skeleton-card {
+        background-color: #FFFFFF;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--border-color) !important;
+        border-radius: var(--radius-custom) !important;
+    }
+
+    .skeleton-shimmer {
+        background: #F1F5F9;
+        background-image: linear-gradient(to right, #F1F5F9 0%, #E2E8F0 20%, #F1F5F9 40%, #F1F5F9 100%);
+        background-repeat: no-repeat;
+        background-size: 800px 100%;
+        display: inline-block;
+        position: relative;
+        animation: shimmer-animation 1.5s linear infinite forwards;
+    }
+
+    @keyframes shimmer-animation {
+        0% {
+            background-position: -468px 0;
+        }
+        100% {
+            background-position: 468px 0;
+        }
+    }
+
+    /* Transition for items */
+    .country-card-item {
+        transition: transform 0.25s ease-in-out, opacity 0.25s ease-in-out;
+    }
+
+    .country-card-item:hover {
+        transform: scale(1.02) translateY(-2px);
+    }
+    
+    .country-card-item:hover .card {
+        box-shadow: 0 10px 22px rgba(18, 52, 88, 0.08) !important;
+        border-color: rgba(37, 99, 235, 0.2) !important;
+    }
+</style>
 @endsection
