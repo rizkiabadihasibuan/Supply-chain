@@ -749,6 +749,9 @@
             <a href="{{ route('monitoring') }}" class="menu-item {{ Request::is('monitoring') ? 'active' : '' }}">
                 <i class="bi bi-bookmark-star-fill"></i> Monitoring Center
             </a>
+            <a href="{{ route('visualization') }}" class="menu-item {{ Request::is('visualization') ? 'active' : '' }}">
+                <i class="bi bi-bar-chart-steps"></i> Visualisasi Data
+            </a>
             <a href="#" class="menu-item">
                 <i class="bi bi-journal-text"></i> Artikel
             </a>
