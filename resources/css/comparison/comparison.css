@@ -1,0 +1,162 @@
+/* ============================================================
+   COUNTRY COMPARISON ENGINE – Stylesheet
+   resources/css/comparison/comparison.css
+   ============================================================ */
+
+:root {
+    --cmp-primary:    #2563EB;
+    --cmp-sidebar:    #123458;
+    --cmp-bg:         #F8FAFC;
+    --cmp-card:       #FFFFFF;
+    --cmp-border:     #E2E8F0;
+    --cmp-radius:     16px;
+    --cmp-shadow:     0 2px 12px rgba(18, 52, 88, 0.07);
+    --cmp-shadow-hov: 0 10px 28px rgba(18, 52, 88, 0.12);
+    --cmp-a:          #2563EB;   /* Country A accent */
+    --cmp-b:          #0891B2;   /* Country B accent */
+}
+
+/* ── Fade-in ──────────────────────────────────────── */
+@keyframes cmpFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0);    }
+}
+.cmp-fade { animation: cmpFadeIn 0.4s ease both; }
+.cmp-fade-1 { animation-delay: .05s; }
+.cmp-fade-2 { animation-delay: .10s; }
+.cmp-fade-3 { animation-delay: .15s; }
+.cmp-fade-4 { animation-delay: .20s; }
+.cmp-fade-5 { animation-delay: .25s; }
+.cmp-fade-6 { animation-delay: .30s; }
+
+/* ── Card hover ───────────────────────────────────── */
+.cmp-card {
+    background:    var(--cmp-card);
+    border-radius: var(--cmp-radius) !important;
+    border:        1px solid var(--cmp-border) !important;
+    box-shadow:    var(--cmp-shadow) !important;
+    transition:    transform 0.22s ease, box-shadow 0.22s ease;
+}
+.cmp-card:hover {
+    transform:  translateY(-3px);
+    box-shadow: var(--cmp-shadow-hov) !important;
+}
+
+/* ── Country A / B colour strips ─────────────────── */
+.cmp-strip-a { border-left: 4px solid var(--cmp-a) !important; }
+.cmp-strip-b { border-left: 4px solid var(--cmp-b) !important; }
+
+.cmp-label-a {
+    color: var(--cmp-a);
+    font-weight: 700;
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+.cmp-label-b {
+    color: var(--cmp-b);
+    font-weight: 700;
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+
+/* ── KPI comparison card ─────────────────────────── */
+.kpi-cmp-value {
+    font-size: 1.55rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -.4px;
+}
+
+/* ── Toolbar ──────────────────────────────────────── */
+.cmp-toolbar {
+    background:    #FFFFFF;
+    border:        1px solid var(--cmp-border);
+    border-radius: var(--cmp-radius);
+    padding:       20px 24px;
+    box-shadow:    var(--cmp-shadow);
+}
+
+.cmp-toolbar .form-select,
+.cmp-toolbar .form-control {
+    border-radius: 10px;
+    border:        1px solid var(--cmp-border);
+    font-size:     .85rem;
+    height:        42px;
+    background:    #F8FAFC;
+    transition:    border-color .18s, box-shadow .18s;
+}
+.cmp-toolbar .form-select:focus,
+.cmp-toolbar .form-control:focus {
+    border-color: var(--cmp-primary);
+    box-shadow:   0 0 0 3px rgba(37,99,235,.12);
+    background:   #FFFFFF;
+}
+
+/* ── VS divider ──────────────────────────────────── */
+.cmp-vs-badge {
+    width:           44px;
+    height:          44px;
+    border-radius:   50%;
+    background:      linear-gradient(135deg, var(--cmp-a) 0%, var(--cmp-b) 100%);
+    color:           #fff;
+    font-weight:     800;
+    font-size:       .8rem;
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    flex-shrink:     0;
+    box-shadow:      0 4px 14px rgba(37,99,235,.25);
+}
+
+/* ── Comparison table ─────────────────────────────── */
+.cmp-table thead th {
+    background:     #F8FAFC;
+    color:          #64748B;
+    font-size:      .74rem;
+    font-weight:    600;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    border-bottom:  1px solid var(--cmp-border);
+    padding:        12px 16px;
+    white-space:    nowrap;
+}
+.cmp-table tbody td {
+    font-size:     .855rem;
+    padding:       12px 16px;
+    vertical-align: middle;
+    border-bottom: 1px solid #F1F5F9;
+}
+.cmp-table tbody tr:last-child td { border-bottom: none; }
+.cmp-table tbody tr:hover { background: #F8FAFC; }
+
+/* ── Chart canvas ─────────────────────────────────── */
+.cmp-chart-box {
+    position: relative;
+    width:    100%;
+    height:   260px;
+}
+@media (max-width: 768px) {
+    .cmp-chart-box { height: 220px; }
+}
+
+/* ── Summary panel ────────────────────────────────── */
+.summary-item {
+    padding:       12px 16px;
+    border-radius: 10px;
+    border:        1px solid var(--cmp-border);
+    background:    #FAFCFF;
+    font-size:     .875rem;
+    transition:    background .18s;
+}
+.summary-item:hover { background: #EFF6FF; }
+
+/* ── Spin animation ───────────────────────────────── */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+.is-spinning {
+    animation: spin .7s linear infinite;
+    display:   inline-block;
+}
