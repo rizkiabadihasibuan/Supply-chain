@@ -746,8 +746,8 @@
             <a href="{{ route('comparison') }}" class="menu-item {{ Request::is('comparison') ? 'active' : '' }}">
                 <i class="bi bi-arrow-left-right"></i> Perbandingan Negara
             </a>
-            <a href="{{ route('watchlist') }}" class="menu-item {{ Request::is('watchlist') ? 'active' : '' }}">
-                <i class="bi bi-bookmark-star-fill"></i> Daftar Pantauan
+            <a href="{{ route('monitoring') }}" class="menu-item {{ Request::is('monitoring') ? 'active' : '' }}">
+                <i class="bi bi-bookmark-star-fill"></i> Monitoring Center
             </a>
             <a href="#" class="menu-item">
                 <i class="bi bi-journal-text"></i> Artikel

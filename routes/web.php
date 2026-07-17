@@ -22,6 +22,11 @@ Route::get('/comparison', [DashboardController::class, 'comparison'])->name('com
 Route::get('/watchlist', [DashboardController::class, 'watchlist'])->name('watchlist');
 Route::get('/admin', [DashboardController::class, 'admin'])->name('admin');
 
+Route::get('/monitoring', function() {
+    return view('monitoring.index');
+})->name('monitoring');
+
+
 Route::get('/countries/detail', function() {
     return view('countries.show');
 })->name('countries.detail');
