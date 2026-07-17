@@ -25,3 +25,8 @@ Route::get('/admin', [DashboardController::class, 'admin'])->name('admin');
 Route::get('/countries/detail', function() {
     return view('countries.show');
 })->name('countries.detail');
+
+Route::get('/design-system', function() {
+    return view('design-system.index');
+})->name('design-system');
+
