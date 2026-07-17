@@ -801,13 +801,13 @@
                     <div class="vr border-secondary opacity-25"></div>
 
                     <!-- User Profile Info -->
-                    <div class="d-flex align-items-center">
+                    <a href="{{ route('profile') }}" class="d-flex align-items-center text-decoration-none text-dark hover-opacity" style="cursor: pointer;" aria-label="Buka Profil & Pengaturan">
                         <div class="text-end me-2 d-none d-sm-block">
                             <div class="text-dark fw-medium small">Administrator</div>
                             <div class="text-secondary" style="font-size: 0.75rem;">Command Center</div>
                         </div>
                         <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop" alt="Profil User" class="rounded-circle border border-primary" width="36" height="36" style="object-fit: cover;">
-                    </div>
+                    </a>
                 </div>
             </div>
         </nav>

@@ -60,10 +60,9 @@ Route::get('/403', function() {
 
 Route::get('/404', function() {
     return view('errors.404');
-})->name('404');
-
-
-
+})->name('404');Route::get('/profile', function() {
+    return view('profile.index');
+})->name('profile');
 
 Route::get('/countries/detail', function() {
     return view('countries.show');
