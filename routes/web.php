@@ -1,80 +1,131 @@
 <?php
 
-use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes
+| WEB ROUTES – Authentication Flow
 |--------------------------------------------------------------------------
+|
+| Struktur Routing:
+|   ├── /                     → Landing Page (guest)
+|   ├── /login, /register     → Auth pages (guest.redirect)
+|   ├── /dashboard/*          → User Panel (auth + user middleware)
+|   ├── /admin/*              → Admin Panel (auth + admin middleware)
+|   └── Shared routes         → utilities, errors
+|
 */
 
-Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-Route::get('/dashboard', [DashboardController::class, 'index']);
+/*
+|--------------------------------------------------------------------------
+| LANDING PAGE (Guest)
+|--------------------------------------------------------------------------
+*/
+Route::get('/', function () {
+    return view('landing');
+})->name('landing')->middleware('guest.redirect');
 
-Route::get('/countries', [DashboardController::class, 'countries'])->name('countries');
-Route::get('/weather', [DashboardController::class, 'weather'])->name('weather');
-Route::get('/currency', [DashboardController::class, 'currency'])->name('currency');
-Route::get('/ports', [DashboardController::class, 'ports'])->name('ports');
-Route::get('/news', [DashboardController::class, 'news'])->name('news');
-Route::get('/risk', [DashboardController::class, 'risk'])->name('risk');
-Route::get('/comparison', [DashboardController::class, 'comparison'])->name('comparison');
-Route::get('/watchlist', [DashboardController::class, 'watchlist'])->name('watchlist');
-Route::get('/admin', [DashboardController::class, 'admin'])->name('admin');
+/*
+|--------------------------------------------------------------------------
+| AUTH ROUTES (Guest Only – redirect if authenticated)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('guest.redirect')->group(function () {
+    // Login
+    Route::get('/login',    [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login',   [AuthController::class, 'login']);
 
-Route::get('/monitoring', function() {
-    return view('monitoring.index');
-})->name('monitoring');
+    // Register
+    Route::get('/register',  [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
 
-Route::get('/notifications', function() {
-    return view('notifications.index');
-})->name('notifications');
+    // Forgot Password (UI only)
+    Route::get('/forgot-password', fn () => view('auth.forgot-password'))->name('forgot-password');
+});
 
-Route::get('/login', function() {
-    return view('auth.login');
-})->name('login');
+/*
+|--------------------------------------------------------------------------
+| LOGOUT (Authenticated Only)
+|--------------------------------------------------------------------------
+*/
+Route::post('/logout', [AuthController::class, 'logout'])
+    ->name('logout')
+    ->middleware('auth');
 
-Route::get('/register', function() {
-    return view('auth.register');
-})->name('register');
+/*
+|--------------------------------------------------------------------------
+| SHARED / UTILITY ROUTES (Authenticated)
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth')->group(function () {
+    Route::get('/monitoring', function () {
+        return view('monitoring.index');
+    })->name('monitoring');
 
-Route::get('/forgot-password', function() {
-    return view('auth.forgot-password');
-})->name('forgot-password');
+    Route::get('/notifications', function () {
+        return view('notifications.index');
+    })->name('notifications');
 
-Route::get('/reset-password', function() {
-    return view('auth.reset-password');
-})->name('reset-password');
+    Route::get('/visualization', function () {
+        return view('dashboard.visualization.index');
+    })->name('visualization');
 
-Route::get('/verify-email', function() {
-    return view('auth.verify-email');
-})->name('verify-email');
+    Route::get('/profile', function () {
+        return view('profile.index');
+    })->name('profile');
 
-Route::get('/session-expired', function() {
-    return view('auth.session-expired');
-})->name('session-expired');
+    Route::get('/countries/detail', fn () => view('countries.show'))->name('countries.detail');
+});
 
-Route::get('/403', function() {
-    return view('errors.403');
-})->name('403');
+/*
+|--------------------------------------------------------------------------
+| AUTH UTILITY PAGES
+|--------------------------------------------------------------------------
+*/
+Route::get('/reset-password',   fn () => view('auth.reset-password'))->name('reset-password');
+Route::get('/verify-email',     fn () => view('auth.verify-email'))->name('verify-email');
+Route::get('/session-expired',  fn () => view('auth.session-expired'))->name('session-expired');
 
-Route::get('/404', function() {
-    return view('errors.404');
-})->name('404');Route::get('/profile', function() {
-    return view('profile.index');
-})->name('profile');
+/*
+|--------------------------------------------------------------------------
+| ERROR PAGES
+|--------------------------------------------------------------------------
+*/
+Route::get('/403', fn () => view('errors.403'))->name('403');
+Route::get('/404', fn () => view('errors.404'))->name('404');
 
-Route::get('/visualization', function() {
-    return view('dashboard.visualization.index');
-})->name('visualization');
+/*
+|--------------------------------------------------------------------------
+| LEGACY ALIASES (Backward Compatibility for Views using old route names)
+|
+| Registered before module files so module files (admin.php, user.php)
+| take precedence for URL routing, but named aliases (countries, admin, dashboard)
+| remain defined in the named route collection.
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'user'])->group(function () {
+    Route::get('/countries',  [\App\Http\Controllers\User\UserController::class, 'countries'])->name('countries');
+    Route::get('/weather',    [\App\Http\Controllers\User\UserController::class, 'weather'])->name('weather');
+    Route::get('/currency',   [\App\Http\Controllers\User\UserController::class, 'currency'])->name('currency');
+    Route::get('/ports',      [\App\Http\Controllers\User\UserController::class, 'ports'])->name('ports');
+    Route::get('/news',       [\App\Http\Controllers\User\UserController::class, 'news'])->name('news');
+    Route::get('/risk',       [\App\Http\Controllers\User\UserController::class, 'risk'])->name('risk');
+    Route::get('/comparison', [\App\Http\Controllers\User\UserController::class, 'comparison'])->name('comparison');
+    Route::get('/watchlist',  [\App\Http\Controllers\User\UserController::class, 'favorite'])->name('watchlist');
+});
 
+/*
+|--------------------------------------------------------------------------
+| DESIGN SYSTEM (Dev Only)
+|--------------------------------------------------------------------------
+*/
+Route::get('/design-system', fn () => view('design-system.index'))->name('design-system');
 
-
-Route::get('/countries/detail', function() {
-    return view('countries.show');
-})->name('countries.detail');
-
-Route::get('/design-system', function() {
-    return view('design-system.index');
-})->name('design-system');
-
+/*
+|--------------------------------------------------------------------------
+| MODULE ROUTE FILES (Loaded LAST so they overwrite legacy alias matching)
+|--------------------------------------------------------------------------
+*/
+require __DIR__ . '/admin.php';
+require __DIR__ . '/user.php';

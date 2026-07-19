@@ -1,0 +1,71 @@
+/* ============================================================
+   ADMIN PORT DATASET – Table CSS
+   resources/css/admin/ports/table.css
+   ============================================================ */
+
+.port-table-container {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-custom);
+    overflow: hidden;
+    background: #FFFFFF;
+    box-shadow: 0 4px 18px rgba(18, 52, 88, 0.02);
+}
+
+.table-responsive {
+    max-height: 520px;
+    overflow-y: auto;
+}
+
+#port-data-table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+#port-data-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #F8FAFC !important;
+    border-bottom: 2px solid var(--border-color);
+    font-weight: 700;
+    color: var(--text-primary);
+    box-shadow: inset 0 -1px 0 var(--border-color);
+}
+
+#port-data-table tbody tr:nth-of-type(odd) {
+    background-color: rgba(248, 250, 252, 0.5) !important;
+}
+
+#port-data-table tbody tr:nth-of-type(even) {
+    background-color: #FFFFFF !important;
+}
+
+#port-data-table tbody tr:hover {
+    background-color: rgba(37, 99, 235, 0.03) !important;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.badge-status-aktif {
+    background-color: rgba(34, 197, 94, 0.1) !important;
+    color: #16A34A !important;
+    border: 1px solid rgba(34, 197, 94, 0.2) !important;
+}
+
+.badge-status-tidak-aktif {
+    background-color: rgba(148, 163, 184, 0.1) !important;
+    color: #64748B !important;
+    border: 1px solid rgba(148, 163, 184, 0.2) !important;
+}
+
+.badge-status-maintenance {
+    background-color: rgba(245, 158, 11, 0.1) !important;
+    color: #D97706 !important;
+    border: 1px solid rgba(245, 158, 11, 0.2) !important;
+}
+
+.btn-action-trigger {
+    min-height: 34px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.8rem;
+    border-radius: 8px;
+}

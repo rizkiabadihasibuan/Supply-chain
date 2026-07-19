@@ -1,0 +1,39 @@
+/* ============================================================
+   ADMIN DASHBOARD – Responsive Stylesheet
+   public/css/admin/responsive.css
+   ============================================================ */
+
+/* Large Desktop & Laptop (>= 992px) */
+@media (min-width: 992px) {
+    .kpi-row .col-admin-kpi {
+        flex: 0 0 25%;
+        max-width: 25%;
+    }
+}
+
+/* Tablet Portrait (768px - 991px) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .kpi-row .col-admin-kpi {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
+/* Mobile Portrait & Small Devices (< 768px) */
+@media (max-width: 767.98px) {
+    .kpi-row .col-admin-kpi {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    
+    .admin-header-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .admin-header-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+}

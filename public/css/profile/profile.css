@@ -1,0 +1,109 @@
+/* ============================================================
+   USER PROFILE – Base Profile CSS
+   public/css/profile/profile.css
+   ============================================================ */
+
+.profile-card-summary {
+    background: #FFFFFF !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius-custom) !important;
+    box-shadow: 0 4px 18px rgba(18, 52, 88, 0.02) !important;
+    padding: 2rem !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.profile-card-summary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(18, 52, 88, 0.05) !important;
+}
+
+/* Avatar Container and Hover Triggers */
+.profile-avatar-wrapper {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+}
+
+.profile-avatar-img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary);
+    transition: transform 0.3s ease;
+}
+
+.profile-avatar-upload-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--primary);
+    border: 2px solid #FFFFFF;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.profile-avatar-upload-btn:hover {
+    background: #1d4ed8;
+    transform: scale(1.1);
+}
+
+/* Details Section */
+.profile-details-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.profile-details-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.profile-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    font-size: 0.825rem;
+    text-align: left;
+    margin-top: 1rem;
+}
+
+.profile-meta-item {
+    background: #F8FAFC;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 0.65rem 0.85rem;
+}
+
+.profile-meta-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+    display: block;
+    margin-bottom: 0.15rem;
+}
+
+.profile-meta-value {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Action Buttons */
+.profile-actions {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+}

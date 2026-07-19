@@ -1,0 +1,16 @@
+/* ============================================================
+   AUTH – Register-specific Styles
+   resources/css/auth/register.css
+   ============================================================ */
+
+/* Password strength meter visibility */
+.auth-pwd-strength {
+    transition: opacity .3s ease, max-height .3s ease;
+    overflow: hidden;
+}
+
+/* Terms link hover */
+.form-check-label .auth-link {
+    font-weight: 500;
+    font-size: .84rem;
+}

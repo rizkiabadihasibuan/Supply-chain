@@ -1,0 +1,6 @@
+﻿/* ═══ TYPOGRAPHY – Global Font Styles ═══
+ * Font: Inter (Google Fonts) — Loaded via layout template
+ */
+body { font-family: var(--font-primary, 'Inter', sans-serif); font-size: 0.9rem; }
+h1,h2,h3,h4,h5,h6 { font-weight: 600; }
+.fw-medium { font-weight: 500; }

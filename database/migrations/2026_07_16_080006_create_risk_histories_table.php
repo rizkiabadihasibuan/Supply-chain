@@ -13,15 +13,24 @@ return new class extends Migration
     {
         Schema::create('risk_histories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('country_id')->constrained('countries')->cascadeOnDelete();
-            $table->decimal('weather_risk_score', 5, 2)->default(0.00);
-            $table->decimal('inflation_risk_score', 5, 2)->default(0.00);
-            $table->decimal('currency_risk_score', 5, 2)->default(0.00);
-            $table->decimal('political_risk_score', 5, 2)->default(0.00);
+            
+            $table->foreignId('country_id')
+                  ->constrained('countries')
+                  ->cascadeOnUpdate()
+                  ->cascadeOnDelete();
+
+            $table->foreignId('risk_score_id')
+                  ->constrained('risk_scores')
+                  ->cascadeOnUpdate()
+                  ->cascadeOnDelete();
+
             $table->decimal('total_risk_score', 5, 2)->default(0.00);
-            $table->string('risk_level', 20)->default('low');
-            $table->timestamp('calculated_at')->index();
+            $table->string('risk_level', 50)->default('Low');
+            $table->date('calculated_date')->index();
             $table->timestamps();
+
+            $table->index('country_id');
+            $table->index('risk_score_id');
         });
     }
 

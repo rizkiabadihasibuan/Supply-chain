@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.user.app')
 
 @section('title', 'Global Exchange Rate Center - SupplyChain Platform')
 

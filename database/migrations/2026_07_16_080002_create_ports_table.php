@@ -13,7 +13,17 @@ return new class extends Migration
     {
         Schema::create('ports', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('country_id')->constrained('countries')->cascadeOnDelete();
+            
+            $table->foreignId('country_id')
+                  ->constrained('countries')
+                  ->cascadeOnUpdate()
+                  ->cascadeOnDelete();
+
+            $table->foreignId('category_id')
+                  ->constrained('port_categories')
+                  ->cascadeOnUpdate()
+                  ->restrictOnDelete();
+
             $table->string('code', 10)->unique()->index();
             $table->string('name')->index();
             $table->decimal('latitude', 10, 8);
@@ -22,6 +32,10 @@ return new class extends Migration
             $table->string('type')->nullable();
             $table->string('harbor_type')->nullable();
             $table->timestamps();
+
+            // Explicit index
+            $table->index('country_id');
+            $table->index('category_id');
         });
     }
 

@@ -6,7 +6,7 @@
       Header → Toolbar → [Loading|Empty|Error|Main Content]
       Main Content: Left (KPI + Charts + Table) | Right (Insight Panel)
 --}}
-@extends('layouts.app')
+@extends('layouts.user.app')
 
 @section('title', 'Data Visualization Dashboard – SupplyChain Platform')
 

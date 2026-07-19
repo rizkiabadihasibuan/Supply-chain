@@ -13,19 +13,30 @@ return new class extends Migration
     {
         Schema::create('countries', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 2)->unique()->index();
+            
+            // Geopolitical regions relation
+            $table->foreignId('region_id')
+                  ->constrained('regions')
+                  ->cascadeOnUpdate()
+                  ->restrictOnDelete();
+
+            // Currency relation
+            $table->foreignId('currency_id')
+                  ->constrained('currencies')
+                  ->cascadeOnUpdate()
+                  ->restrictOnDelete();
+
+            $table->char('code', 2)->unique()->index();
             $table->string('name')->unique()->index();
-            $table->string('region')->nullable();
             $table->string('subregion')->nullable();
-            $table->decimal('latitude', 10, 8)->nullable();
-            $table->decimal('longitude', 11, 8)->nullable();
-            $table->string('currency_code', 3)->nullable();
-            $table->string('currency_name')->nullable();
-            $table->string('currency_symbol')->nullable();
             $table->bigInteger('population')->nullable();
             $table->double('area')->nullable();
             $table->string('timezone')->nullable();
             $table->timestamps();
+
+            // Explicit index
+            $table->index('region_id');
+            $table->index('currency_id');
         });
     }
 

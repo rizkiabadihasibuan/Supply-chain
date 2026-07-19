@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('query')->index();
             $table->json('news_data');
             $table->timestamp('expires_at')->index();
-            $table->timestamps();
+            $table->timestamp('created_at')->nullable();
         });
     }
 

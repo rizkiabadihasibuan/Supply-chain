@@ -1,0 +1,41 @@
+/* ============================================================
+   ADMIN ARTICLE MANAGEMENT – Modal CSS
+   public/css/admin/articles/modal.css
+   ============================================================ */
+
+.article-detail-row {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.article-detail-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+.article-detail-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 0.15rem;
+    display: block;
+}
+
+.article-detail-value {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    font-weight: 600;
+    word-break: break-all;
+}
+
+.notion-editor-preview {
+    min-height: 200px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #FAFAFA;
+    font-family: 'Inter', sans-serif;
+    color: #333333;
+}

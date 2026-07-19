@@ -1,0 +1,17 @@
+/* ============================================================
+   ADMIN ARTICLE MANAGEMENT – Card CSS
+   public/css/admin/articles/card.css
+   ============================================================ */
+
+.articles-stat-card {
+    background: #FFFFFF !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius-custom) !important;
+    box-shadow: 0 4px 18px rgba(18, 52, 88, 0.02) !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.articles-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(18, 52, 88, 0.05) !important;
+}

@@ -56,4 +56,19 @@ class DashboardController extends Controller
     {
         return view('admin.index');
     }
+
+    public function users(): View
+    {
+        return view('admin.users.index');
+    }
+
+    public function adminPorts(): View
+    {
+        return view('admin.ports.index');
+    }
+
+    public function adminArticles(): View
+    {
+        return view('admin.articles.index');
+    }
 }

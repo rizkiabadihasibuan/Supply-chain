@@ -13,10 +13,18 @@ return new class extends Migration
     {
         Schema::create('watchlists', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('country_id')->constrained('countries')->cascadeOnDelete();
+            
+            $table->foreignId('user_id')
+                  ->constrained('users')
+                  ->cascadeOnUpdate()
+                  ->cascadeOnDelete();
+
+            $table->string('name')->default('Default Watchlist');
+            $table->text('description')->nullable();
+            $table->string('status', 20)->default('active')->index();
             $table->timestamps();
-            $table->softDeletes();
+
+            $table->index('user_id');
         });
     }
 

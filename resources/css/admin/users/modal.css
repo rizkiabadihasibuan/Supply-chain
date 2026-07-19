@@ -1,0 +1,41 @@
+/* ============================================================
+   ADMIN USER MANAGEMENT – Modal Stylesheet
+   resources/css/admin/users/modal.css
+   ============================================================ */
+
+/* User details layout inside detail modal */
+.user-detail-avatar-large {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary);
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.15);
+}
+
+.user-detail-row {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.user-detail-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+.user-detail-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 0.15rem;
+    display: block;
+}
+
+.user-detail-value {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    font-weight: 600;
+    word-break: break-all;
+}

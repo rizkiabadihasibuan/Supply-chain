@@ -15,15 +15,12 @@ return new class extends Migration
             $table->id();
             $table->string('api_name')->index();
             $table->string('endpoint');
-            $table->json('request_payload')->nullable();
-            $table->json('response_payload')->nullable();
+            $table->string('method', 10)->default('GET');
             $table->integer('status_code')->nullable();
             $table->boolean('is_success')->default(true)->index();
             $table->text('error_message')->nullable();
-            $table->timestamps();
-            
-            // Add index for created_at
-            $table->index('created_at');
+            $table->integer('duration_ms')->default(0);
+            $table->timestamp('created_at')->nullable()->index();
         });
     }
 

@@ -13,15 +13,30 @@ return new class extends Migration
     {
         Schema::create('risk_scores', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('country_id')->unique()->constrained('countries')->cascadeOnDelete();
-            $table->decimal('weather_risk_score', 5, 2)->default(0.00);
-            $table->decimal('inflation_risk_score', 5, 2)->default(0.00);
-            $table->decimal('currency_risk_score', 5, 2)->default(0.00);
-            $table->decimal('political_risk_score', 5, 2)->default(0.00);
-            $table->decimal('total_risk_score', 5, 2)->default(0.00);
-            $table->string('risk_level', 20)->default('low');
-            $table->timestamp('calculated_at')->index();
+            
+            $table->foreignId('country_id')
+                  ->unique()
+                  ->constrained('countries')
+                  ->cascadeOnUpdate()
+                  ->cascadeOnDelete();
+
+            $table->foreignId('classification_id')
+                  ->constrained('risk_classifications')
+                  ->cascadeOnUpdate()
+                  ->restrictOnDelete();
+
+            $table->decimal('weather_score', 5, 2)->default(0.00);
+            $table->decimal('inflation_score', 5, 2)->default(0.00);
+            $table->decimal('currency_score', 5, 2)->default(0.00);
+            $table->decimal('political_score', 5, 2)->default(0.00);
+            $table->decimal('final_risk_score', 5, 2)->default(0.00)->index();
+            $table->string('risk_level', 50)->default('Low')->index();
+            $table->timestamp('calculated_at')->nullable()->index();
+            $table->string('source_version')->nullable();
             $table->timestamps();
+
+            $table->index('country_id');
+            $table->index('classification_id');
         });
     }
 

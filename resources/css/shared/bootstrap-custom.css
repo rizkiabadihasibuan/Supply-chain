@@ -1,0 +1,7 @@
+﻿/* ═══ BOOTSTRAP 5 CUSTOMIZATION ═══
+ * Override Bootstrap defaults to match SupplyChain Design System
+ * DO NOT import Tailwind here. Bootstrap 5 only.
+ */
+
+/* Custom Badge */.badge { font-weight: 500; letter-spacing: 0.02em; }
+/* Custom Card  */.card  { border-radius: var(--border-radius-md, 0.5rem); }

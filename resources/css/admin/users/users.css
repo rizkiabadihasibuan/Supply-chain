@@ -1,0 +1,53 @@
+/* ============================================================
+   ADMIN USER MANAGEMENT – Core Users CSS
+   resources/css/admin/users/users.css
+   ============================================================ */
+
+.admin-users-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* User statistics row card style overrides */
+.users-stat-card {
+    background: #FFFFFF !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius-custom) !important;
+    box-shadow: 0 4px 18px rgba(18, 52, 88, 0.02) !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.users-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(18, 52, 88, 0.05) !important;
+}
+
+/* Custom layout for header search and action triggers */
+.admin-user-header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.admin-user-header-left h3 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 0.15rem;
+}
+
+.admin-user-header-left p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.admin-user-header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}

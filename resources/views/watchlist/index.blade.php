@@ -4,7 +4,7 @@
 
     Layout: Header → Toolbar → Stats → Grid → Table → Footer
 --}}
-@extends('layouts.app')
+@extends('layouts.user.app')
 
 @section('title', 'Favorite Monitoring List – SupplyChain Platform')
 

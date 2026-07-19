@@ -1,0 +1,29 @@
+/* ============================================================
+   ADMIN ARTICLE MANAGEMENT – Editor CSS
+   public/css/admin/articles/editor.css
+   ============================================================ */
+
+.notion-editor-preview {
+    min-height: 200px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    background-color: #FAFAFA;
+    font-family: 'Inter', sans-serif;
+    color: #333333;
+}
+
+.editor-toolbar-container {
+    background-color: #F8FAFC;
+    border: 1px solid var(--border-color);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    padding: 0.5rem;
+    gap: 0.25rem;
+}
+
+.editor-toolbar-container button {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.85rem;
+    border-radius: 4px;
+}

@@ -1,0 +1,11 @@
+/* ============================================================
+   AUTH – Login-specific Styles
+   resources/css/auth/login.css
+   ============================================================ */
+
+/* Currently login uses shared auth.css styles.
+   This file is reserved for login-specific overrides. */
+
+/* Login form enter animation stagger */
+.auth-form .auth-input-group:nth-child(1) { animation-delay: .05s; }
+.auth-form .auth-input-group:nth-child(2) { animation-delay: .1s; }

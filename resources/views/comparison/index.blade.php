@@ -2,7 +2,7 @@
     Country Comparison Engine – Milestone 3.11
     resources/views/comparison/index.blade.php
 --}}
-@extends('layouts.app')
+@extends('layouts.user.app')
 
 @section('title', 'Country Comparison – SupplyChain Platform')
 

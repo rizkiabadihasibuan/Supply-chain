@@ -17,7 +17,10 @@ return new class extends Migration
             $table->decimal('longitude', 11, 8)->index();
             $table->json('weather_data');
             $table->timestamp('expires_at')->index();
-            $table->timestamps();
+            $table->timestamp('created_at')->nullable();
+
+            // Composite index for rapid coordinates lookup
+            $table->index(['latitude', 'longitude']);
         });
     }
 

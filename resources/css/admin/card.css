@@ -1,0 +1,63 @@
+/* ============================================================
+   ADMIN DASHBOARD – KPI Card Stylesheet
+   resources/css/admin/card.css
+   ============================================================ */
+
+.admin-kpi-card {
+    background: #FFFFFF !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius-custom) !important;
+    box-shadow: 0 4px 18px rgba(18, 52, 88, 0.02) !important;
+    padding: 1.5rem !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-kpi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(18, 52, 88, 0.06) !important;
+    border-color: rgba(37, 99, 235, 0.25) !important;
+}
+
+.admin-kpi-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.admin-kpi-subtitle {
+    font-size: 0.825rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin: 0;
+}
+
+.admin-kpi-icon {
+    font-size: 1.5rem;
+    color: var(--primary);
+    width: 40px;
+    height: 40px;
+    background: rgba(37, 99, 235, 0.08);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-kpi-value {
+    font-size: 1.625rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.2;
+    margin: 0;
+}
+
+.admin-kpi-footer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    font-size: 0.75rem;
+}

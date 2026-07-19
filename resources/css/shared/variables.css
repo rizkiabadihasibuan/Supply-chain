@@ -1,0 +1,20 @@
+﻿/* ═══ CSS VARIABLES – Design System Tokens ═══
+ * Primary: #2563EB | Sidebar: #123458 | Dark: #0B1A2C
+ */
+:root {
+    --color-primary:     #2563EB;
+    --color-sidebar:     #123458;
+    --color-dark:        #0B1A2C;
+    --color-success:     #16a34a;
+    --color-warning:     #ca8a04;
+    --color-danger:      #dc2626;
+    --color-info:        #0891b2;
+    --font-primary:      'Inter', 'Segoe UI', sans-serif;
+    --border-radius-sm:  0.375rem;
+    --border-radius-md:  0.5rem;
+    --border-radius-lg:  0.75rem;
+    --shadow-sm:         0 1px 3px rgba(0,0,0,.08);
+    --shadow-md:         0 4px 12px rgba(0,0,0,.10);
+    --shadow-lg:         0 8px 24px rgba(0,0,0,.12);
+    --transition:        all 0.2s ease;
+}

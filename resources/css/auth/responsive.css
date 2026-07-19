@@ -1,0 +1,98 @@
+/* ============================================================
+   AUTH – Responsive Overrides
+   resources/css/auth/responsive.css
+   ============================================================ */
+
+/* ── Large desktop (1400px+) ─────────────────────── */
+@media (min-width: 1400px) {
+    .auth-panel-left  { flex: 0 0 55%; }
+    .auth-form-card   { max-width: 440px; }
+}
+
+/* ── Laptop / Tablet landscape ───────────────────── */
+@media (max-width: 1199px) {
+    .auth-panel-left {
+        flex:    0 0 45%;
+        padding: 40px 36px;
+    }
+    .auth-panel-right {
+        padding: 36px 32px;
+    }
+}
+
+/* ── Tablet portrait: hide left panel ────────────── */
+@media (max-width: 991px) {
+    .auth-panel-left {
+        display: none;
+    }
+    .auth-panel-right {
+        padding:     32px 24px;
+        align-items: flex-start;
+        padding-top: 56px;
+    }
+    .auth-form-card {
+        max-width: 480px;
+        margin:    0 auto;
+        width:     100%;
+    }
+}
+
+/* ── Small tablet / Large phone ──────────────────── */
+@media (max-width: 768px) {
+    .auth-panel-right {
+        padding:     28px 20px;
+        padding-top: 44px;
+    }
+    .auth-title {
+        font-size: 1.45rem;
+    }
+    .auth-subtitle {
+        font-size: .85rem;
+    }
+}
+
+/* ── Mobile ──────────────────────────────────────── */
+@media (max-width: 576px) {
+    .auth-panel-right {
+        padding:     24px 16px;
+        padding-top: 36px;
+    }
+    .auth-form-card {
+        max-width: 100%;
+    }
+    .auth-title {
+        font-size: 1.35rem;
+    }
+    .auth-logo {
+        margin-bottom: 24px;
+    }
+    .auth-btn {
+        height: 44px;
+        font-size: .88rem;
+    }
+    .auth-input-group .form-control {
+        height:    42px;
+        font-size: .85rem;
+    }
+}
+
+/* ── Extra small (< 360px) ───────────────────────── */
+@media (max-width: 360px) {
+    .auth-panel-right {
+        padding: 20px 12px;
+        padding-top: 28px;
+    }
+    .auth-title {
+        font-size: 1.25rem;
+    }
+}
+
+/* ── Safety net: prevent horizontal scroll ───────── */
+body.auth-body,
+.auth-wrapper,
+.auth-wrapper * {
+    box-sizing: border-box;
+}
+body.auth-body {
+    overflow-x: hidden;
+}

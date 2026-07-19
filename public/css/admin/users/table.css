@@ -1,0 +1,48 @@
+/* ============================================================
+   ADMIN USER MANAGEMENT – Table Stylesheet
+   public/css/admin/users/table.css
+   ============================================================ */
+
+/* User Avatar inside tables */
+.user-table-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+}
+
+/* Customized Status Badges overrides */
+.badge-status-active {
+    background-color: rgba(34, 197, 94, 0.1) !important;
+    color: #16A34A !important;
+    border: 1px solid rgba(34, 197, 94, 0.2) !important;
+}
+
+.badge-status-inactive {
+    background-color: rgba(148, 163, 184, 0.1) !important;
+    color: #64748B !important;
+    border: 1px solid rgba(148, 163, 184, 0.2) !important;
+}
+
+.badge-status-suspended {
+    background-color: rgba(239, 68, 68, 0.1) !important;
+    color: #DC2626 !important;
+    border: 1px solid rgba(239, 68, 68, 0.2) !important;
+}
+
+/* Action Dropdown Toggle custom button */
+.btn-action-trigger {
+    min-height: 34px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.8rem;
+    border-radius: 8px;
+}
+
+/* User search toolbar spacing */
+.user-toolbar-card {
+    background: #FFFFFF !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius-custom) !important;
+    padding: 1.25rem !important;
+}

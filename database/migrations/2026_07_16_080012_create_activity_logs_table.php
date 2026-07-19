@@ -13,14 +13,21 @@ return new class extends Migration
     {
         Schema::create('activity_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            
+            $table->foreignId('user_id')
+                  ->constrained('users')
+                  ->cascadeOnUpdate()
+                  ->cascadeOnDelete();
+
             $table->string('action')->index();
             $table->text('description')->nullable();
+            $table->string('target_table')->nullable();
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();
             $table->timestamps();
             
-            // Add index for created_at
+            // Explicit index
+            $table->index('user_id');
             $table->index('created_at');
         });
     }

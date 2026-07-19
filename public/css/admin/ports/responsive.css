@@ -1,0 +1,78 @@
+/* ============================================================
+   ADMIN PORT DATASET – Responsive CSS
+   public/css/admin/ports/responsive.css
+   ============================================================ */
+
+/* Desktop (>= 1200px) */
+@media (min-width: 1200px) {
+    /* Filter satu baris */
+}
+
+/* Laptop (992px - 1199px) */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+    /* Filter grid */
+}
+
+/* Tablet (768px - 991px) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    /* Filter dua baris */
+}
+
+/* Mobile (< 768px) */
+@media (max-width: 767.98px) {
+    .admin-port-header-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .admin-port-header-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    /* Transformasi Tabel menjadi Card List View di Mobile */
+    .port-responsive-table thead {
+        display: none !important;
+    }
+    
+    .port-responsive-table tbody,
+    .port-responsive-table tr,
+    .port-responsive-table td {
+        display: block;
+        width: 100%;
+    }
+    
+    .port-responsive-table tr {
+        background: #FFFFFF;
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.25rem;
+        margin-bottom: 1.25rem;
+        box-shadow: 0 4px 15px rgba(18, 52, 88, 0.02);
+    }
+    
+    .port-responsive-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px dashed var(--border-color) !important;
+        padding: 0.75rem 0 !important;
+        text-align: right;
+        font-size: 0.875rem;
+    }
+    
+    .port-responsive-table td:last-child {
+        border-bottom: none !important;
+    }
+    
+    .port-responsive-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+        text-align: left;
+        margin-right: 1.5rem;
+    }
+}
