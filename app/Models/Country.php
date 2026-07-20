@@ -48,6 +48,14 @@ class Country extends Model
         'population',
         'area',
         'timezone',
+        'latitude',
+        'longitude',
+        'flag_url',
+        'languages',
+    ];
+
+    protected $casts = [
+        'languages' => 'array',
     ];
 
     /**
@@ -70,34 +78,41 @@ class Country extends Model
         return $this->belongsTo(Currency::class);
     }
 
-    /**
-     * Relasi Many-to-Many ke Languages.
-     *
-     * @return BelongsToMany
-     */
-    public function languages(): BelongsToMany
+    public function coordinates()
     {
-        return $this->belongsToMany(Language::class, 'country_languages');
+        return (object)[
+            'latitude' => $this->latitude,
+            'longitude' => $this->longitude
+        ];
+    }
+
+    public function getCoordinatesAttribute()
+    {
+        return $this->coordinates();
     }
 
     /**
-     * Relasi One-to-One ke CountryCoordinates.
-     *
-     * @return HasOne
+     * Virtual flag attribute to mirror old flag relationship.
      */
-    public function coordinates(): HasOne
+    public function getFlagAttribute()
     {
-        return $this->hasOne(CountryCoordinate::class);
+        return (object)[
+            'flag_url' => $this->flag_url,
+            'file_url' => $this->flag_url
+        ];
     }
 
     /**
-     * Relasi One-to-One ke CountryFlags.
-     *
-     * @return HasOne
+     * Virtual languages attribute to mirror old languages relationship.
      */
-    public function flag(): HasOne
+    public function getLanguagesAttribute()
     {
-        return $this->hasOne(CountryFlag::class);
+        $langs = $this->attributes['languages'] ?? '[]';
+        $decoded = is_string($langs) ? json_decode($langs, true) : $langs;
+        $decoded = is_array($decoded) ? $decoded : [];
+        return collect($decoded)->map(function ($langName) {
+            return (object)['name' => $langName];
+        });
     }
 
     /**
@@ -110,84 +125,19 @@ class Country extends Model
         return $this->hasMany(Port::class);
     }
 
-    /**
-     * Relasi One-to-Many ke WeatherAlerts.
-     *
-     * @return HasMany
-     */
-    public function weatherAlerts(): HasMany
-    {
-        return $this->hasMany(WeatherAlert::class);
-    }
-
-    /**
-     * Relasi One-to-Many ke WeatherHistories.
-     *
-     * @return HasMany
-     */
     public function weatherHistories(): HasMany
     {
-        return $this->hasMany(WeatherHistory::class);
+        return $this->hasMany(WeatherCache::class);
     }
 
-    /**
-     * Relasi One-to-One ke RiskScore.
-     *
-     * @return HasOne
-     */
     public function riskScore(): HasOne
     {
         return $this->hasOne(RiskScore::class);
     }
 
-    /**
-     * Relasi One-to-Many ke RiskSnapshots.
-     *
-     * @return HasMany
-     */
-    public function riskSnapshots(): HasMany
-    {
-        return $this->hasMany(RiskSnapshot::class);
-    }
-
-    /**
-     * Relasi One-to-Many ke RiskAlerts.
-     *
-     * @return HasMany
-     */
     public function riskAlerts(): HasMany
     {
         return $this->hasMany(RiskAlert::class);
-    }
-
-    /**
-     * Relasi One-to-Many ke RiskTrends.
-     *
-     * @return HasMany
-     */
-    public function riskTrends(): HasMany
-    {
-        return $this->hasMany(RiskTrend::class);
-    }
-
-    /**
-     * Relasi One-to-Many ke RiskHistories.
-     *
-     * @return HasMany
-     */
-    public function riskHistories(): HasMany
-    {
-        return $this->hasMany(RiskHistory::class);
-    }
-
-    /**
-     * Relasi One-to-Many ke SentimentHistories.
-     *
-     * @return HasMany
-     */
-    public function sentimentHistories(): HasMany
-    {
-        return $this->hasMany(SentimentHistory::class);
     }
 
     /**
@@ -231,7 +181,7 @@ class Country extends Model
     protected function countryFlagUrl(): Attribute
     {
         return Attribute::make(
-            get: fn (): ?string => $this->flag?->flag_url
+            get: fn (): ?string => $this->flag_url
         );
     }
 

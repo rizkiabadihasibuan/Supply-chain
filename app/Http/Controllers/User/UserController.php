@@ -5,14 +5,18 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use App\Models\Country;
+use App\Models\Port;
+use App\Models\NewsArticle;
+use App\Models\Currency;
+use App\Models\RiskScore;
+use App\Models\Watchlist;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * ═══════════════════════════════════════════════════════════
- * USER CONTROLLER – Authentication Flow
+ * USER CONTROLLER – Authentication & Page Routing
  * app/Http/Controllers/User/UserController.php
- *
- * Handles all User panel page routing.
- * Uses layouts.user.app (pages/user/*).
  * ═══════════════════════════════════════════════════════════
  */
 class UserController extends Controller
@@ -32,7 +36,8 @@ class UserController extends Controller
      */
     public function countries(): View
     {
-        return view('pages.user.countries.index');
+        $countries = Country::with(['region', 'currency', 'riskScore'])->get();
+        return view('pages.user.countries.index', compact('countries'));
     }
 
     /**
@@ -41,7 +46,9 @@ class UserController extends Controller
      */
     public function weather(): View
     {
-        return view('pages.user.weather.index');
+        $countries = Country::with(['riskScore'])->get();
+        $ports = Port::with('country')->get();
+        return view('pages.user.weather.index', compact('countries', 'ports'));
     }
 
     /**
@@ -50,7 +57,8 @@ class UserController extends Controller
      */
     public function currency(): View
     {
-        return view('pages.user.currency.index');
+        $currencies = Currency::all();
+        return view('pages.user.currency.index', compact('currencies'));
     }
 
     /**
@@ -59,7 +67,8 @@ class UserController extends Controller
      */
     public function news(): View
     {
-        return view('pages.user.news.index');
+        $articles = NewsArticle::latest()->get();
+        return view('pages.user.news.index', compact('articles'));
     }
 
     /**
@@ -68,7 +77,8 @@ class UserController extends Controller
      */
     public function risk(): View
     {
-        return view('pages.user.risk.index');
+        $riskScores = RiskScore::with(['country.region', 'classification'])->orderBy('final_risk_score', 'desc')->get();
+        return view('pages.user.risk.index', compact('riskScores'));
     }
 
     /**
@@ -77,7 +87,8 @@ class UserController extends Controller
      */
     public function comparison(): View
     {
-        return view('pages.user.comparison.index');
+        $countries = Country::orderBy('name')->get();
+        return view('pages.user.comparison.index', compact('countries'));
     }
 
     /**
@@ -86,7 +97,12 @@ class UserController extends Controller
      */
     public function favorite(): View
     {
-        return view('pages.user.favorite.index');
+        $userId = Auth::id() ?? 1;
+        $watchlists = Watchlist::with(['countries.riskScore', 'countries.region'])
+            ->where('user_id', $userId)
+            ->get();
+
+        return view('pages.user.favorite.index', compact('watchlists'));
     }
 
     /**
@@ -95,7 +111,8 @@ class UserController extends Controller
      */
     public function visualization(): View
     {
-        return view('dashboard.visualization.index');
+        $countries = Country::with('riskScore')->get();
+        return view('dashboard.visualization.index', compact('countries'));
     }
 
     /**
@@ -104,7 +121,8 @@ class UserController extends Controller
      */
     public function profile(): View
     {
-        return view('profile.index');
+        $user = Auth::user();
+        return view('profile.index', compact('user'));
     }
 
     /**
@@ -113,6 +131,7 @@ class UserController extends Controller
      */
     public function ports(): View
     {
-        return view('ports.index');
+        $ports = Port::with('country.riskScore')->get();
+        return view('ports.index', compact('ports'));
     }
 }

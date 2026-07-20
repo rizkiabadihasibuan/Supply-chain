@@ -25,10 +25,10 @@ interface WeatherRepositoryInterface extends BaseRepositoryInterface
      * @param float $latitude
      * @param float $longitude
      * @param array<string, mixed> $data
-     * @param int $ttlHours
+     * @param int $ttlMinutes
      * @return WeatherCache
      */
-    public function saveCache(float $latitude, float $longitude, array $data, int $ttlHours = 3): WeatherCache;
+    public function saveCache(float $latitude, float $longitude, array $data, int $ttlMinutes = 30): WeatherCache;
 
     /**
      * Save daily weather history record.
@@ -40,7 +40,7 @@ interface WeatherRepositoryInterface extends BaseRepositoryInterface
      * @param string $recordedAt
      * @return WeatherHistory
      */
-    public function saveHistory(int $countryId, float $temp, float $wind, int $humidity, string $recordedAt): WeatherHistory;
+    public function saveHistory(int $countryId, float $temp, float $wind, int $humidity, string $recordedAt): WeatherCache;
 
     /**
      * Get weather history records.

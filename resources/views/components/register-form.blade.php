@@ -70,6 +70,36 @@
         <div class="invalid-feedback">Masukkan alamat email yang valid.</div>
     </div>
 
+    {{-- Peran / Role Selector --}}
+    <div class="auth-input-group mb-3">
+        <label for="reg-role" class="form-label d-flex align-items-center gap-1">
+            <span>Daftar Sebagai Peran (Role)</span>
+            <span class="text-danger">*</span>
+        </label>
+        <select 
+            class="form-select @error('role') is-invalid @enderror" 
+            id="reg-role" 
+            name="role" 
+            required
+            style="border-radius: 8px; font-size: .9rem; padding: 0.55rem 0.85rem;"
+        >
+            <option value="user" {{ old('role', 'user') === 'user' ? 'selected' : '' }}>
+                👤 User (Analis / Pengguna Rantai Pasok)
+            </option>
+            <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>
+                🔑 Admin (Administrator System)
+            </option>
+        </select>
+        @error('role')
+            <div class="invalid-feedback d-block">{{ $message }}</div>
+        @else
+            <div class="invalid-feedback">Pilih peran akun yang valid.</div>
+        @enderror
+        <small class="form-text text-muted mt-1 d-block" style="font-size: .78rem;">
+            * Akun Admin akan diarahkan ke Dashboard Admin, sedangkan User ke Dashboard Analis.
+        </small>
+    </div>
+
     {{-- Password --}}
     <div class="auth-input-group mb-3">
         <label for="reg-password" class="form-label">Kata Sandi</label>

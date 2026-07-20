@@ -95,7 +95,8 @@ abstract class BaseApiClient extends \App\Services\BaseApiService implements Api
         $this->logger->logRequest($method, $fullUrl, $payload);
 
         try {
-            $response = $this->buildRequest()->$method($endpoint, $payload);
+            $cleanEndpoint = ltrim($endpoint, '/');
+            $response = $this->buildRequest()->$method($cleanEndpoint, $payload);
             $responseTime = (microtime(true) - $startTime) * 1000;
 
             $this->logger->logResponse($method, $fullUrl, $responseTime, $response->status(), $response->body());

@@ -67,7 +67,7 @@ class RiskAggregationTest extends TestCase
                     'pressure_msl' => 1013.0,
                 ]
             ], 200),
-            'https://api.exchangerate-api.com/*' => Http::response([
+            'https://v6.exchangerate-api.com/*' => Http::response([
                 'base' => 'USD',
                 'rates' => [
                     'EUR' => 0.92,

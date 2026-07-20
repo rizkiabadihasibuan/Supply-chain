@@ -13,7 +13,7 @@ class ExchangeRateCacheManager
     public function __construct(ApiLogger $logger)
     {
         $this->logger = $logger;
-        $this->ttl = config('api.cache_ttl', 3600); // 1 hour TTL standard
+        $this->ttl = 1800; // 30 mins TTL standard
     }
 
     public function getCachedRates(string $base, callable $apiCall, bool $forceRefresh = false)

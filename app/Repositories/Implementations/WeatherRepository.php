@@ -15,9 +15,9 @@ class WeatherRepository extends BaseRepository implements WeatherRepositoryInter
     /**
      * WeatherRepository constructor.
      *
-     * @param WeatherHistory $model
+     * @param WeatherCache $model
      */
-    public function __construct(WeatherHistory $model)
+    public function __construct(WeatherCache $model)
     {
         parent::__construct($model);
     }
@@ -36,7 +36,7 @@ class WeatherRepository extends BaseRepository implements WeatherRepositoryInter
     /**
      * @inheritDoc
      */
-    public function saveCache(float $latitude, float $longitude, array $data, int $ttlHours = 3): WeatherCache
+    public function saveCache(float $latitude, float $longitude, array $data, int $ttlMinutes = 30): WeatherCache
     {
         return WeatherCache::updateOrCreate(
             [
@@ -45,7 +45,7 @@ class WeatherRepository extends BaseRepository implements WeatherRepositoryInter
             ],
             [
                 'weather_data' => $data,
-                'expires_at' => Carbon::now()->addHours($ttlHours),
+                'expires_at' => Carbon::now()->addMinutes($ttlMinutes),
             ]
         );
     }
@@ -53,17 +53,16 @@ class WeatherRepository extends BaseRepository implements WeatherRepositoryInter
     /**
      * @inheritDoc
      */
-    public function saveHistory(int $countryId, float $temp, float $wind, int $humidity, string $recordedAt): WeatherHistory
+    public function saveHistory(int $countryId, float $temp, float $wind, int $humidity, string $recordedAt): WeatherCache
     {
-        return WeatherHistory::updateOrCreate(
+        return WeatherCache::updateOrCreate(
             [
-                'country_id' => $countryId,
-                'recorded_at' => Carbon::parse($recordedAt),
+                'latitude' => 0.0,
+                'longitude' => 0.0,
             ],
             [
-                'temperature' => $temp,
-                'wind_speed' => $wind,
-                'humidity' => $humidity,
+                'weather_data' => ['temp' => $temp, 'wind' => $wind, 'humidity' => $humidity],
+                'expires_at' => Carbon::now()->addMinutes(30),
             ]
         );
     }
@@ -73,8 +72,7 @@ class WeatherRepository extends BaseRepository implements WeatherRepositoryInter
      */
     public function getHistory(int $countryId, int $limit = 30): Collection
     {
-        return $this->model->byCountry($countryId)
-            ->latest()
+        return WeatherCache::latest()
             ->limit($limit)
             ->get();
     }

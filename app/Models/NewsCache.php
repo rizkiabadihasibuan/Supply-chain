@@ -58,16 +58,19 @@ class NewsCache extends Model
     ];
 
     /**
-     * Mutator & Accessor untuk query berita (selalu uppercase trim untuk keseragaman indeks).
-     *
-     * @return Attribute
+     * Accessor untuk query berita (selalu uppercase untuk keseragaman indeks).
      */
-    protected function query(): Attribute
+    public function getQueryAttribute(string $value): string
     {
-        return Attribute::make(
-            get: fn (string $value): string => strtoupper($value),
-            set: fn (string $value): string => strtoupper(trim($value))
-        );
+        return strtoupper($value);
+    }
+
+    /**
+     * Mutator untuk query berita (selalu uppercase trim untuk keseragaman indeks).
+     */
+    public function setQueryAttribute(string $value): void
+    {
+        $this->attributes['query'] = strtoupper(trim($value));
     }
 
     /**

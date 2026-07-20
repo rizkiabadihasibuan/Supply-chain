@@ -18,14 +18,16 @@ return new class extends Migration
                   ->cascadeOnUpdate()
                   ->cascadeOnDelete();
             $table->foreignId('risk_score_id')
+                  ->nullable()
                   ->constrained('risk_scores')
                   ->cascadeOnUpdate()
-                  ->cascadeOnDelete();
-            $table->string('alert_type', 100);
+                  ->nullOnDelete();
+            $table->string('alert_type', 100)->default('geopolitical');
             $table->string('severity', 50)->default('Medium')->index(); // Low, Medium, High, Critical
             $table->string('title');
             $table->text('description')->nullable();
             $table->string('status', 50)->default('Active')->index(); // Active, Resolved
+            $table->timestamp('detected_at')->nullable();
             $table->timestamp('resolved_at')->nullable();
             $table->timestamps();
 

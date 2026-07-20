@@ -4,15 +4,21 @@ declare(strict_types=1);
 
 namespace App\Services\Implementations;
 
+use App\Integrations\ExchangeRate\ExchangeRateApiClient;
 use App\Repositories\Interfaces\ApiLogRepositoryInterface;
 use App\Repositories\Interfaces\CurrencyRepositoryInterface;
 use App\Services\Contracts\ExchangeRateServiceInterface;
+use App\Models\CurrencyCache;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class ExchangeRateService implements ExchangeRateServiceInterface
 {
+    /**
+     * @var ExchangeRateApiClient
+     */
+    protected ExchangeRateApiClient $apiClient;
+
     /**
      * @var CurrencyRepositoryInterface
      */
@@ -25,14 +31,13 @@ class ExchangeRateService implements ExchangeRateServiceInterface
 
     /**
      * ExchangeRateService constructor.
-     *
-     * @param CurrencyRepositoryInterface $currencyRepo
-     * @param ApiLogRepositoryInterface $apiLogRepo
      */
     public function __construct(
+        ExchangeRateApiClient $apiClient,
         CurrencyRepositoryInterface $currencyRepo,
         ApiLogRepositoryInterface $apiLogRepo
     ) {
+        $this->apiClient = $apiClient;
         $this->currencyRepo = $currencyRepo;
         $this->apiLogRepo = $apiLogRepo;
     }
@@ -43,51 +48,43 @@ class ExchangeRateService implements ExchangeRateServiceInterface
     public function getRates(string $baseCurrency, bool $forceRefresh = false): array
     {
         $base = strtoupper(trim($baseCurrency));
-
-        if (!$forceRefresh) {
-            $cached = $this->currencyRepo->getCache($base);
-            if ($cached) {
-                return $cached->rates_data;
-            }
-        }
-
-        $endpoint = 'https://open.er-api.com/v6/latest/' . $base;
-
         $startTime = microtime(true);
-        $statusCode = null;
-        $isSuccess = false;
-        $errorMessage = null;
 
+        // 1. Always attempt live API fetch first for real-time rates
         try {
-            $response = Http::timeout(10)->get($endpoint);
-            $statusCode = $response->status();
+            $data = $this->apiClient->getLatest($base);
+            $rates = $data['rates'] ?? [];
             $durationMs = (int) round((microtime(true) - $startTime) * 1000);
 
-            if ($response->successful()) {
-                $isSuccess = true;
-                $data = $response->json();
-                $rates = $data['rates'] ?? [];
+            if (!empty($rates)) {
+                $this->currencyRepo->saveCache($base, $rates);
+                $this->apiLogRepo->log('ExchangeRate API', "https://open.er-api.com/v6/latest/{$base}", 'GET', 200, true, null, $durationMs);
 
-                if (!empty($rates)) {
-                    $this->currencyRepo->saveCache($base, $rates);
-                    $this->apiLogRepo->log('ExchangeRate API', $endpoint, 'GET', $statusCode, true, null, $durationMs);
-
-                    return $rates;
-                }
+                return $rates;
             }
-
-            $errorMessage = $response->body();
-            $this->apiLogRepo->log('ExchangeRate API', $endpoint, 'GET', $statusCode, false, $errorMessage, $durationMs);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $durationMs = (int) round((microtime(true) - $startTime) * 1000);
-            $errorMessage = $e->getMessage();
-            $this->apiLogRepo->log('ExchangeRate API', $endpoint, 'GET', $statusCode, false, $errorMessage, $durationMs);
-            Log::error('ExchangeRate API Error: ' . $errorMessage);
+            $this->apiLogRepo->log('ExchangeRate API', "https://open.er-api.com/v6/latest/{$base}", 'GET', 500, false, $e->getMessage(), $durationMs);
+            Log::error('ExchangeRate API Error via ExchangeRateApiClient: ' . $e->getMessage());
         }
 
-        // Fallback response: load latest expired/valid rates from DB cache
+        // 2. Fallback to cache if network API is offline
+        $cached = $this->currencyRepo->getCache($base);
+        if ($cached && !empty($cached->rates_data)) {
+            return $cached->rates_data;
+        }
+
+        // 3. Fallback database cache or hardcoded defaults
         $fallback = CurrencyCache::where('base_currency', $base)->first();
-        return $fallback ? $fallback->rates_data : ['USD' => 1.0];
+        return $fallback ? $fallback->rates_data : [
+            'USD' => 1.0,
+            'IDR' => 16245.0,
+            'EUR' => 0.92,
+            'JPY' => 157.0,
+            'SGD' => 1.34,
+            'CNY' => 7.25,
+            'GBP' => 0.79,
+        ];
     }
 
     /**

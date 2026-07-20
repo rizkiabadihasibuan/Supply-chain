@@ -5,14 +5,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use App\Models\User;
+use App\Models\Port;
+use App\Models\NewsArticle;
+use App\Models\Country;
 
 /**
  * ═══════════════════════════════════════════════════════════
- * ADMIN CONTROLLER – Milestone 3.16A
+ * ADMIN CONTROLLER – Page Routing with Data
  * app/Http/Controllers/Admin/AdminController.php
- *
- * Handles all Admin panel page routing.
- * Uses layouts.admin.app (pages/admin/*).
  * ═══════════════════════════════════════════════════════════
  */
 class AdminController extends Controller
@@ -23,7 +24,15 @@ class AdminController extends Controller
      */
     public function dashboard(): View
     {
-        return view('pages.admin.dashboard.index');
+        $usersCount = User::count();
+        $portsCount = Port::count();
+        $articlesCount = NewsArticle::count();
+        $countriesCount = Country::count();
+        $recentUsers = User::latest()->limit(5)->get();
+
+        return view('pages.admin.dashboard.index', compact(
+            'usersCount', 'portsCount', 'articlesCount', 'countriesCount', 'recentUsers'
+        ));
     }
 
     /**
@@ -32,7 +41,8 @@ class AdminController extends Controller
      */
     public function users(): View
     {
-        return view('pages.admin.users.index');
+        $users = User::latest()->get();
+        return view('pages.admin.users.index', compact('users'));
     }
 
     /**
@@ -41,7 +51,8 @@ class AdminController extends Controller
      */
     public function ports(): View
     {
-        return view('pages.admin.ports.index');
+        $ports = Port::with('country')->latest()->get();
+        return view('pages.admin.ports.index', compact('ports'));
     }
 
     /**
@@ -50,7 +61,8 @@ class AdminController extends Controller
      */
     public function articles(): View
     {
-        return view('pages.admin.articles.index');
+        $articles = NewsArticle::latest()->get();
+        return view('pages.admin.articles.index', compact('articles'));
     }
 
     /**
@@ -59,7 +71,8 @@ class AdminController extends Controller
      */
     public function articleCreate(): View
     {
-        return view('admin.articles.create');
+        $countries = Country::all();
+        return view('admin.articles.create', compact('countries'));
     }
 
     /**
@@ -68,7 +81,9 @@ class AdminController extends Controller
      */
     public function articleEdit(int $id): View
     {
-        return view('admin.articles.edit', compact('id'));
+        $article = NewsArticle::find($id);
+        $countries = Country::all();
+        return view('admin.articles.edit', compact('article', 'id', 'countries'));
     }
 
     /**
@@ -77,6 +92,7 @@ class AdminController extends Controller
      */
     public function articleDetail(int $id): View
     {
-        return view('admin.articles.detail', compact('id'));
+        $article = NewsArticle::find($id);
+        return view('admin.articles.detail', compact('article', 'id'));
     }
 }

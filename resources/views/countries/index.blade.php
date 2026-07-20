@@ -194,255 +194,53 @@
 
     <!-- Countries Grid (Fades in) -->
     <div id="countries-grid" class="row g-4 mb-4" style="display: none;">
-        <!-- Card 1: Indonesia -->
-        <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" data-name="Indonesia" data-capital="Jakarta" data-region="asia" data-risk-level="low" data-risk-score="1.25" data-pop="275000000" data-gdp="1370000000000" data-status="aktif">
+        @foreach($countries as $c)
+        @php
+            $riskScoreVal = $c->riskScore?->final_risk_score ?? 20.0;
+            $riskLevelVal = strtolower($c->riskScore?->risk_level ?? 'low');
+            $badgeClass = 'badge-success';
+            $badgeText = 'Risiko Rendah';
+            if ($riskLevelVal === 'critical' || $riskLevelVal === 'high') {
+                $badgeClass = 'badge-danger';
+                $badgeText = 'Risiko Tinggi';
+            } else if ($riskLevelVal === 'medium') {
+                $badgeClass = 'badge-warning';
+                $badgeText = 'Risiko Sedang';
+            }
+        @endphp
+        <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" 
+             data-id="{{ $c->id }}"
+             data-name="{{ $c->name }}" 
+             data-capital="{{ $c->capital ?? 'N/A' }}" 
+             data-region="{{ strtolower($c->region?->name ?? 'asia') }}" 
+             data-risk-level="{{ $riskLevelVal }}" 
+             data-risk-score="{{ $riskScoreVal }}" 
+             data-pop="{{ $c->population ?? 0 }}" 
+             data-gdp="{{ $c->gdp ?? 0 }}" 
+             data-status="aktif">
             <div class="card p-4 border-0 h-100 d-flex flex-column">
                 <div class="d-flex justify-content-between align-items-start mb-3">
-                    <span class="fs-1">🇮🇩</span>
-                    <span class="badge badge-success">Risiko Rendah</span>
+                    <img src="{{ $c->flag_url ?? 'https://flagcdn.com/w320/' . strtolower($c->code) . '.png' }}" alt="{{ $c->name }}" style="height: 28px; width: 40px; object-fit: cover; border-radius: 4px;" class="border">
+                    <span class="badge {{ $badgeClass }}">{{ $badgeText }}</span>
                 </div>
-                <h5 class="fw-bold text-dark mb-1">Indonesia</h5>
-                <span class="text-secondary small d-block mb-3.5"><i class="bi bi-geo-alt me-1"></i>Ibukota: Jakarta</span>
+                <h5 class="fw-bold text-dark mb-1">{{ $c->name }}</h5>
+                <span class="text-secondary small d-block mb-3"><i class="bi bi-geo-alt me-1"></i>Ibukota: {{ $c->capital ?? 'N/A' }}</span>
                 
-                <div class="d-flex flex-column gap-2 mb-4" style="font-size: 0.825rem;">
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Wilayah:</span><span class="text-dark fw-medium">Asia</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Populasi:</span><span class="text-dark fw-medium">275 Juta</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">GDP Est:</span><span class="text-dark fw-medium">USD 1.37 T</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Cuaca Port:</span><span class="text-dark fw-medium">28°C / Hujan</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Kurs Utama:</span><span class="text-dark fw-medium">IDR (Rupiah)</span></div>
+                <div class="d-flex flex-column gap-2 mb-3" style="font-size: 0.825rem;">
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Wilayah / Sub:</span><span class="text-dark fw-medium">{{ $c->region?->name ?? 'Global' }}</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Populasi:</span><span class="text-dark fw-medium">{{ number_format($c->population ?? 0) }}</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Mata Uang:</span><span class="text-dark fw-medium">{{ $c->currency?->code ?? 'USD' }} ({{ $c->currency?->symbol ?? '$' }})</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-secondary">Koordinat:</span><span class="text-dark fw-medium">{{ number_format($c->latitude, 2) }}, {{ number_format($c->longitude, 2) }}</span></div>
                 </div>
 
-                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
-                    <span class="text-success small fw-semibold"><span class="pulse-indicator"></span>Aktif</span>
-                    <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-3">Lihat Detail</a>
+                <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between gap-2">
+                    <button class="btn btn-primary btn-sm flex-fill" style="min-height: 38px;" onclick="selectCountryAndSyncDashboard('{{ $c->id }}')">
+                        <i class="bi bi-arrow-repeat me-1"></i>Pilih & Sync Dasbor
+                    </button>
                 </div>
             </div>
         </div>
-
-        <!-- Card 2: Singapura -->
-        <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" data-name="Singapura" data-capital="Singapura" data-region="asia" data-risk-level="low" data-risk-score="0.95" data-pop="5900000" data-gdp="466000000000" data-status="aktif">
-            <div class="card p-4 border-0 h-100 d-flex flex-column">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <span class="fs-1">🇸🇬</span>
-                    <span class="badge badge-success">Risiko Rendah</span>
-                </div>
-                <h5 class="fw-bold text-dark mb-1">Singapura</h5>
-                <span class="text-secondary small d-block mb-3.5"><i class="bi bi-geo-alt me-1"></i>Ibukota: Singapura</span>
-                
-                <div class="d-flex flex-column gap-2 mb-4" style="font-size: 0.825rem;">
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Wilayah:</span><span class="text-dark fw-medium">Asia</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Populasi:</span><span class="text-dark fw-medium">5.9 Juta</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">GDP Est:</span><span class="text-dark fw-medium">USD 466 M</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Cuaca Port:</span><span class="text-dark fw-medium">31°C / Cerah</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Kurs Utama:</span><span class="text-dark fw-medium">SGD (Dolar SG)</span></div>
-                </div>
-
-                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
-                    <span class="text-success small fw-semibold"><span class="pulse-indicator"></span>Aktif</span>
-                    <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-3">Lihat Detail</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card 3: Amerika Serikat -->
-        <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" data-name="Amerika Serikat" data-capital="Washington D.C." data-region="america" data-risk-level="medium" data-risk-score="3.48" data-pop="333000000" data-gdp="26850000000000" data-status="aktif">
-            <div class="card p-4 border-0 h-100 d-flex flex-column">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <span class="fs-1">🇺🇸</span>
-                    <span class="badge badge-warning">Risiko Sedang</span>
-                </div>
-                <h5 class="fw-bold text-dark mb-1">Amerika Serikat</h5>
-                <span class="text-secondary small d-block mb-3.5"><i class="bi bi-geo-alt me-1"></i>Ibukota: Washington D.C.</span>
-                
-                <div class="d-flex flex-column gap-2 mb-4" style="font-size: 0.825rem;">
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Wilayah:</span><span class="text-dark fw-medium">Amerika</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Populasi:</span><span class="text-dark fw-medium">333 Juta</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">GDP Est:</span><span class="text-dark fw-medium">USD 26.85 T</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Cuaca Port:</span><span class="text-dark fw-medium">19°C / Cerah</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Kurs Utama:</span><span class="text-dark fw-medium">USD (Dolar AS)</span></div>
-                </div>
-
-                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
-                    <span class="text-success small fw-semibold"><span class="pulse-indicator"></span>Aktif</span>
-                    <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-3">Lihat Detail</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card 4: China -->
-        <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" data-name="China" data-capital="Beijing" data-region="asia" data-risk-level="high" data-risk-score="4.92" data-pop="1410000000" data-gdp="17900000000000" data-status="aktif">
-            <div class="card p-4 border-0 h-100 d-flex flex-column">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <span class="fs-1">🇨🇳</span>
-                    <span class="badge badge-danger">Risiko Tinggi</span>
-                </div>
-                <h5 class="fw-bold text-dark mb-1">China</h5>
-                <span class="text-secondary small d-block mb-3.5"><i class="bi bi-geo-alt me-1"></i>Ibukota: Beijing</span>
-                
-                <div class="d-flex flex-column gap-2 mb-4" style="font-size: 0.825rem;">
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Wilayah:</span><span class="text-dark fw-medium">Asia</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Populasi:</span><span class="text-dark fw-medium">1.41 Miliar</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">GDP Est:</span><span class="text-dark fw-medium">USD 17.9 T</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Cuaca Port:</span><span class="text-dark fw-medium">24°C / Badai</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Kurs Utama:</span><span class="text-dark fw-medium">CNY (Yuan)</span></div>
-                </div>
-
-                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
-                    <span class="text-success small fw-semibold"><span class="pulse-indicator"></span>Aktif</span>
-                    <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-3">Lihat Detail</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card 5: Belanda -->
-        <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" data-name="Belanda" data-capital="Amsterdam" data-region="europe" data-risk-level="low" data-risk-score="1.85" data-pop="17800000" data-gdp="1090000000000" data-status="aktif">
-            <div class="card p-4 border-0 h-100 d-flex flex-column">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <span class="fs-1">🇳🇱</span>
-                    <span class="badge badge-success">Risiko Rendah</span>
-                </div>
-                <h5 class="fw-bold text-dark mb-1">Belanda</h5>
-                <span class="text-secondary small d-block mb-3.5"><i class="bi bi-geo-alt me-1"></i>Ibukota: Amsterdam</span>
-                
-                <div class="d-flex flex-column gap-2 mb-4" style="font-size: 0.825rem;">
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Wilayah:</span><span class="text-dark fw-medium">Eropa</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Populasi:</span><span class="text-dark fw-medium">17.8 Juta</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">GDP Est:</span><span class="text-dark fw-medium">USD 1.09 T</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Cuaca Port:</span><span class="text-dark fw-medium">17°C / Berawan</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Kurs Utama:</span><span class="text-dark fw-medium">EUR (Euro)</span></div>
-                </div>
-
-                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
-                    <span class="text-success small fw-semibold"><span class="pulse-indicator"></span>Aktif</span>
-                    <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-3">Lihat Detail</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card 6: Sudan -->
-        <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" data-name="Sudan" data-capital="Khartoum" data-region="africa" data-risk-level="high" data-risk-score="4.80" data-pop="46000000" data-gdp="34000000000" data-status="tidak-aktif">
-            <div class="card p-4 border-0 h-100 d-flex flex-column">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <span class="fs-1">🇸🇩</span>
-                    <span class="badge badge-danger">Risiko Tinggi</span>
-                </div>
-                <h5 class="fw-bold text-dark mb-1">Sudan</h5>
-                <span class="text-secondary small d-block mb-3.5"><i class="bi bi-geo-alt me-1"></i>Ibukota: Khartoum</span>
-                
-                <div class="d-flex flex-column gap-2 mb-4" style="font-size: 0.825rem;">
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Wilayah:</span><span class="text-dark fw-medium">Afrika</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Populasi:</span><span class="text-dark fw-medium">46 Juta</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">GDP Est:</span><span class="text-dark fw-medium">USD 34 Miliar</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Cuaca Port:</span><span class="text-dark fw-medium">38°C / Berdebu</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Kurs Utama:</span><span class="text-dark fw-medium">SDG (Pound Sudan)</span></div>
-                </div>
-
-                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
-                    <span class="text-danger small fw-semibold"><i class="bi bi-x-circle-fill me-1"></i>Tidak Aktif</span>
-                    <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-3">Lihat Detail</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card 7: Yaman -->
-        <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" data-name="Yaman" data-capital="Sana'a" data-region="asia" data-risk-level="high" data-risk-score="4.50" data-pop="33000000" data-gdp="21000000000" data-status="tidak-aktif">
-            <div class="card p-4 border-0 h-100 d-flex flex-column">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <span class="fs-1">🇾🇪</span>
-                    <span class="badge badge-danger">Risiko Tinggi</span>
-                </div>
-                <h5 class="fw-bold text-dark mb-1">Yaman</h5>
-                <span class="text-secondary small d-block mb-3.5"><i class="bi bi-geo-alt me-1"></i>Ibukota: Sana'a</span>
-                
-                <div class="d-flex flex-column gap-2 mb-4" style="font-size: 0.825rem;">
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Wilayah:</span><span class="text-dark fw-medium">Asia</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Populasi:</span><span class="text-dark fw-medium">33 Juta</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">GDP Est:</span><span class="text-dark fw-medium">USD 21 Miliar</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Cuaca Port:</span><span class="text-dark fw-medium">35°C / Cerah</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Kurs Utama:</span><span class="text-dark fw-medium">YER (Riyal)</span></div>
-                </div>
-
-                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
-                    <span class="text-danger small fw-semibold"><i class="bi bi-x-circle-fill me-1"></i>Tidak Aktif</span>
-                    <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-3">Lihat Detail</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card 8: Brasil -->
-        <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" data-name="Brasil" data-capital="Brasilia" data-region="america" data-risk-level="low" data-risk-score="2.35" data-pop="215000000" data-gdp="1920000000000" data-status="aktif">
-            <div class="card p-4 border-0 h-100 d-flex flex-column">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <span class="fs-1">🇧🇷</span>
-                    <span class="badge badge-success">Risiko Rendah</span>
-                </div>
-                <h5 class="fw-bold text-dark mb-1">Brasil</h5>
-                <span class="text-secondary small d-block mb-3.5"><i class="bi bi-geo-alt me-1"></i>Ibukota: Brasilia</span>
-                
-                <div class="d-flex flex-column gap-2 mb-4" style="font-size: 0.825rem;">
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Wilayah:</span><span class="text-dark fw-medium">Amerika</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Populasi:</span><span class="text-dark fw-medium">215 Juta</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">GDP Est:</span><span class="text-dark fw-medium">USD 1.92 T</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Cuaca Port:</span><span class="text-dark fw-medium">26°C / Badai</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Kurs Utama:</span><span class="text-dark fw-medium">BRL (Real)</span></div>
-                </div>
-
-                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
-                    <span class="text-success small fw-semibold"><span class="pulse-indicator"></span>Aktif</span>
-                    <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-3">Lihat Detail</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card 9: Jerman -->
-        <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" data-name="Jerman" data-capital="Berlin" data-region="europe" data-risk-level="low" data-risk-score="1.20" data-pop="83000000" data-gdp="4070000000000" data-status="aktif">
-            <div class="card p-4 border-0 h-100 d-flex flex-column">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <span class="fs-1">🇩🇪</span>
-                    <span class="badge badge-success">Risiko Rendah</span>
-                </div>
-                <h5 class="fw-bold text-dark mb-1">Jerman</h5>
-                <span class="text-secondary small d-block mb-3.5"><i class="bi bi-geo-alt me-1"></i>Ibukota: Berlin</span>
-                
-                <div class="d-flex flex-column gap-2 mb-4" style="font-size: 0.825rem;">
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Wilayah:</span><span class="text-dark fw-medium">Eropa</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Populasi:</span><span class="text-dark fw-medium">83 Juta</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">GDP Est:</span><span class="text-dark fw-medium">USD 4.07 T</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Cuaca Port:</span><span class="text-dark fw-medium">19°C / Mendung</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Kurs Utama:</span><span class="text-dark fw-medium">EUR (Euro)</span></div>
-                </div>
-
-                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
-                    <span class="text-success small fw-semibold"><span class="pulse-indicator"></span>Aktif</span>
-                    <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-3">Lihat Detail</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card 10: Jepang -->
-        <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" data-name="Jepang" data-capital="Tokyo" data-region="asia" data-risk-level="low" data-risk-score="1.30" data-pop="125000000" data-gdp="4230000000000" data-status="aktif">
-            <div class="card p-4 border-0 h-100 d-flex flex-column">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <span class="fs-1">🇯🇵</span>
-                    <span class="badge badge-success">Risiko Rendah</span>
-                </div>
-                <h5 class="fw-bold text-dark mb-1">Jepang</h5>
-                <span class="text-secondary small d-block mb-3.5"><i class="bi bi-geo-alt me-1"></i>Ibukota: Tokyo</span>
-                
-                <div class="d-flex flex-column gap-2 mb-4" style="font-size: 0.825rem;">
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Wilayah:</span><span class="text-dark fw-medium">Asia</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Populasi:</span><span class="text-dark fw-medium">125 Juta</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">GDP Est:</span><span class="text-dark fw-medium">USD 4.23 T</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Cuaca Port:</span><span class="text-dark fw-medium">22°C / Cerah</span></div>
-                    <div class="d-flex justify-content-between"><span class="text-secondary">Kurs Utama:</span><span class="text-dark fw-medium">JPY (Yen)</span></div>
-                </div>
-
-                <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
-                    <span class="text-success small fw-semibold"><span class="pulse-indicator"></span>Aktif</span>
-                    <a href="{{ route('countries.detail') }}" class="btn btn-light btn-sm border px-3">Lihat Detail</a>
-                </div>
-            </div>
-        </div>
+        @endforeach
 
         <!-- Card 11: Somalia -->
         <div class="col-xl-3 col-lg-4 col-md-6 country-card-item" data-name="Somalia" data-capital="Mogadishu" data-region="africa" data-risk-level="high" data-risk-score="4.70" data-pop="17000000" data-gdp="8000000000" data-status="tidak-aktif">
@@ -519,6 +317,11 @@
 
 @section('scripts')
 <script>
+    function selectCountryAndSyncDashboard(countryId) {
+        localStorage.setItem('selected_country_id', countryId);
+        window.location.href = "{{ route('dashboard') }}";
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         // Initial simulated loading
         setTimeout(() => {

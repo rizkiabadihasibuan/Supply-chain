@@ -6,43 +6,28 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('countries', function (Blueprint $table) {
             $table->id();
-            
-            // Geopolitical regions relation
-            $table->foreignId('region_id')
-                  ->constrained('regions')
-                  ->cascadeOnUpdate()
-                  ->restrictOnDelete();
-
-            // Currency relation
-            $table->foreignId('currency_id')
-                  ->constrained('currencies')
-                  ->cascadeOnUpdate()
-                  ->restrictOnDelete();
-
-            $table->char('code', 2)->unique()->index();
-            $table->string('name')->unique()->index();
-            $table->string('subregion')->nullable();
-            $table->bigInteger('population')->nullable();
-            $table->double('area')->nullable();
+            $table->string('name')->unique();
+            $table->string('code', 3)->unique(); // ISO code
+            $table->foreignId('region_id')->nullable()->constrained('regions')->onDelete('set null');
+            $table->foreignId('currency_id')->nullable()->constrained('currencies')->onDelete('set null');
+            $table->bigInteger('population')->default(0);
             $table->string('timezone')->nullable();
+            
+            $table->string('subregion')->nullable();
+            $table->double('area')->nullable();
+            $table->double('latitude')->nullable();
+            $table->double('longitude')->nullable();
+            $table->string('flag_url')->nullable();
+            $table->json('languages')->nullable();
+            
             $table->timestamps();
-
-            // Explicit index
-            $table->index('region_id');
-            $table->index('currency_id');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('countries');

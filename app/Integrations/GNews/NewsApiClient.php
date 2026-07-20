@@ -14,34 +14,44 @@ class NewsApiClient extends BaseApiClient
 
     protected function getApiKey(): string
     {
-        return Config::get('api.integrations.gnews.api_key', '');
+        return Config::get('api.integrations.gnews.api_key', config('services.gnews.key', ''));
     }
 
     /**
-     * Search news based on keywords (Political Risk, Supply Chain, etc)
+     * Search news based on keywords (Logistics, Shipping, Economy, Trade, etc)
      */
-    public function search(string $keyword, string $country = 'us', string $lang = 'en'): array
+    public function search(string $keyword = 'logistics OR shipping OR economy OR trade', string $lang = 'en'): array
     {
-        return $this->get('/search', [
+        $params = [
             'q' => $keyword,
-            'country' => $country,
             'lang' => $lang,
-            'apikey' => $this->getApiKey(),
-            'max' => 10
-        ]);
+            'max' => 10,
+        ];
+
+        $apiKey = $this->getApiKey();
+        if (!empty($apiKey)) {
+            $params['apikey'] = $apiKey;
+        }
+
+        return $this->get('/search', $params);
     }
 
     /**
-     * Fetch top news for a specific category (e.g. business, nation)
+     * Fetch top news for logistics / business category
      */
-    public function topHeadlines(string $category = 'business', string $country = 'us', string $lang = 'en'): array
+    public function topHeadlines(string $category = 'business', string $lang = 'en'): array
     {
-        return $this->get('/top-headlines', [
+        $params = [
             'category' => $category,
-            'country' => $country,
             'lang' => $lang,
-            'apikey' => $this->getApiKey(),
-            'max' => 10
-        ]);
+            'max' => 10,
+        ];
+
+        $apiKey = $this->getApiKey();
+        if (!empty($apiKey)) {
+            $params['apikey'] = $apiKey;
+        }
+
+        return $this->get('/top-headlines', $params);
     }
 }

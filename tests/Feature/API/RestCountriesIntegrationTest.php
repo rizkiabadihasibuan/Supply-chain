@@ -67,7 +67,7 @@ class RestCountriesIntegrationTest extends TestCase
         ]);
 
         // 1st Call - API success
-        $countries = $this->service->getAllCountries();
+        $countries = $this->service->getAllCountries(true);
         $this->assertCount(1, $countries);
         $this->assertEquals('Germany', $countries[0]['country']);
         $this->assertEquals('DE', $countries[0]['iso2']);
@@ -97,7 +97,7 @@ class RestCountriesIntegrationTest extends TestCase
         Cache::forget('rest_countries_all_dtos');
 
         // 2nd Call - API fails (500), falls back to backup cache
-        $countries2 = $this->service->getAllCountries();
+        $countries2 = $this->service->getAllCountries(true);
         $this->assertCount(1, $countries2);
         $this->assertEquals('Germany', $countries2[0]['country']);
 
@@ -106,6 +106,6 @@ class RestCountriesIntegrationTest extends TestCase
 
         // 3rd Call - API fails, no backup cache -> throws exception
         $this->expectException(\Throwable::class);
-        $this->service->getAllCountries();
+        $this->service->getAllCountries(true);
     }
 }

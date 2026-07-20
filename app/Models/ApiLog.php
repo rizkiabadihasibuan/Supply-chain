@@ -10,44 +10,16 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-/**
- * Class ApiLog
- *
- * @package App\Models
- * @property int $id
- * @property string $api_name
- * @property string $endpoint
- * @property string $method
- * @property int|null $status_code
- * @property bool $is_success
- * @property string|null $error_message
- * @property int $duration_ms
- * @property Carbon|null $created_at
- * @property-read string $formatted_response_time
- */
 class ApiLog extends Model
 {
     use HasFactory;
 
-    /**
-     * Nama tabel di database.
-     *
-     * @var string
-     */
     protected $table = 'api_logs';
 
-    /**
-     * Menonaktifkan updated_at timestamps bawaan Laravel.
-     */
-    public const UPDATED_AT = null;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
-        'api_name',
+        'log_type',
+        'service_name',
+        'api_name', // mapped virtual
         'endpoint',
         'method',
         'status_code',
@@ -56,84 +28,42 @@ class ApiLog extends Model
         'duration_ms',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
-        'status_code' => 'integer',
         'is_success' => 'boolean',
         'duration_ms' => 'integer',
-        'created_at' => 'datetime',
+        'status_code' => 'integer',
     ];
 
-    /**
-     * Scope untuk menyaring log kegagalan API.
-     *
-     * @param Builder $query
-     * @return Builder
-     */
-    public function scopeErrors(Builder $query): Builder
+    // ── Virtual Attribute for Backward Compatibility ──────────────────
+    public function getApiNameAttribute()
     {
-        return $query->where('is_success', false);
+        return $this->attributes['service_name'] ?? '';
     }
 
-    /**
-     * Scope untuk menyaring log kesuksesan API.
-     *
-     * @param Builder $query
-     * @return Builder
-     */
+    public function setApiNameAttribute($value)
+    {
+        $this->attributes['service_name'] = $value;
+    }
+
+    protected function formattedResponseTime(): Attribute
+    {
+        return Attribute::make(
+            get: fn (): string => sprintf('%d ms', $this->duration_ms)
+        );
+    }
+
     public function scopeSuccess(Builder $query): Builder
     {
         return $query->where('is_success', true);
     }
 
-    /**
-     * Scope untuk memfilter berdasarkan nama API penyedia.
-     *
-     * @param Builder $query
-     * @param string $apiName
-     * @return Builder
-     */
-    public function scopeByApi(Builder $query, string $apiName): Builder
+    public function scopeFailed(Builder $query): Builder
     {
-        return $query->where('api_name', $apiName);
+        return $query->where('is_success', false);
     }
 
-    /**
-     * Scope untuk mengurutkan data terbaru.
-     *
-     * @param Builder $query
-     * @return Builder
-     */
-    public function scopeLatest(Builder $query): Builder
+    public function scopeByService(Builder $query, string $service): Builder
     {
-        return $query->orderBy('created_at', 'desc');
-    }
-
-    /**
-     * Accessor untuk memformat durasi latensi response (misal: "350ms").
-     *
-     * @return Attribute
-     */
-    protected function formattedResponseTime(): Attribute
-    {
-        return Attribute::make(
-            get: fn (): string => sprintf('%sms', $this->duration_ms)
-        );
-    }
-
-    /**
-     * Mutator untuk memotong query string yang tidak perlu dari path endpoint.
-     *
-     * @return Attribute
-     */
-    protected function endpoint(): Attribute
-    {
-        return Attribute::make(
-            set: fn (string $value): string => trim($value)
-        );
+        return $query->where('service_name', $service);
     }
 }

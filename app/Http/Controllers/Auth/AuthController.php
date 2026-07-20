@@ -83,6 +83,7 @@ class AuthController extends Controller
             'name'     => ['required', 'string', 'min:3', 'max:255'],
             'email'    => ['required', 'email', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'role'     => ['required', 'string', 'in:admin,user'],
         ], [
             'name.required'      => 'Nama lengkap wajib diisi.',
             'name.min'           => 'Nama minimal 3 karakter.',
@@ -92,17 +93,24 @@ class AuthController extends Controller
             'password.required'  => 'Password wajib diisi.',
             'password.min'       => 'Password minimal 8 karakter.',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
+            'role.required'      => 'Peran (Role) wajib dipilih.',
+            'role.in'            => 'Peran yang dipilih tidak valid.',
         ]);
 
         $user = User::create([
             'name'     => $validated['name'],
             'email'    => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role'     => 'user', // Default role – admin only via seeder
+            'role'     => $validated['role'],
         ]);
 
         Auth::login($user);
         $request->session()->regenerate();
+
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.dashboard')
+                ->with('success', 'Registrasi berhasil! Selamat datang di Dashboard Admin, ' . $user->name . '!');
+        }
 
         return redirect()->route('dashboard')
             ->with('success', 'Registrasi berhasil! Selamat datang, ' . $user->name . '!');

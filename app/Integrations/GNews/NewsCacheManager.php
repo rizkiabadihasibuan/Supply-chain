@@ -13,7 +13,7 @@ class NewsCacheManager
     public function __construct(ApiLogger $logger)
     {
         $this->logger = $logger;
-        $this->ttl = config('api.cache_ttl', 1800); // 30 mins standard for news
+        $this->ttl = 900; // 15 mins standard for news
     }
 
     public function getCachedNews(string $type, string $identifier, callable $apiCall, bool $forceRefresh = false)

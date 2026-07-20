@@ -11,9 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('article_tags', function (Blueprint $table) {
+        Schema::create('risk_classifications', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique()->index();
+            $table->string('name');
+            $table->decimal('min_score', 5, 2)->default(0.00);
+            $table->decimal('max_score', 5, 2)->default(100.00);
+            $table->string('color_code', 10)->default('#3B82F6');
+            $table->text('description')->nullable();
             $table->timestamps();
         });
     }
@@ -23,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('article_tags');
+        Schema::dropIfExists('risk_classifications');
     }
 };

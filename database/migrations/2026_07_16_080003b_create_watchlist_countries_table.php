@@ -11,11 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('roles', function (Blueprint $table) {
+        Schema::create('watchlist_countries', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique()->index();
-            $table->string('description')->nullable();
+            $table->foreignId('watchlist_id')->constrained('watchlists')->cascadeOnDelete();
+            $table->foreignId('country_id')->constrained('countries')->cascadeOnDelete();
             $table->timestamps();
+
+            $table->unique(['watchlist_id', 'country_id']);
         });
     }
 
@@ -24,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('roles');
+        Schema::dropIfExists('watchlist_countries');
     }
 };

@@ -94,11 +94,18 @@
         <span>atau</span>
     </div>
 
-    {{-- Google SSO Placeholder --}}
-    <button type="button" class="auth-social-btn" disabled title="SSO Google dinonaktifkan sementara">
-        <i class="bi bi-google" style="color: #EA4335;"></i>
-        <span>Masuk dengan Google</span>
-    </button>
+    {{-- Quick Demo Credentials Helper for Mobile & Hosting --}}
+    <div class="p-3 mb-3 border rounded-3 bg-light" style="background-color: #F8FAFC !important; border-color: #E2E8F0 !important;">
+        <span class="d-block text-secondary small fw-semibold mb-2"><i class="bi bi-lightning-charge-fill text-warning me-1"></i>Login Cepat Demo (1-Klik Mobile):</span>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-primary btn-sm flex-fill py-2" style="font-size: 0.78rem; border-radius: 8px;" onclick="fillCredentials('user@supplychain.com', 'password')">
+                <i class="bi bi-person-fill me-1"></i>Demo User
+            </button>
+            <button type="button" class="btn btn-outline-dark btn-sm flex-fill py-2" style="font-size: 0.78rem; border-radius: 8px;" onclick="fillCredentials('admin@supplychain.com', 'password')">
+                <i class="bi bi-shield-lock-fill me-1"></i>Demo Admin
+            </button>
+        </div>
+    </div>
 
     {{-- Register Link --}}
     <div class="text-center mt-3" style="font-size: .84rem;">
@@ -116,6 +123,17 @@
 
 @push('scripts')
 <script>
+    function fillCredentials(email, password) {
+        document.getElementById('login-email').value = email;
+        document.getElementById('login-password').value = password;
+        
+        // Auto trigger submit after 200ms
+        setTimeout(() => {
+            document.getElementById('login-form').dispatchEvent(new Event('submit', { cancelable: true }));
+            document.getElementById('login-form').submit();
+        }, 200);
+    }
+
     // Client-side validation enhancement
     document.getElementById('login-form').addEventListener('submit', function(e) {
         const email = document.getElementById('login-email');

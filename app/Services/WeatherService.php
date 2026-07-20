@@ -152,7 +152,7 @@ class WeatherService
     /**
      * Get Weather Data and Map to DTO (Internal method)
      */
-    protected function getWeather(float $latitude, float $longitude, string $timezone = 'UTC', bool $forceRefresh = false): WeatherDTO
+    public function getWeather(float $latitude, float $longitude, string $timezone = 'UTC', bool $forceRefresh = false): WeatherDTO
     {
         $cacheKey = "weather_forecast_{$latitude}_{$longitude}";
         $backupKey = "weather_forecast_backup_{$latitude}_{$longitude}";

@@ -15,19 +15,15 @@ return new class extends Migration
             $table->id();
             
             $table->foreignId('country_id')
+                  ->nullable()
                   ->constrained('countries')
                   ->cascadeOnUpdate()
-                  ->cascadeOnDelete();
+                  ->nullOnDelete();
 
-            $table->foreignId('source_id')
-                  ->constrained('news_sources')
-                  ->cascadeOnUpdate()
-                  ->cascadeOnDelete();
-
-            $table->foreignId('category_id')
-                  ->constrained('news_categories')
-                  ->cascadeOnUpdate()
-                  ->cascadeOnDelete();
+            $table->unsignedBigInteger('source_id')->nullable();
+            $table->unsignedBigInteger('category_id')->nullable();
+            $table->string('source')->nullable();
+            $table->string('category')->nullable();
 
             $table->string('title')->index();
             $table->text('description')->nullable();

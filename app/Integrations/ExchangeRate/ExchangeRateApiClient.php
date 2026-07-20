@@ -9,16 +9,14 @@ class ExchangeRateApiClient extends BaseApiClient
 {
     protected function getBaseUrl(): string
     {
-        return Config::get('api.integrations.exchange_rate.base_url', 'https://api.exchangerate-api.com/v4/latest');
+        return Config::get('api.integrations.exchange_rate.base_url', 'https://open.er-api.com/v6/latest');
     }
 
     /**
-     * Fetch latest exchange rates for a base currency
+     * Fetch latest exchange rates for a base currency (real-time)
      */
     public function getLatest(string $base = 'USD'): array
     {
-        // Many APIs use /{base} or ?base={base} depending on the vendor.
-        // Assuming /v4/latest/{base} pattern
-        return $this->get('/' . $base);
+        return $this->get('/' . strtoupper($base));
     }
 }

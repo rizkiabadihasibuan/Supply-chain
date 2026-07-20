@@ -4,52 +4,37 @@ declare(strict_types=1);
 
 namespace App\Services\Implementations;
 
-use App\Repositories\Interfaces\CountryRepositoryInterface;
-use App\Repositories\Interfaces\NewsRepositoryInterface;
-use App\Repositories\Interfaces\PortRepositoryInterface;
-use App\Repositories\Interfaces\RiskRepositoryInterface;
+use App\Services\Contracts\CountryServiceInterface;
+use App\Services\Contracts\WeatherServiceInterface;
+use App\Services\Contracts\CurrencyServiceInterface;
+use App\Services\Contracts\NewsServiceInterface;
+use App\Services\Contracts\PortServiceInterface;
+use App\Services\Contracts\RiskServiceInterface;
 use App\Services\Contracts\DashboardServiceInterface;
 
 class DashboardService implements DashboardServiceInterface
 {
-    /**
-     * @var CountryRepositoryInterface
-     */
-    protected CountryRepositoryInterface $countryRepo;
+    protected CountryServiceInterface $countryService;
+    protected WeatherServiceInterface $weatherService;
+    protected CurrencyServiceInterface $currencyService;
+    protected NewsServiceInterface $newsService;
+    protected PortServiceInterface $portService;
+    protected RiskServiceInterface $riskService;
 
-    /**
-     * @var PortRepositoryInterface
-     */
-    protected PortRepositoryInterface $portRepo;
-
-    /**
-     * @var RiskRepositoryInterface
-     */
-    protected RiskRepositoryInterface $riskRepo;
-
-    /**
-     * @var NewsRepositoryInterface
-     */
-    protected NewsRepositoryInterface $newsRepo;
-
-    /**
-     * DashboardService constructor.
-     *
-     * @param CountryRepositoryInterface $countryRepo
-     * @param PortRepositoryInterface $portRepo
-     * @param RiskRepositoryInterface $riskRepo
-     * @param NewsRepositoryInterface $newsRepo
-     */
     public function __construct(
-        CountryRepositoryInterface $countryRepo,
-        PortRepositoryInterface $portRepo,
-        RiskRepositoryInterface $riskRepo,
-        NewsRepositoryInterface $newsRepo
+        CountryServiceInterface $countryService,
+        WeatherServiceInterface $weatherService,
+        CurrencyServiceInterface $currencyService,
+        NewsServiceInterface $newsService,
+        PortServiceInterface $portService,
+        RiskServiceInterface $riskService
     ) {
-        $this->countryRepo = $countryRepo;
-        $this->portRepo = $portRepo;
-        $this->riskRepo = $riskRepo;
-        $this->newsRepo = $newsRepo;
+        $this->countryService = $countryService;
+        $this->weatherService = $weatherService;
+        $this->currencyService = $currencyService;
+        $this->newsService = $newsService;
+        $this->portService = $portService;
+        $this->riskService = $riskService;
     }
 
     /**
@@ -57,11 +42,15 @@ class DashboardService implements DashboardServiceInterface
      */
     public function getStatsSummary(): array
     {
+        $allRisks = $this->riskService->filterRiskScores([]);
+        $avgRisk = $allRisks->count() > 0 ? (float) $allRisks->avg('final_risk_score') : 0.0;
+
         return [
-            'total_countries' => $this->countryRepo->findAll()->count(),
-            'total_ports' => $this->portRepo->findAll()->count(),
-            'critical_risks' => $this->riskRepo->getCriticalRisks()->count(),
-            'news_articles_count' => $this->newsRepo->findAll()->count(),
+            'total_countries' => $this->countryService->getCountries()->count(),
+            'total_ports' => $this->portService->getPorts()->count(),
+            'critical_risks' => $this->riskService->getCriticalCountryRisks()->count(),
+            'news_articles_count' => $this->newsService->filterNews([])->count(),
+            'global_average_risk_score' => round($avgRisk, 2),
         ];
     }
 }

@@ -55,6 +55,7 @@ Route::prefix('v1')->group(function () {
 
         // COUNTRY MODULE
         Route::get('/countries/search', [CountryController::class, 'search']);
+        Route::get('/countries/{id}/intelligence', [CountryController::class, 'fullIntelligence']);
         Route::apiResource('countries', CountryController::class)->only(['index', 'show']);
 
         // WEATHER MODULE
@@ -87,6 +88,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/watchlists', [WatchlistController::class, 'index']);
         Route::post('/watchlists', [WatchlistController::class, 'store']);
         Route::delete('/watchlists/{id}', [WatchlistController::class, 'destroy']);
+
+        // COMPARISON MODULE
+        Route::get('/comparison', [\App\Http\Controllers\Api\ComparisonController::class, 'index']);
 
         // NOTIFICATION MODULE
         Route::get('/notifications', [NotificationController::class, 'index']);
@@ -154,5 +158,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/currency', [CurrencyController::class, 'index']);
     Route::get('/weather', [WeatherController::class, 'index']);
     Route::get('/weather/{country}', [WeatherController::class, 'show']);
+    Route::get('/comparison', [\App\Http\Controllers\Api\ComparisonController::class, 'index']);
+    Route::get('/dashboard', [\App\Http\Controllers\Api\DashboardController::class, 'summary']);
+    Route::get('/analytics', [\App\Http\Controllers\Api\AnalyticsController::class, 'index']);
 });
 

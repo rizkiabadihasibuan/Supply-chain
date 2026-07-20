@@ -9,9 +9,6 @@ use App\Integrations\RestCountries\CountryDTO;
 use App\Repositories\Interfaces\CountryRepositoryInterface;
 use App\Models\Region;
 use App\Models\Currency;
-use App\Models\Language;
-use App\Models\CountryCoordinate;
-use App\Models\CountryFlag;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -45,10 +42,9 @@ class CountryService
     /**
      * Get all countries from database
      */
-    public function getAllCountries(): array
+    public function getAllCountries(bool $apiFormat = false)
     {
-        $dtos = $this->getAllCountriesDTOs();
-        return array_map([$this, 'formatCountry'], $dtos);
+        return $this->countryRepository->findAll();
     }
 
     /**
@@ -156,37 +152,17 @@ class CountryService
                         'population' => $dto->population ?: null,
                         'area' => $dto->area ?: null,
                         'timezone' => $timezone,
+                        'latitude' => $dto->latitude,
+                        'longitude' => $dto->longitude,
+                        'flag_url' => $dto->flagUrl ?: null,
+                        'languages' => array_values($dto->languages),
                     ];
 
                     if ($country) {
                         $this->countryRepository->update($country->id, $countryData);
-                        $country = $this->countryRepository->findById($country->id);
                     } else {
-                        $country = $this->countryRepository->create($countryData);
+                        $this->countryRepository->create($countryData);
                     }
-
-                    // 4. Update or Create Coordinate
-                    CountryCoordinate::updateOrCreate(
-                        ['country_id' => $country->id],
-                        ['latitude' => $dto->latitude, 'longitude' => $dto->longitude]
-                    );
-
-                    // 5. Update or Create Flag
-                    CountryFlag::updateOrCreate(
-                        ['country_id' => $country->id],
-                        ['flag_url' => $dto->flagUrl ?: null, 'svg_path' => $dto->svgPath ?: null]
-                    );
-
-                    // 6. Sync Languages
-                    $languageIds = [];
-                    foreach ($dto->languages as $langCode => $langName) {
-                        $language = Language::firstOrCreate(
-                            ['code' => strtolower($langCode)],
-                            ['name' => $langName]
-                        );
-                        $languageIds[] = $language->id;
-                    }
-                    $country->languages()->sync($languageIds);
 
                     $syncedCount++;
                 });

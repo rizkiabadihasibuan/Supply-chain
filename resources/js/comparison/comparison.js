@@ -147,15 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
     }
 
-    /* ── Fetch (placeholder — replace with real API) ── */
-    function _fetchCountry(code) {
-        // TODO: Replace with real API call, e.g.:
-        // return fetch(`/api/countries/${code}`).then(r => r.json());
-        return new Promise(resolve => {
-            setTimeout(() => resolve(COUNTRY_DATA[code] ?? null), 400);
-        });
-    }
-
     /* ── Main compare action ────────────────────────── */
     async function doCompare() {
         const codeA = selA?.value;
@@ -176,7 +167,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (icon) icon.classList.add('is-spinning');
 
         try {
-            const [cA, cB] = await Promise.all([_fetchCountry(codeA), _fetchCountry(codeB)]);
+            const res = await window.SupplyChainAPI.fetch(`comparison?country_a=${codeA}&country_b=${codeB}`);
+            const cA = res.data.country_a;
+            const cB = res.data.country_b;
+
             if (!cA || !cB) throw new Error('Data negara tidak ditemukan');
 
             activeA = cA;

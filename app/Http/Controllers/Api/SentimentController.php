@@ -32,10 +32,20 @@ class SentimentController extends BaseApiController
     public function analyze(Request $request)
     {
         try {
-            // No business logic here. Delegate to service.
-            // $result = $this->SentimentService->analyze(...);
-            // return new SentimentResource($result);
-            return $this->sendSuccess('Method analyze executed');
+            $articleId = $request->input('news_article_id');
+            $dictionaryId = $request->input('dictionary_id', 1);
+
+            if (!$articleId) {
+                return $this->sendError('Validation Error', ['news_article_id is required.'], 400);
+            }
+
+            $result = $this->SentimentService->analyzeArticle((int) $articleId, (int) $dictionaryId);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Sentiment analyzed successfully',
+                'data' => $result
+            ], 200);
         } catch (Exception $e) {
             return $this->sendError('Failed to execute analyze', [$e->getMessage()], 500);
         }

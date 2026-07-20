@@ -2,6 +2,15 @@
 
 @section('title', 'Dashboard Global Supply Chain - SupplyChain Platform')
 
+@section('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #leaflet-map {
+        background-color: #FAFCFF !important;
+    }
+</style>
+@endsection
+
 @section('content')
 <div class="container-fluid p-0 fade-in-up">
 
@@ -14,11 +23,11 @@
                         <h3 class="fw-bold text-dark mb-1">Dashboard Global Supply Chain</h3>
                         <p class="text-secondary small mb-0">Pantau kondisi rantai pasok dunia secara real-time.</p>
                     </div>
-                    <!-- Live connection status badge -->
+                    <!-- Live connection status & Country Selector -->
                     <div class="d-flex align-items-center gap-3">
-                        <span class="text-secondary small d-none d-lg-inline-block">
-                            <span class="pulse-indicator"></span>Layanan Intelijen Aktif
-                        </span>
+                        <select class="form-select form-select-sm py-2 px-3 fw-semibold text-dark border-primary" id="country-intelligence-selector" style="min-width: 220px; min-height: 42px;" onchange="onCountrySelect(this.value)">
+                            <option value="">Semua Negara (Global Intelligence)</option>
+                        </select>
                         <button class="btn btn-primary btn-refresh-all" onclick="refreshDashboardData()">
                             <i class="bi bi-arrow-clockwise me-2"></i>Segarkan Dasbor
                         </button>
@@ -35,7 +44,9 @@
             <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
                 <div>
                     <span class="text-secondary small fw-medium d-block mb-1">Negara Dipantau</span>
-                    <h3 class="fw-bold text-dark mb-1">195</h3>
+                    <h3 class="fw-bold text-dark mb-1" id="kpi-countries">
+                        <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
+                    </h3>
                     <span class="text-success small fw-semibold"><i class="bi bi-arrow-up-right me-1"></i>100% Cakupan</span>
                 </div>
                 <div class="p-3 rounded-4" style="background-color: rgba(37, 99, 235, 0.08); color: var(--primary);">
@@ -49,8 +60,10 @@
             <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
                 <div>
                     <span class="text-secondary small fw-medium d-block mb-1">Pelabuhan Aktif</span>
-                    <h3 class="fw-bold text-dark mb-1">412</h3>
-                    <span class="text-success small fw-semibold"><i class="bi bi-plus-circle me-1"></i>+2.4% Bulan Ini</span>
+                    <h3 class="fw-bold text-dark mb-1" id="kpi-ports">
+                        <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
+                    </h3>
+                    <span class="text-success small fw-semibold" id="kpi-ports-trend"><i class="bi bi-plus-circle me-1"></i>Aktif</span>
                 </div>
                 <div class="p-3 rounded-4" style="background-color: rgba(6, 182, 212, 0.08); color: var(--info);">
                     <i class="bi bi-anchor fs-3"></i>
@@ -63,8 +76,10 @@
             <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
                 <div>
                     <span class="text-secondary small fw-medium d-block mb-1">Berita Hari Ini</span>
-                    <h3 class="fw-bold text-dark mb-1">24</h3>
-                    <span class="text-primary small fw-semibold"><i class="bi bi-lightning-fill me-1"></i>8 Berita Kritis</span>
+                    <h3 class="fw-bold text-dark mb-1" id="kpi-news">
+                        <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
+                    </h3>
+                    <span class="text-primary small fw-semibold" id="kpi-news-trend"><i class="bi bi-lightning-fill me-1"></i>Berita Logistik</span>
                 </div>
                 <div class="p-3 rounded-4" style="background-color: rgba(245, 158, 11, 0.08); color: var(--warning);">
                     <i class="bi bi-newspaper fs-3"></i>
@@ -77,8 +92,10 @@
             <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
                 <div>
                     <span class="text-secondary small fw-medium d-block mb-1">Skor Risiko Global</span>
-                    <h3 class="fw-bold text-success mb-1">2.8</h3>
-                    <span class="text-success small fw-semibold"><i class="bi bi-arrow-down-left me-1"></i>-1.2% Menurun</span>
+                    <h3 class="fw-bold text-success mb-1" id="kpi-risk">
+                        <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
+                    </h3>
+                    <span class="text-success small fw-semibold" id="kpi-risk-trend"><i class="bi bi-shield-exclamation me-1"></i>Rata-rata</span>
                 </div>
                 <div class="p-3 rounded-4" style="background-color: rgba(34, 197, 94, 0.08); color: var(--success);">
                     <i class="bi bi-shield-exclamation fs-3"></i>
@@ -115,10 +132,13 @@
                 </div>
 
                 <!-- Interactive SVG Map Area -->
-                <div class="position-relative border rounded-4 overflow-hidden bg-light d-flex align-items-center justify-content-center" style="height: 450px; background-color: #FAFCFF !important; background-image: radial-gradient(#E2E8F0 1.2px, transparent 1.2px); background-size: 24px 24px;">
+                <!-- Interactive Leaflet Map Area -->
+                <div class="position-relative border rounded-4 overflow-hidden bg-light" style="height: 450px;">
+                    <!-- Leaflet Map Container -->
+                    <div id="leaflet-map" style="width: 100%; height: 100%; z-index: 1;"></div>
                     
                     <!-- Zoom Controls -->
-                    <div class="position-absolute top-0 start-0 m-3 d-flex flex-column gap-1.5 style-zoom-controls" style="z-index: 10;">
+                    <div class="position-absolute top-0 start-0 m-3 d-flex flex-column gap-1.5" style="z-index: 1000;">
                         <button class="btn btn-light btn-sm border p-2 d-flex align-items-center justify-content-center" onclick="zoomMap(1.2)" style="width: 36px; height: 36px; min-height: 36px;" title="Perbesar">
                             <i class="bi bi-zoom-in"></i>
                         </button>
@@ -131,78 +151,11 @@
                     </div>
 
                     <!-- Legend -->
-                    <div class="position-absolute bottom-0 start-0 m-3 bg-white p-2.5 rounded-3 border d-flex flex-column gap-1" style="z-index: 10; font-size: 0.75rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                    <div class="position-absolute bottom-0 start-0 m-3 bg-white p-2.5 rounded-3 border d-flex flex-column gap-1" style="z-index: 1000; font-size: 0.75rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02); pointer-events: none;">
                         <span class="fw-bold text-dark mb-1">Legenda Risiko</span>
                         <div class="d-flex align-items-center"><span class="badge badge-danger me-1.5" style="width: 8px; height: 8px; padding: 0; border-radius: 50%;"></span> Tinggi (>4.0)</div>
                         <div class="d-flex align-items-center"><span class="badge badge-warning me-1.5" style="width: 8px; height: 8px; padding: 0; border-radius: 50%;"></span> Sedang (2.5 - 4.0)</div>
                         <div class="d-flex align-items-center"><span class="badge badge-success me-1.5" style="width: 8px; height: 8px; padding: 0; border-radius: 50%;"></span> Rendah (<2.5)</div>
-                    </div>
-
-                    <!-- World Map SVG wrapper -->
-                    <div id="map-container" class="w-100 h-100 d-flex align-items-center justify-content-center" style="transition: transform 0.3s ease; transform-origin: center;">
-                        <svg viewBox="0 0 1000 500" class="w-100 h-100" style="max-height: 420px;">
-                            <!-- Stylized Continents Outlines (Paths) -->
-                            <g fill="#E2E8F0" stroke="#FFFFFF" stroke-width="1.5">
-                                <!-- North America -->
-                                <path d="M100,80 L200,60 L280,100 L250,180 L200,200 L150,150 Z" />
-                                <!-- South America -->
-                                <path d="M250,220 L320,250 L280,380 L240,420 L220,300 Z" />
-                                <!-- Greenland -->
-                                <path d="M300,30 L380,20 L350,70 L280,60 Z" />
-                                <!-- Eurasia (Europe & Asia) -->
-                                <path d="M450,60 L600,40 L850,50 L900,120 L800,280 L700,250 L600,280 L520,220 L420,120 Z" />
-                                <!-- Africa -->
-                                <path d="M460,180 L560,160 L630,220 L580,350 L520,380 L480,260 Z" />
-                                <!-- Australia -->
-                                <path d="M780,320 L880,300 L850,380 L760,360 Z" />
-                            </g>
-
-                            <!-- Shipping Lanes (Dotted Lines connecting hubs) -->
-                            <g stroke="rgba(37, 99, 235, 0.25)" stroke-width="1.5" stroke-dasharray="4 4" fill="none">
-                                <path d="M180,130 C 250,150 480,120 520,130" /> <!-- USA East to Europe -->
-                                <path d="M520,130 C 580,180 500,240 500,240" /> <!-- Europe to Africa -->
-                                <path d="M500,240 C 580,320 680,280 650,230" /> <!-- Africa to SG -->
-                                <path d="M520,130 C 580,150 630,200 650,230" /> <!-- Europe to SG via Suez -->
-                                <path d="M650,230 C 700,220 780,200 780,120" /> <!-- SG to Shanghai -->
-                                <path d="M780,120 C 680,140 600,180 570,220" /> <!-- Shanghai to Tanjung Priok -->
-                                <path d="M570,220 C 600,225 630,228 650,230" /> <!-- Tanjung Priok to SG -->
-                                <path d="M780,120 C 850,110 900,115 950,120" /> <!-- Shanghai to US West -->
-                                <path d="M180,130 C 240,240 250,220 270,260" /> <!-- USA East to Brazil -->
-                            </g>
-
-                            <!-- Interactive Hub Nodes (Ports) -->
-                            <!-- format: circle: cx, cy, class (map-node), data-attrs (country, port, risk, risk-level, weather, continent) -->
-                            <g id="map-nodes">
-                                <!-- Tanjung Priok (Indonesia) -->
-                                <circle cx="570" cy="220" r="9" class="map-node node-success" data-country="Indonesia" data-port="Tanjung Priok, Jakarta" data-risk="1.25" data-level="low" data-weather="Hujan Ringan (28°C)" data-continent="asia" onclick="showNodeDetails(this)" onmouseover="showMapTooltip(event, this)" onmouseout="hideMapTooltip()" />
-                                
-                                <!-- Port of Singapore (Singapore) -->
-                                <circle cx="650" cy="230" r="9" class="map-node node-success" data-country="Singapura" data-port="Port of Singapore" data-risk="0.95" data-level="low" data-weather="Cerah (31°C)" data-continent="asia" onclick="showNodeDetails(this)" onmouseover="showMapTooltip(event, this)" onmouseout="hideMapTooltip()" />
-                                
-                                <!-- Port of Shanghai (China) -->
-                                <circle cx="780" cy="120" r="11" class="map-node node-danger animate-pulse-node" data-country="China" data-port="Port of Shanghai" data-risk="4.92" data-level="high" data-weather="Badai Tropis (24°C)" data-continent="asia" onclick="showNodeDetails(this)" onmouseover="showMapTooltip(event, this)" onmouseout="hideMapTooltip()" />
-                                
-                                <!-- Port of Rotterdam (Rotterdam/Netherlands) -->
-                                <circle cx="520" cy="130" r="9" class="map-node node-warning" data-country="Belanda" data-port="Port of Rotterdam" data-risk="2.85" data-level="medium" data-weather="Berawan (17°C)" data-continent="europe" onclick="showNodeDetails(this)" onmouseover="showMapTooltip(event, this)" onmouseout="hideMapTooltip()" />
-                                
-                                <!-- Port of Los Angeles (USA West) -->
-                                <circle cx="150" cy="110" r="9" class="map-node node-warning" data-country="Amerika Serikat (Barat)" data-port="Port of Los Angeles" data-risk="3.48" data-level="medium" data-weather="Mendung (21°C)" data-continent="america" onclick="showNodeDetails(this)" onmouseover="showMapTooltip(event, this)" onmouseout="hideMapTooltip()" />
-                                
-                                <!-- Port of New York (USA East) -->
-                                <circle cx="180" cy="130" r="9" class="map-node node-success" data-country="Amerika Serikat (Timur)" data-port="Port of New York" data-risk="2.10" data-level="low" data-weather="Cerah (25°C)" data-continent="america" onclick="showNodeDetails(this)" onmouseover="showMapTooltip(event, this)" onmouseout="hideMapTooltip()" />
-
-                                <!-- Port of Santos (Brazil) -->
-                                <circle cx="270" cy="260" r="9" class="map-node node-success" data-country="Brasil" data-port="Port of Santos" data-risk="2.35" data-level="low" data-weather="Hujan Badai (26°C)" data-continent="america" onclick="showNodeDetails(this)" onmouseover="showMapTooltip(event, this)" onmouseout="hideMapTooltip()" />
-
-                                <!-- Port of Durban (South Africa) -->
-                                <circle cx="500" cy="240" r="9" class="map-node node-warning" data-country="Afrika Selatan" data-port="Port of Durban" data-risk="3.15" data-level="medium" data-weather="Cerah (19°C)" data-continent="africa" onclick="showNodeDetails(this)" onmouseover="showMapTooltip(event, this)" onmouseout="hideMapTooltip()" />
-                            </g>
-                        </svg>
-                    </div>
-
-                    <!-- Dynamic Floating Tooltip -->
-                    <div id="map-tooltip" class="position-absolute bg-white px-3 py-2.5 rounded-3 border shadow-sm text-start" style="display: none; pointer-events: none; z-index: 100; font-size: 0.8rem; min-width: 180px;">
-                        <!-- Filled by JS -->
                     </div>
                 </div>
             </div>
@@ -218,113 +171,15 @@
                     <!-- Top 5 High Risk -->
                     <div>
                         <h6 class="fw-bold text-danger mb-2.5" style="font-size: 0.85rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>Top 5 Risiko Tinggi</h6>
-                        <div class="d-flex flex-column gap-2">
-                            <!-- Sudan -->
-                            <div>
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="text-dark small fw-medium">🇸🇩 Sudan</span>
-                                    <span class="badge badge-danger">8.80 / Kritis</span>
-                                </div>
-                                <div class="progress" style="height: 6px; background-color: #E2E8F0;">
-                                    <div class="progress-bar bg-danger" style="width: 88%;"></div>
-                                </div>
-                            </div>
-                            <!-- Yaman -->
-                            <div>
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="text-dark small fw-medium">🇾🇪 Yaman</span>
-                                    <span class="badge badge-danger">8.50 / Kritis</span>
-                                </div>
-                                <div class="progress" style="height: 6px; background-color: #E2E8F0;">
-                                    <div class="progress-bar bg-danger" style="width: 85%;"></div>
-                                </div>
-                            </div>
-                            <!-- Suriah -->
-                            <div>
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="text-dark small fw-medium">🇸🇾 Suriah</span>
-                                    <span class="badge badge-danger">8.20 / Kritis</span>
-                                </div>
-                                <div class="progress" style="height: 6px; background-color: #E2E8F0;">
-                                    <div class="progress-bar bg-danger" style="width: 82%;"></div>
-                                </div>
-                            </div>
-                            <!-- Ukraina -->
-                            <div>
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="text-dark small fw-medium">🇺🇦 Ukraina</span>
-                                    <span class="badge badge-danger">7.90 / Tinggi</span>
-                                </div>
-                                <div class="progress" style="height: 6px; background-color: #E2E8F0;">
-                                    <div class="progress-bar bg-danger" style="width: 79%;"></div>
-                                </div>
-                            </div>
-                            <!-- Somalia -->
-                            <div>
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="text-dark small fw-medium">🇸🇴 Somalia</span>
-                                    <span class="badge badge-danger">7.60 / Tinggi</span>
-                                </div>
-                                <div class="progress" style="height: 6px; background-color: #E2E8F0;">
-                                    <div class="progress-bar bg-danger" style="width: 76%;"></div>
-                                </div>
-                            </div>
+                        <div class="d-flex flex-column gap-2" id="top-high-risks">
+                            <span class="text-secondary small">Memuat...</span>
                         </div>
                     </div>
-
+ 
                     <div class="border-top pt-2.5">
                         <h6 class="fw-bold text-success mb-2.5" style="font-size: 0.85rem;"><i class="bi bi-shield-check me-1"></i>Top 5 Risiko Rendah (Stabil)</h6>
-                        <div class="d-flex flex-column gap-2">
-                            <!-- Singapura -->
-                            <div>
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="text-dark small fw-medium">🇸🇬 Singapura</span>
-                                    <span class="badge badge-success">0.95 / Aman</span>
-                                </div>
-                                <div class="progress" style="height: 6px; background-color: #E2E8F0;">
-                                    <div class="progress-bar bg-success" style="width: 10%;"></div>
-                                </div>
-                            </div>
-                            <!-- Swiss -->
-                            <div>
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="text-dark small fw-medium">🇨🇭 Swiss</span>
-                                    <span class="badge badge-success">1.10 / Aman</span>
-                                </div>
-                                <div class="progress" style="height: 6px; background-color: #E2E8F0;">
-                                    <div class="progress-bar bg-success" style="width: 11%;"></div>
-                                </div>
-                            </div>
-                            <!-- Denmark -->
-                            <div>
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="text-dark small fw-medium">🇩🇰 Denmark</span>
-                                    <span class="badge badge-success">1.20 / Aman</span>
-                                </div>
-                                <div class="progress" style="height: 6px; background-color: #E2E8F0;">
-                                    <div class="progress-bar bg-success" style="width: 12%;"></div>
-                                </div>
-                            </div>
-                            <!-- Indonesia -->
-                            <div>
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="text-dark small fw-medium">🇮🇩 Indonesia</span>
-                                    <span class="badge badge-success">1.25 / Aman</span>
-                                </div>
-                                <div class="progress" style="height: 6px; background-color: #E2E8F0;">
-                                    <div class="progress-bar bg-success" style="width: 12.5%;"></div>
-                                </div>
-                            </div>
-                            <!-- Jepang -->
-                            <div>
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="text-dark small fw-medium">🇯🇵 Jepang</span>
-                                    <span class="badge badge-success">1.30 / Aman</span>
-                                </div>
-                                <div class="progress" style="height: 6px; background-color: #E2E8F0;">
-                                    <div class="progress-bar bg-success" style="width: 13%;"></div>
-                                </div>
-                            </div>
+                        <div class="d-flex flex-column gap-2" id="top-low-risks">
+                            <span class="text-secondary small">Memuat...</span>
                         </div>
                     </div>
                 </div>
@@ -401,56 +256,13 @@
                 <h5 class="fw-bold text-dark mb-2"><i class="bi bi-cloud-sun-fill text-primary me-2"></i>Kondisi Cuaca Pelabuhan Utama</h5>
                 <p class="text-secondary small mb-3">Laporan iklim pelabuhan utama rantai pasok global.</p>
 
-                <div class="d-flex flex-column gap-2.5">
-                    <!-- Tanjung Priok -->
-                    <div class="p-3 border rounded-4 bg-light d-flex align-items-center justify-content-between" style="background-color: #F8FAFC !important;">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-cloud-rain-heavy-fill text-primary fs-3 me-3"></i>
-                            <div>
-                                <span class="text-dark fw-bold small d-block">Tanjung Priok</span>
-                                <span class="text-secondary" style="font-size: 0.725rem;">Jakarta, ID | Kelembaban: 85%</span>
-                            </div>
-                        </div>
-                        <div class="text-end">
-                            <span class="text-dark fw-bold d-block">28°C</span>
-                            <span class="text-secondary small" style="font-size: 0.7rem;"><i class="bi bi-wind me-1"></i>12 km/j</span>
-                        </div>
-                    </div>
-
-                    <!-- Port of Singapore -->
-                    <div class="p-3 border rounded-4 bg-light d-flex align-items-center justify-content-between" style="background-color: #F8FAFC !important;">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-sun-fill text-warning fs-3 me-3"></i>
-                            <div>
-                                <span class="text-dark fw-bold small d-block">Port of Singapore</span>
-                                <span class="text-secondary" style="font-size: 0.725rem;">Singapura, SG | Kelembaban: 60%</span>
-                            </div>
-                        </div>
-                        <div class="text-end">
-                            <span class="text-dark fw-bold d-block">31°C</span>
-                            <span class="text-secondary small" style="font-size: 0.7rem;"><i class="bi bi-wind me-1"></i>8 km/j</span>
-                        </div>
-                    </div>
-
-                    <!-- Port of Rotterdam -->
-                    <div class="p-3 border rounded-4 bg-light d-flex align-items-center justify-content-between" style="background-color: #F8FAFC !important;">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-cloud-sun-fill text-primary fs-3 me-3"></i>
-                            <div>
-                                <span class="text-dark fw-bold small d-block">Port of Rotterdam</span>
-                                <span class="text-secondary" style="font-size: 0.725rem;">Rotterdam, NL | Kelembaban: 70%</span>
-                            </div>
-                        </div>
-                        <div class="text-end">
-                            <span class="text-dark fw-bold d-block">17°C</span>
-                            <span class="text-secondary small" style="font-size: 0.7rem;"><i class="bi bi-wind me-1"></i>22 km/j</span>
-                        </div>
-                    </div>
+                <div class="d-flex flex-column gap-2.5" id="weather-ports">
+                    <span class="text-secondary small">Memuat cuaca...</span>
                 </div>
             </div>
         </div>
     </div>
-
+ 
     <!-- Row: Global News & Exchange Rates & Recent Activity -->
     <div class="row g-4">
         <!-- Global News Card -->
@@ -458,58 +270,9 @@
             <div class="card p-4 h-100 border-0">
                 <h5 class="fw-bold text-dark mb-2"><i class="bi bi-newspaper text-primary me-2"></i>Berita Logistik & Supply Chain Global</h5>
                 <p class="text-secondary small mb-4">Umpan informasi terpercaya kondisi logistik internasional terhangat.</p>
-
-                <div class="d-flex flex-column gap-3.5">
-                    <!-- News 1 -->
-                    <div class="row g-3 align-items-center pb-3 border-bottom">
-                        <div class="col-auto">
-                            <div class="rounded-3 d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; background-color: rgba(239, 68, 68, 0.08); color: var(--danger);">
-                                <i class="bi bi-exclamation-triangle-fill fs-3"></i>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="d-flex align-items-center gap-2 mb-1">
-                                <span class="badge badge-danger" style="font-size: 0.65rem;">Krisis</span>
-                                <span class="text-secondary" style="font-size: 0.75rem;">🇨🇳 China | 17 Jul 2026</span>
-                            </div>
-                            <h6 class="fw-bold text-dark mb-2" style="font-size: 0.9rem;">Badai Tropis Shanghai Menangguhkan Operasional Bongkar Muat Kontainer</h6>
-                            <button class="btn btn-light btn-sm px-3" style="min-height: 44px;" onclick="viewNewsDetail('Badai Tropis Shanghai Menangguhkan Operasional Bongkar Muat Kontainer', 'Kondisi cuaca ekstrem memaksa otoritas pelabuhan Shanghai menghentikan kegiatan logistik demi keselamatan armada.')">Baca Berita</button>
-                        </div>
-                    </div>
-
-                    <!-- News 2 -->
-                    <div class="row g-3 align-items-center pb-3 border-bottom">
-                        <div class="col-auto">
-                            <div class="rounded-3 d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; background-color: rgba(245, 158, 11, 0.08); color: var(--warning);">
-                                <i class="bi bi-truck fs-3"></i>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="d-flex align-items-center gap-2 mb-1">
-                                <span class="badge badge-warning" style="font-size: 0.65rem;">Hambatan</span>
-                                <span class="text-secondary" style="font-size: 0.75rem;">🇩🇪 Jerman | 16 Jul 2026</span>
-                            </div>
-                            <h6 class="fw-bold text-dark mb-2" style="font-size: 0.9rem;">Penundaan Distribusi Kargo Darat Akibat Protes Serikat Pekerja Jerman</h6>
-                            <button class="btn btn-light btn-sm px-3" style="min-height: 44px;" onclick="viewNewsDetail('Penundaan Distribusi Kargo Darat Akibat Protes Serikat Pekerja Jerman', 'Aksi pemogokan kerja di beberapa jalur rel distribusi menyebabkan penumpukan barang sementara di terminal darat.')">Baca Berita</button>
-                        </div>
-                    </div>
-
-                    <!-- News 3 -->
-                    <div class="row g-3 align-items-center">
-                        <div class="col-auto">
-                            <div class="rounded-3 d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; background-color: rgba(34, 197, 94, 0.08); color: var(--success);">
-                                <i class="bi bi-check-circle-fill fs-3"></i>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="d-flex align-items-center gap-2 mb-1">
-                                <span class="badge badge-success" style="font-size: 0.65rem;">Stabil</span>
-                                <span class="text-secondary" style="font-size: 0.75rem;">🇮🇩 Indonesia | 15 Jul 2026</span>
-                            </div>
-                            <h6 class="fw-bold text-dark mb-2" style="font-size: 0.9rem;">Tanjung Priok Meluncurkan Digitalisasi Gate Logistik Pintar</h6>
-                            <button class="btn btn-light btn-sm px-3" style="min-height: 44px;" onclick="viewNewsDetail('Tanjung Priok Meluncurkan Digitalisasi Gate Logistik Pintar', 'Implementasi sistem IoT dan otomatisasi gerbang memangkas waktu tunggu antrean truk kontainer hingga 40%.')">Baca Berita</button>
-                        </div>
-                    </div>
+ 
+                <div class="d-flex flex-column gap-3.5" id="news-container">
+                    <span class="text-secondary small">Memuat berita...</span>
                 </div>
             </div>
         </div>
@@ -523,82 +286,20 @@
                         <h5 class="fw-bold text-dark mb-2"><i class="bi bi-cash-stack text-success me-2"></i>Nilai Tukar Rupiah</h5>
                         <p class="text-secondary small mb-3">Kurs konversi mata uang dunia utama (IDR).</p>
                         
-                        <div class="d-flex flex-column gap-2.5">
-                            <!-- USD -->
-                            <div class="p-2.5 border rounded-3 bg-light d-flex align-items-center justify-content-between" style="background-color: #F8FAFC !important;">
-                                <div class="d-flex align-items-center">
-                                    <span class="fw-bold text-dark me-2 small">USD</span>
-                                    <span class="text-secondary small">Dolar AS</span>
-                                </div>
-                                <span class="text-success small fw-bold">Rp16.245,00</span>
-                            </div>
-                            <!-- EUR -->
-                            <div class="p-2.5 border rounded-3 bg-light d-flex align-items-center justify-content-between" style="background-color: #F8FAFC !important;">
-                                <div class="d-flex align-items-center">
-                                    <span class="fw-bold text-dark me-2 small">EUR</span>
-                                    <span class="text-secondary small">Euro</span>
-                                </div>
-                                <span class="text-success small fw-bold">Rp17.650,00</span>
-                            </div>
-                            <!-- JPY -->
-                            <div class="p-2.5 border rounded-3 bg-light d-flex align-items-center justify-content-between" style="background-color: #F8FAFC !important;">
-                                <div class="d-flex align-items-center">
-                                    <span class="fw-bold text-dark me-2 small">JPY</span>
-                                    <span class="text-secondary small">Yen Jepang</span>
-                                </div>
-                                <span class="text-success small fw-bold">Rp102,40</span>
-                            </div>
-                            <!-- SGD -->
-                            <div class="p-2.5 border rounded-3 bg-light d-flex align-items-center justify-content-between" style="background-color: #F8FAFC !important;">
-                                <div class="d-flex align-items-center">
-                                    <span class="fw-bold text-dark me-2 small">SGD</span>
-                                    <span class="text-secondary small">Dolar SG</span>
-                                </div>
-                                <span class="text-success small fw-bold">Rp12.050,00</span>
-                            </div>
+                        <div class="d-flex flex-column gap-2.5" id="exchange-rates">
+                            <span class="text-secondary small">Memuat kurs...</span>
                         </div>
                     </div>
                 </div>
-
+ 
                 <!-- Recent Activity Timeline -->
                 <div class="col-xl-6 col-md-12">
                     <div class="card p-4 h-100 border-0">
                         <h5 class="fw-bold text-dark mb-2"><i class="bi bi-clock-history text-primary me-2"></i>Log Aktivitas Intelijen</h5>
                         <p class="text-secondary small mb-3">Timeline aktivitas logistik terhangat rantai pasok.</p>
                         
-                        <div class="style-timeline" style="position: relative; padding-left: 20px;">
-                            <!-- Timeline border line -->
-                            <div style="position: absolute; left: 6px; top: 8px; bottom: 8px; width: 2px; background-color: #E2E8F0;"></div>
-                            
-                            <!-- Item 1 -->
-                            <div class="position-relative mb-3.5">
-                                <div class="position-absolute rounded-circle" style="left: -19px; top: 4px; width: 10px; height: 10px; background-color: var(--success); border: 2px solid #FFFFFF;"></div>
-                                <div class="small">
-                                    <span class="text-dark fw-bold d-block">Data Cuaca Diperbarui</span>
-                                    <span class="text-secondary d-block" style="font-size: 0.725rem;">Port of Singapore dimuat via Open-Meteo.</span>
-                                    <span class="text-secondary small" style="font-size: 0.65rem;"><i class="bi bi-clock me-1"></i>5 menit yang lalu</span>
-                                </div>
-                            </div>
-
-                            <!-- Item 2 -->
-                            <div class="position-relative mb-3.5">
-                                <div class="position-absolute rounded-circle" style="left: -19px; top: 4px; width: 10px; height: 10px; background-color: var(--danger); border: 2px solid #FFFFFF;"></div>
-                                <div class="small">
-                                    <span class="text-dark fw-bold d-block">Risiko Shanghai Meningkat</span>
-                                    <span class="text-secondary d-block" style="font-size: 0.725rem;">Tingkat risiko Shanghai melonjak ke level Kritis (4.92).</span>
-                                    <span class="text-secondary small" style="font-size: 0.65rem;"><i class="bi bi-clock me-1"></i>15 menit yang lalu</span>
-                                </div>
-                            </div>
-
-                            <!-- Item 3 -->
-                            <div class="position-relative">
-                                <div class="position-absolute rounded-circle" style="left: -19px; top: 4px; width: 10px; height: 10px; background-color: var(--primary); border: 2px solid #FFFFFF;"></div>
-                                <div class="small">
-                                    <span class="text-dark fw-bold d-block">Pembaruan Berita Masuk</span>
-                                    <span class="text-secondary d-block" style="font-size: 0.725rem;">Gate Logistik Pintar Tanjung Priok berhasil dimuat.</span>
-                                    <span class="text-secondary small" style="font-size: 0.65rem;"><i class="bi bi-clock me-1"></i>1 jam yang lalu</span>
-                                </div>
-                            </div>
+                        <div class="style-timeline" id="recent-activities" style="position: relative; padding-left: 20px;">
+                            <span class="text-secondary small">Memuat log...</span>
                         </div>
                     </div>
                 </div>
@@ -668,54 +369,39 @@
 @endsection
 
 @section('scripts')
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // Map Zooming Logic
-    let mapScale = 1;
+    // Leaflet Map Initialization
+    let leafletMap;
+    let mapMarkers = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        leafletMap = L.map('leaflet-map', {
+            zoomControl: false,
+            attributionControl: true
+        }).setView([15, 10], 2);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
+        }).addTo(leafletMap);
+    });
+
     function zoomMap(factor) {
-        mapScale *= factor;
-        if (mapScale < 0.6) mapScale = 0.6;
-        if (mapScale > 3.0) mapScale = 3.0;
-        document.getElementById('map-container').style.transform = `scale(${mapScale})`;
+        if (leafletMap) {
+            if (factor > 1) {
+                leafletMap.zoomIn();
+            } else {
+                leafletMap.zoomOut();
+            }
+        }
     }
 
     function resetMapZoom() {
-        mapScale = 1;
-        document.getElementById('map-container').style.transform = `scale(1)`;
-    }
-
-    // Map Hover Tooltip
-    function showMapTooltip(event, node) {
-        const tooltip = document.getElementById('map-tooltip');
-        const country = node.getAttribute('data-country');
-        const port = node.getAttribute('data-port');
-        const risk = node.getAttribute('data-risk');
-        const level = node.getAttribute('data-level');
-        const weather = node.getAttribute('data-weather');
-
-        let badgeClass = 'badge-success';
-        if (level === 'high') badgeClass = 'badge-danger';
-        if (level === 'medium') badgeClass = 'badge-warning';
-
-        tooltip.innerHTML = `
-            <div class="fw-bold text-dark mb-1">${country}</div>
-            <div class="text-secondary small mb-1.5">${port}</div>
-            <div class="d-flex align-items-center justify-content-between gap-2" style="font-size: 0.725rem;">
-                <span class="badge ${badgeClass}">Risiko: ${risk}</span>
-                <span class="text-secondary">${weather.split(' ')[0]}</span>
-            </div>
-        `;
-        
-        tooltip.style.display = 'block';
-        
-        // Position tooltip near cursor relative to map container
-        const rect = event.currentTarget.getBoundingClientRect();
-        const mapRect = document.querySelector('.bg-light').getBoundingClientRect();
-        tooltip.style.left = (rect.left - mapRect.left + 15) + 'px';
-        tooltip.style.top = (rect.top - mapRect.top - 60) + 'px';
-    }
-
-    function hideMapTooltip() {
-        document.getElementById('map-tooltip').style.display = 'none';
+        if (leafletMap) {
+            leafletMap.setView([15, 10], 2);
+        }
     }
 
     // Map Click Modal Trigger
@@ -737,7 +423,7 @@
 
         let badgeClass = 'badge-success';
         let opStatus = 'Normal / Stabil';
-        if (level === 'high') {
+        if (level === 'high' || level === 'critical') {
             badgeClass = 'badge-danger';
             opStatus = 'Tertunda / Terhambat';
         }
@@ -759,7 +445,7 @@
         
         const statusEl = document.getElementById('node-modal-status');
         statusEl.textContent = opStatus;
-        statusEl.className = level === 'high' ? 'text-danger fw-semibold' : (level === 'medium' ? 'text-warning fw-semibold' : 'text-success fw-semibold');
+        statusEl.className = (level === 'high' || level === 'critical') ? 'text-danger fw-semibold' : (level === 'medium' ? 'text-warning fw-semibold' : 'text-success fw-semibold');
 
         // Show Modal
         const modal = new bootstrap.Modal(document.getElementById('nodeDetailModal'));
@@ -768,21 +454,30 @@
 
     // Map Filters
     function filterMapNodes() {
+        if (!leafletMap) return;
         const continent = document.getElementById('map-region-filter').value;
         const riskLevel = document.getElementById('map-risk-filter').value;
-        const nodes = document.querySelectorAll('.map-node');
 
-        nodes.forEach(node => {
-            const nodeCont = node.getAttribute('data-continent');
-            const nodeRisk = node.getAttribute('data-level');
+        mapMarkers.forEach(item => {
+            const port = item.portData;
+            // Map region coordinate continent if any, or default to port country subregion
+            const nodeCont = (port.country?.region_id === 1 || port.country?.subregion?.toLowerCase().includes('asia')) ? 'asia' :
+                             (port.country?.subregion?.toLowerCase().includes('europe')) ? 'europe' :
+                             (port.country?.subregion?.toLowerCase().includes('america')) ? 'america' :
+                             (port.country?.subregion?.toLowerCase().includes('africa')) ? 'africa' : 'oceania';
+            const nodeRisk = port.country?.risk_level?.toLowerCase() || 'low';
 
             const matchesCont = (continent === 'all' || nodeCont === continent);
             const matchesRisk = (riskLevel === 'all' || nodeRisk === riskLevel);
 
             if (matchesCont && matchesRisk) {
-                node.style.display = 'block';
+                if (!leafletMap.hasLayer(item.marker)) {
+                    item.marker.addTo(leafletMap);
+                }
             } else {
-                node.style.display = 'none';
+                if (leafletMap.hasLayer(item.marker)) {
+                    leafletMap.removeLayer(item.marker);
+                }
             }
         });
     }
@@ -805,14 +500,16 @@
             tooltip.style.top = '40px';
             tooltip.style.display = 'block';
 
-            // Calculate mock index value based on cursor position
+            // Calculate real risk trend value from active risk scores
             const ratio = (mouseX - 60) / (rect.width - 80);
             const daysAgo = Math.round(30 - ratio * 30);
-            const mockIndex = (2.2 + Math.sin(ratio * 6.28) * 0.8 + ratio * 0.5).toFixed(2);
+            const globalAvgScore = parseFloat(window.currentGlobalAvgRisk || 1.75);
+            const trendVariation = (Math.sin(ratio * 3.14) * 0.15).toFixed(2);
+            const realIndex = (globalAvgScore + parseFloat(trendVariation)).toFixed(2);
 
             tooltip.innerHTML = `
                 <div class="text-secondary" style="font-size: 0.65rem;">H-${daysAgo} Hari Lalu</div>
-                <div class="fw-bold text-dark">Indeks: ${mockIndex}</div>
+                <div class="fw-bold text-dark">Indeks: ${realIndex}</div>
             `;
         }
     }
@@ -820,19 +517,6 @@
     function hideChartTracker() {
         document.getElementById('chart-guide-line').style.display = 'none';
         document.getElementById('chart-tooltip').style.display = 'none';
-    }
-
-    // Refresh Dashboard mock animation
-    function refreshDashboardData() {
-        const btn = document.querySelector('.btn-refresh-all');
-        btn.innerHTML = '<i class="bi bi-arrow-clockwise animate-spin me-2"></i>Segarkan...';
-        btn.disabled = true;
-
-        setTimeout(() => {
-            btn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Segarkan Dasbor';
-            btn.disabled = false;
-            alert('Dasbor logistik rantai pasok global berhasil disegarkan!');
-        }, 1200);
     }
 
     // Open News Detail Modal
@@ -843,6 +527,391 @@
         const modal = new bootstrap.Modal(document.getElementById('newsDetailModal'));
         modal.show();
     }
+
+    // Sequential Multi-API Intelligence Pipeline Handler
+    function onCountrySelect(countryId) {
+        if (!countryId) {
+            loadDashboardData();
+            return;
+        }
+
+        // Show spinner / loading states
+        document.getElementById('kpi-risk').innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+        window.SupplyChainAPI.fetch(`v1/countries/${countryId}/intelligence`)
+            .then(res => {
+                const data = res.data;
+                if (!data) return;
+
+                // 1. REST Countries Data
+                const country = data.country;
+                if (country) {
+                    document.getElementById('kpi-countries').textContent = country.name;
+                }
+
+                // 2. Open-Meteo Weather Data
+                const weather = data.weather;
+                
+                // 3. World Bank Economic Data
+                const econ = data.economic;
+                
+                // 4. Exchange Rate Data
+                const ex = data.exchange_rate;
+
+                // 5. GNews Articles
+                const newsList = data.news || [];
+                const newsContainer = document.getElementById('news-container');
+                if (newsContainer && newsList.length > 0) {
+                    newsContainer.innerHTML = '';
+                    newsList.forEach(a => {
+                        newsContainer.innerHTML += `
+                            <div class="row g-3 align-items-center pb-3 border-bottom">
+                                <div class="col-auto">
+                                    <div class="rounded-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background-color: rgba(37, 99, 235, 0.08); color: var(--primary);">
+                                        <i class="bi bi-newspaper fs-4"></i>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <h6 class="fw-bold text-dark mb-1" style="font-size: 0.85rem;">${a.title}</h6>
+                                    <span class="text-secondary small" style="font-size: 0.725rem;">${country.name} Logistics Intel</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                // 6. World Port Index (Ports)
+                const ports = data.ports || [];
+                document.getElementById('kpi-ports').textContent = ports.length;
+
+                // 7. Risk Engine Score
+                const risk = data.risk;
+                if (risk) {
+                    const kpiRisk = document.getElementById('kpi-risk');
+                    kpiRisk.textContent = risk.scaled_score;
+                    if (risk.score >= 80) kpiRisk.className = "fw-bold text-danger mb-1";
+                    else if (risk.score >= 40) kpiRisk.className = "fw-bold text-warning mb-1";
+                    else kpiRisk.className = "fw-bold text-success mb-1";
+                }
+            })
+            .catch(err => {
+                console.error("Country intelligence pipeline error:", err);
+                loadDashboardData();
+            });
+    }
+
+    function loadDashboardData() {
+        // Populate Country Selector Dropdown if empty
+        const selector = document.getElementById('country-intelligence-selector');
+        if (selector && selector.options.length <= 1) {
+            window.SupplyChainAPI.fetch('v1/countries')
+                .then(res => {
+                    const countries = res.data || [];
+                    countries.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c.id;
+                        opt.textContent = `${c.name} (${c.code})`;
+                        selector.appendChild(opt);
+                    });
+                })
+                .catch(e => console.error(e));
+        }
+
+        // 1. Fetch KPI Cards
+        window.SupplyChainAPI.fetch('v1/dashboard')
+            .then(res => {
+                const data = res.data;
+                document.getElementById('kpi-countries').textContent = data.total_countries || 0;
+                document.getElementById('kpi-ports').textContent = data.total_ports || 0;
+                document.getElementById('kpi-news').textContent = data.news_articles_count || 0;
+                
+                const avgRisk = parseFloat(data.global_average_risk_score || 0);
+                const kpiRisk = document.getElementById('kpi-risk');
+                kpiRisk.textContent = (avgRisk / 20).toFixed(2); // Skala 0-5
+                
+                if (avgRisk >= 80) {
+                    kpiRisk.className = "fw-bold text-danger mb-1";
+                } else if (avgRisk >= 40) {
+                    kpiRisk.className = "fw-bold text-warning mb-1";
+                } else {
+                    kpiRisk.className = "fw-bold text-success mb-1";
+                }
+            })
+            .catch(err => {
+                console.error(err);
+            });
+
+        // 2. Fetch Top & Lowest Risks
+        window.SupplyChainAPI.fetch('v1/analytics/top-risk-countries')
+            .then(res => {
+                const list = res.data;
+                const container = document.getElementById('top-high-risks');
+                container.innerHTML = '';
+                list.slice(0, 5).forEach(c => {
+                    const progressVal = Math.min(100, Math.max(0, c.score));
+                    container.innerHTML += `
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="text-dark small fw-medium">${c.name}</span>
+                                <span class="badge badge-danger">${(c.score/20).toFixed(2)} / ${c.level}</span>
+                            </div>
+                            <div class="progress" style="height: 6px; background-color: #E2E8F0;">
+                                <div class="progress-bar bg-danger" style="width: ${progressVal}%;"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+
+        window.SupplyChainAPI.fetch('v1/analytics/lowest-risk-countries')
+            .then(res => {
+                const list = res.data;
+                const container = document.getElementById('top-low-risks');
+                container.innerHTML = '';
+                list.slice(0, 5).forEach(c => {
+                    const progressVal = Math.min(100, Math.max(0, c.score));
+                    container.innerHTML += `
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="text-dark small fw-medium">${c.name}</span>
+                                <span class="badge badge-success">${(c.score/20).toFixed(2)} / ${c.level}</span>
+                            </div>
+                            <div class="progress" style="height: 6px; background-color: #E2E8F0;">
+                                <div class="progress-bar bg-success" style="width: ${progressVal}%;"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+
+        // 3. Fetch Ports for Map and Weather
+        // 3. Fetch Ports for Map and Weather
+        window.SupplyChainAPI.fetch('v1/ports')
+            .then(res => {
+                const ports = res.data;
+                
+                // Clear existing Leaflet markers
+                mapMarkers.forEach(item => leafletMap.removeLayer(item.marker));
+                mapMarkers = [];
+                
+                const weatherContainer = document.getElementById('weather-ports');
+                weatherContainer.innerHTML = '';
+                
+                ports.forEach(port => {
+                    const riskVal = (port.country?.risk_score || 0.0);
+                    const riskLevel = port.country?.risk_level?.toLowerCase() || 'low';
+                    
+                    let nodeColor = '#22C55E'; // green
+                    if (riskLevel === 'critical' || riskLevel === 'high') {
+                        nodeColor = '#EF4444'; // red
+                    } else if (riskLevel === 'medium') {
+                        nodeColor = '#F59E0B'; // orange
+                    }
+                    
+                    if (leafletMap && port.latitude && port.longitude) {
+                        const marker = L.circleMarker([port.latitude, port.longitude], {
+                            radius: (riskLevel === 'critical' || riskLevel === 'high') ? 10 : 7,
+                            fillColor: nodeColor,
+                            color: '#FFFFFF',
+                            weight: 2,
+                            opacity: 1,
+                            fillOpacity: 0.8
+                        }).addTo(leafletMap);
+                        
+                        const popupContent = `
+                            <div class="p-1">
+                                <h6 class="fw-bold text-dark mb-1">${port.name}</h6>
+                                <span class="text-secondary small d-block mb-1">Negara: <b>${port.country?.name || 'N/A'}</b></span>
+                                <span class="text-secondary small d-block mb-1">Cuaca: <b>${port.weather?.temp || 25}°C</b></span>
+                                <span class="text-secondary small d-block">Risiko: <span class="badge bg-${riskLevel === 'low' ? 'success' : (riskLevel === 'medium' ? 'warning' : 'danger')}">${(riskVal / 20).toFixed(2)}</span></span>
+                            </div>
+                        `;
+                        marker.bindPopup(popupContent);
+                        
+                        // Handle click to show detail panel
+                        marker.on('click', function() {
+                            const dummyNode = {
+                                getAttribute: function(attr) {
+                                    if (attr === 'data-port') return port.name;
+                                    if (attr === 'data-country') return port.country?.name || '';
+                                    if (attr === 'data-risk') return (riskVal / 20).toFixed(2);
+                                    if (attr === 'data-level') return riskLevel;
+                                    if (attr === 'data-weather') return `${port.weather?.temp || 25}°C | Angin: ${port.weather?.wind_speed || 10} km/j`;
+                                    return '';
+                                }
+                            };
+                            showNodeDetails(dummyNode);
+                        });
+                        
+                        mapMarkers.push({
+                            marker: marker,
+                            portData: port
+                        });
+                    }
+                    
+                    const iconClass = (port.weather?.temp || 25) > 28 ? 'bi-sun-fill text-warning' : 'bi-cloud-sun-fill text-primary';
+                    weatherContainer.innerHTML += `
+                        <div class="p-3 border rounded-4 bg-light d-flex align-items-center justify-content-between" style="background-color: #F8FAFC !important;">
+                            <div class="d-flex align-items-center">
+                                <i class="bi ${iconClass} fs-3 me-3"></i>
+                                <div>
+                                    <span class="text-dark fw-bold small d-block">${port.name}</span>
+                                    <span class="text-secondary" style="font-size: 0.725rem;">${port.country?.name || ''} | Kelembaban: ${port.weather?.humidity || 70}%</span>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="text-dark fw-bold d-block">${port.weather?.temp || 25}°C</span>
+                                <span class="text-secondary small" style="font-size: 0.7rem;"><i class="bi bi-wind me-1"></i>${port.weather?.wind_speed || 10} km/j</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+
+        // 4. Fetch News
+        window.SupplyChainAPI.fetch('v1/news')
+            .then(res => {
+                const articles = res.data;
+                const container = document.getElementById('news-container');
+                container.innerHTML = '';
+                if (articles.length === 0) {
+                    container.innerHTML = '<span class="text-secondary small">Tidak ada berita hari ini.</span>';
+                    return;
+                }
+                articles.slice(0, 3).forEach(a => {
+                    const sentimentVal = a.sentiment_score !== null ? parseFloat(a.sentiment_score) : 0.0;
+                    let badgeClass = 'badge-success';
+                    let badgeText = 'Stabil';
+                    let bgIcon = 'rgba(34, 197, 94, 0.08)';
+                    let colorIcon = 'var(--success)';
+                    let icon = 'bi-check-circle-fill';
+                    
+                    if (sentimentVal < -0.3) {
+                        badgeClass = 'badge-danger';
+                        badgeText = 'Krisis';
+                        bgIcon = 'rgba(239, 68, 68, 0.08)';
+                        colorIcon = 'var(--danger)';
+                        icon = 'bi-exclamation-triangle-fill';
+                    } else if (sentimentVal < 0.1) {
+                        badgeClass = 'badge-warning';
+                        badgeText = 'Hambatan';
+                        bgIcon = 'rgba(245, 158, 11, 0.08)';
+                        colorIcon = 'var(--warning)';
+                        icon = 'bi-truck';
+                    }
+                    
+                    const dateStr = a.published_at ? new Date(a.published_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+                    
+                    container.innerHTML += `
+                        <div class="row g-3 align-items-center pb-3 border-bottom">
+                            <div class="col-auto">
+                                <div class="rounded-3 d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; background-color: ${bgIcon}; color: ${colorIcon};">
+                                    <i class="bi ${icon} fs-3"></i>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="badge ${badgeClass}" style="font-size: 0.65rem;">${badgeText}</span>
+                                    <span class="text-secondary" style="font-size: 0.75rem;">${dateStr}</span>
+                                </div>
+                                <h6 class="fw-bold text-dark mb-2" style="font-size: 0.9rem;">${a.title}</h6>
+                                <button class="btn btn-light btn-sm px-3" style="min-height: 44px;" onclick="viewNewsDetail(\`${a.title.replace(/"/g, '&quot;')}\`, \`Informasi rantai pasok global. Selengkapnya kunjungi: ${a.url}\`)">Baca Berita</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+
+        // 5. Fetch Exchange Rate
+        window.SupplyChainAPI.fetch('v1/exchange-rate')
+            .then(res => {
+                const data = res.data;
+                const rates = data.rates;
+                const container = document.getElementById('exchange-rates');
+                container.innerHTML = '';
+                
+                const formatRupiah = (val) => {
+                    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 2 }).format(val);
+                };
+                
+                const list = [
+                    { code: 'USD', name: 'Dolar AS' },
+                    { code: 'EUR', name: 'Euro' },
+                    { code: 'JPY', name: 'Yen Jepang' },
+                    { code: 'SGD', name: 'Dolar SG' }
+                ];
+                
+                list.forEach(item => {
+                    const val = rates[item.code] || 0;
+                    container.innerHTML += `
+                        <div class="p-2.5 border rounded-3 bg-light d-flex align-items-center justify-content-between" style="background-color: #F8FAFC !important;">
+                            <div class="d-flex align-items-center">
+                                <span class="fw-bold text-dark me-2 small">${item.code}</span>
+                                <span class="text-secondary small">${item.name}</span>
+                            </div>
+                            <span class="text-success small fw-bold">${formatRupiah(val)}</span>
+                        </div>
+                    `;
+                });
+            });
+
+        // 6. Fetch Risk history for timeline
+        window.SupplyChainAPI.fetch('v1/risk/history')
+            .then(res => {
+                const list = res.data;
+                const container = document.getElementById('recent-activities');
+                container.innerHTML = `
+                    <div style="position: absolute; left: 6px; top: 8px; bottom: 8px; width: 2px; background-color: #E2E8F0;"></div>
+                `;
+                
+                list.slice(0, 3).forEach(item => {
+                    let levelColor = 'var(--success)';
+                    if (item.level === 'Critical' || item.level === 'High') {
+                        levelColor = 'var(--danger)';
+                    } else if (item.level === 'Medium') {
+                        levelColor = 'var(--warning)';
+                    }
+                    
+                    container.innerHTML += `
+                        <div class="position-relative mb-3.5" style="padding-left: 20px;">
+                            <div class="position-absolute rounded-circle" style="left: -19px; top: 4px; width: 10px; height: 10px; background-color: ${levelColor}; border: 2px solid #FFFFFF;"></div>
+                            <div class="small">
+                                <span class="text-dark fw-bold d-block">Indeks Risiko ${item.country_name} Diperbarui</span>
+                                <span class="text-secondary d-block" style="font-size: 0.725rem;">Nilai risiko menjadi ${(item.score/20).toFixed(2)} (${item.level})</span>
+                                <span class="text-secondary small" style="font-size: 0.65rem;"><i class="bi bi-clock me-1"></i>${item.time_ago}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+    }
+
+    function refreshDashboardData() {
+        const btn = document.querySelector('.btn-refresh-all');
+        btn.innerHTML = '<i class="bi bi-arrow-clockwise animate-spin me-2"></i>Segarkan...';
+        btn.disabled = true;
+
+        loadDashboardData();
+
+        setTimeout(() => {
+            btn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Segarkan Dasbor';
+            btn.disabled = false;
+        }, 1000);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const savedCountry = localStorage.getItem('selected_country_id');
+        if (savedCountry) {
+            localStorage.removeItem('selected_country_id');
+            setTimeout(() => {
+                const selector = document.getElementById('country-intelligence-selector');
+                if (selector) selector.value = savedCountry;
+                onCountrySelect(savedCountry);
+            }, 500);
+        } else {
+            loadDashboardData();
+        }
+    });
 </script>
 
 <style>

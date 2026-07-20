@@ -52,10 +52,11 @@ class DashboardAnalyticsServiceTest extends TestCase
     }
 
     /** @test */
-    public function test_it_throws_exception_if_no_scores_for_global_summary(): void
+    public function test_it_handles_empty_scores_gracefully_for_global_summary(): void
     {
-        $this->expectException(MissingRiskDataException::class);
-        $this->service->getGlobalSummary([]);
+        $summary = $this->service->getGlobalSummary([]);
+        $this->assertNotNull($summary);
+        $this->assertEquals(0.0, $summary->data['global_average_score']);
     }
 
     /** @test */

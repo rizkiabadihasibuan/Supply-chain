@@ -32,7 +32,13 @@ class RegisterRequest extends BaseRequest
      */
     public function rules(): array
     {
-        return ['name' => 'required|string|max:255', 'email' => 'required|email|unique:users,email|max:255', 'password' => 'required|string|min:8|confirmed', 'company_name' => 'nullable|string|max:255'];
+        return [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email|max:255',
+            'password' => 'required|string|min:8|confirmed',
+            'role' => 'nullable|string|in:admin,user',
+            'company_name' => 'nullable|string|max:255',
+        ];
     }
 
     /**

@@ -5,40 +5,40 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Api\BaseApiController;
 use Illuminate\Http\Request;
 use Exception;
-use App\Services\DashboardService;
-use App\Http\Resources\Dashboard\DashboardSummaryResource;
-use App\Http\Requests\Dashboard\DashboardFilterRequest;
+use App\Services\Contracts\DashboardServiceInterface;
 
 class DashboardController extends BaseApiController
 {
     /**
-     * @var DashboardService
+     * @var DashboardServiceInterface
      */
     protected $DashboardService;
 
     /**
      * Constructor for Dependency Injection
      *
-     * @param DashboardService $DashboardService
+     * @param DashboardServiceInterface $DashboardService
      */
-    public function __construct(DashboardService $DashboardService)
+    public function __construct(DashboardServiceInterface $DashboardService)
     {
         $this->DashboardService = $DashboardService;
     }
 
     /**
-     * summary method
+     * summary method — Get high-level KPI dashboard metrics
+     * GET /api/v1/dashboard
      */
     public function summary(Request $request)
     {
         try {
-            // No business logic here. Delegate to service.
-            // $result = $this->DashboardService->summary(...);
-            // return new DashboardSummaryResource($result);
-            return $this->sendSuccess('Method summary executed');
+            $result = $this->DashboardService->getStatsSummary();
+            return response()->json([
+                'success' => true,
+                'message' => 'Dashboard summary retrieved successfully',
+                'data' => $result,
+            ], 200);
         } catch (Exception $e) {
             return $this->sendError('Failed to execute summary', [$e->getMessage()], 500);
         }
     }
-
 }
