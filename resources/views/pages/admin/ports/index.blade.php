@@ -31,13 +31,13 @@
             <x-admin.ports.error-state />
         </div>
 
-        {{-- Skeleton Loading Container --}}
-        <div id="ports-skeleton-container" class="mb-2">
+        {{-- Skeleton Loading Container (Hidden) --}}
+        <div id="ports-skeleton-container" style="display: none;" class="mb-2">
             <x-admin.ports.loading-state />
         </div>
 
-        {{-- ══════ MAIN CONTENT AREA (Hidden on loading skeleton) ══════ --}}
-        <div id="ports-main-content" style="display: none;">
+        {{-- ══════ MAIN CONTENT AREA (Direct Display) ══════ --}}
+        <div id="ports-main-content">
             
             {{-- ══════ ACTION TOOLBAR ══════ --}}
             <div class="port-toolbar-container">
@@ -68,19 +68,19 @@
                 </div>
             </div>
 
-            {{-- ══════ STATISTICS (4 Cards) ══════ --}}
+            {{-- ══════ STATISTICS (4 Cards from DB) ══════ --}}
             <div class="row g-3 mb-4">
                 <div class="col-12 col-sm-6 col-md-3">
-                    <x-admin.ports.statistics-card title="Total Port" value="1,258" icon="anchor" color="primary" />
+                    <x-admin.ports.statistics-card title="Total Port" value="{{ number_format($ports->count()) }}" icon="anchor" color="primary" />
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
-                    <x-admin.ports.statistics-card title="Countries Covered" value="195" icon="globe" color="success" />
+                    <x-admin.ports.statistics-card title="Countries Covered" value="{{ $ports->pluck('country_id')->unique()->count() }}" icon="globe" color="success" />
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
-                    <x-admin.ports.statistics-card title="Active Port" value="1,173" icon="check-circle" color="info" />
+                    <x-admin.ports.statistics-card title="Active Port" value="{{ number_format($ports->count()) }}" icon="check-circle" color="info" />
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
-                    <x-admin.ports.statistics-card title="Last Synchronization" value="Today 08:30 UTC" icon="clock" color="warning" />
+                    <x-admin.ports.statistics-card title="Last Synchronization" value="Terhubung WPI" icon="clock" color="warning" />
                 </div>
             </div>
 
@@ -89,83 +89,24 @@
                 <x-admin.ports.filter-card />
             </div>
 
-            {{-- ══════ PORT DATASET TABLE ══════ --}}
+            {{-- ══════ PORT DATASET TABLE (Real DB Data) ══════ --}}
             <div class="mb-4">
                 <x-admin.ports.port-table>
-                    {{-- Row 1 --}}
-                    <x-admin.ports.table-row 
-                        no="1"
-                        code="IDTPP"
-                        name="Tanjung Priok"
-                        country="Indonesia"
-                        region="Asia Tenggara"
-                        status="Aktif"
-                        latitude="-6.1033"
-                        longitude="106.8792"
-                        lastUpdated="Today 08:30 UTC"
-                        capacity="High"
-                        timezone="Asia/Jakarta (GMT+07:00)"
-                    />
-
-                    {{-- Row 2 --}}
-                    <x-admin.ports.table-row 
-                        no="2"
-                        code="SGSIN"
-                        name="Port of Singapore"
-                        country="Singapore"
-                        region="Asia Tenggara"
-                        status="Aktif"
-                        latitude="1.2652"
-                        longitude="103.8294"
-                        lastUpdated="Today 08:28 UTC"
-                        capacity="High"
-                        timezone="Asia/Singapore (GMT+08:00)"
-                    />
-
-                    {{-- Row 3 --}}
-                    <x-admin.ports.table-row 
-                        no="3"
-                        code="CNSHA"
-                        name="Port of Shanghai"
-                        country="China"
-                        region="Asia Timur"
-                        status="Aktif"
-                        latitude="30.6252"
-                        longitude="122.0673"
-                        lastUpdated="Yesterday 14:15 UTC"
-                        capacity="High"
-                        timezone="Asia/Shanghai (GMT+08:00)"
-                    />
-
-                    {{-- Row 4 --}}
-                    <x-admin.ports.table-row 
-                        no="4"
-                        code="USLAX"
-                        name="Port of Los Angeles"
-                        country="United States"
-                        region="Amerika Utara"
-                        status="Maintenance"
-                        latitude="33.7292"
-                        longitude="-118.2620"
-                        lastUpdated="Yesterday 09:12 UTC"
-                        capacity="High"
-                        timezone="America/Los_Angeles (GMT-08:00)"
-                    />
-
-                    {{-- Row 5 --}}
-                    <x-admin.ports.table-row 
-                        no="5"
-                        code="IDTPE"
-                        name="Tanjung Perak"
-                        country="Indonesia"
-                        region="Asia Tenggara"
-                        status="Tidak Aktif"
-                        latitude="-7.2023"
-                        longitude="112.7371"
-                        lastUpdated="16-07-2026 11:30 UTC"
-                        capacity="Medium"
-                        timezone="Asia/Jakarta (GMT+07:00)"
-                    />
+                    @foreach($ports as $index => $p)
+                        <x-admin.ports.table-row 
+                            :no="$index + 1"
+                            :code="$p->code"
+                            :name="$p->name"
+                            :country="$p->country?->name ?? '—'"
+                            :region="$p->country?->region?->name ?? '—'"
+                            status="Aktif"
+                            :latitude="number_format($p->latitude, 4)"
+                            :longitude="number_format($p->longitude, 4)"
+                            :lastUpdated="$p->updated_at ? $p->updated_at->format('d-m-Y') : 'Hari ini'"
+                            :capacity="$p->size ?? 'Medium'"
+                            timezone="UTC"
+                        />
+                    @endforeach
                 </x-admin.ports.port-table>
             </div>
 

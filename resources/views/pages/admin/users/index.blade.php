@@ -33,16 +33,16 @@
             </div>
         </div>
 
-        {{-- Skeleton Loading Container --}}
-        <div id="users-skeleton-container" class="row g-4">
+        {{-- Skeleton Loading Container (Hidden) --}}
+        <div id="users-skeleton-container" style="display: none;" class="row g-4">
             <div class="col-12">
                 <x-loading-state type="card" count="4" height="100px" />
                 <x-loading-state type="card" count="1" height="400px" />
             </div>
         </div>
 
-        {{-- ══════ MAIN CONTENT AREA (Hidden on loading skeleton) ══════ --}}
-        <div id="users-main-content" style="display: none;">
+        {{-- ══════ MAIN CONTENT AREA (Direct Display) ══════ --}}
+        <div id="users-main-content">
             
             {{-- ══════ ACTION TOOLBAR ══════ --}}
             <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
@@ -67,93 +67,41 @@
                 <x-user-filter-card />
             </div>
 
-            {{-- ══════ USER STATISTICS (4 KPI Cards) ══════ --}}
+            {{-- ══════ USER STATISTICS (4 KPI Cards from DB) ══════ --}}
             <div class="row g-3 mb-4">
                 <div class="col-12 col-sm-6 col-md-3">
-                    <x-user-stat-card title="Total User" value="12 Users" icon="people" color="primary" />
+                    <x-user-stat-card title="Total User" value="{{ $users->count() }} Users" icon="people" color="primary" />
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
-                    <x-user-stat-card title="Active User" value="9 Active" icon="check-circle" color="success" />
+                    <x-user-stat-card title="Active User" value="{{ $users->count() }} Active" icon="check-circle" color="success" />
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
-                    <x-user-stat-card title="Inactive User" value="2 Inactive" icon="slash-circle" color="secondary" />
+                    <x-user-stat-card title="Inactive User" value="0 Inactive" icon="slash-circle" color="secondary" />
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
-                    <x-user-stat-card title="Administrator" value="3 Admins" icon="shield-lock" color="warning" />
+                    <x-user-stat-card title="Administrator" value="{{ $users->filter(fn($u) => (is_object($u->role) ? $u->role->value : $u->role) === 'admin')->count() }} Admins" icon="shield-lock" color="warning" />
                 </div>
             </div>
 
-            {{-- ══════ USER TABLE ══════ --}}
+            {{-- ══════ USER TABLE (Real DB Data) ══════ --}}
             <x-user-table>
-                {{-- Data Row 1 --}}
-                <x-user-row 
-                    name="John Doe" 
-                    email="johndoe@domain.com" 
-                    role="Admin" 
-                    status="Active" 
-                    joined="18-07-2026" 
-                    lastLogin="18-07-2026 09:54"
-                    avatar="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop"
-                    phone="+62 812-3456-7890"
-                    company="Logistics Corp ID"
-                    country="Indonesia"
-                />
-
-                {{-- Data Row 2 --}}
-                <x-user-row 
-                    name="Jane Smith" 
-                    email="janesmith@domain.com" 
-                    role="User" 
-                    status="Active" 
-                    joined="17-07-2026" 
-                    lastLogin="17-07-2026 14:15"
-                    avatar="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop"
-                    phone="+1 555-0199-283"
-                    company="Global Shipping US"
-                    country="United States"
-                />
-
-                {{-- Data Row 3 --}}
-                <x-user-row 
-                    name="Robert Brown" 
-                    email="robert@domain.com" 
-                    role="User" 
-                    status="Inactive" 
-                    joined="16-07-2026" 
-                    lastLogin="16-07-2026 18:22"
-                    avatar="https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=100&auto=format&fit=crop"
-                    phone="+44 7700-900077"
-                    company="Cargo Connect UK"
-                    country="United Kingdom"
-                />
-
-                {{-- Data Row 4 --}}
-                <x-user-row 
-                    name="Michael Green" 
-                    email="michael@domain.com" 
-                    role="User" 
-                    status="Suspended" 
-                    joined="15-07-2026" 
-                    lastLogin="15-07-2026 11:05"
-                    avatar="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&auto=format&fit=crop"
-                    phone="+49 170-123456"
-                    company="FastRoute DE"
-                    country="Germany"
-                />
-
-                {{-- Data Row 5 --}}
-                <x-user-row 
-                    name="Admin Utama" 
-                    email="admin@supplychain.com" 
-                    role="Admin" 
-                    status="Active" 
-                    joined="01-07-2026" 
-                    lastLogin="18-07-2026 09:59"
-                    avatar="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop"
-                    phone="+62 811-999-888"
-                    company="SupplyChain HQ"
-                    country="Indonesia"
-                />
+                @foreach($users as $u)
+                    @php
+                        $roleStr = is_object($u->role) ? ($u->role->value ?? 'user') : ($u->role ?? 'user');
+                    @endphp
+                    <x-user-row 
+                        :name="$u->name" 
+                        :email="$u->email" 
+                        :role="ucfirst($roleStr)" 
+                        status="Active" 
+                        :joined="$u->created_at ? $u->created_at->format('d-m-Y') : '18-07-2026'" 
+                        :lastLogin="$u->updated_at ? $u->updated_at->format('d-m-Y H:i') : 'Hari ini'" 
+                        :avatar="'https://ui-avatars.com/api/?name=' . urlencode($u->name) . '&background=2563EB&color=fff'"
+                        phone="+62 812-3456-7890"
+                        company="SupplyChain Platform"
+                        country="Indonesia"
+                    />
+                @endforeach
             </x-user-table>
 
             {{-- ══════ PAGINATION ══════ --}}

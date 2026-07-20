@@ -34,7 +34,8 @@ class SyncCountriesCommand extends Command
     {
         $this->info('Starting sync for Countries...');
         
-        $url = env('REST_COUNTRIES_URL', 'https://restcountries.com/v3.1') . '/all';
+        // Use reliable REST Countries data mirror because v3.1 is deprecated
+        $url = 'https://raw.githubusercontent.com/mledoze/countries/master/countries.json';
         $response = Http::withoutVerifying()->get($url);
 
         if ($response->failed()) {
@@ -84,6 +85,9 @@ class SyncCountriesCommand extends Command
 
                 $lat = $data['latlng'][0] ?? null;
                 $lng = $data['latlng'][1] ?? null;
+                
+                // Fallback to flagcdn if flags['png'] doesn't exist in the mirror dataset
+                $flagUrl = $data['flags']['png'] ?? 'https://flagcdn.com/w320/' . strtolower($data['cca2']) . '.png';
 
                 Country::updateOrCreate(
                     ['code' => $data['cca2']],
@@ -97,7 +101,7 @@ class SyncCountriesCommand extends Command
                         'timezone' => $data['timezones'][0] ?? null,
                         'latitude' => $lat,
                         'longitude' => $lng,
-                        'flag_url' => $data['flags']['png'] ?? null,
+                        'flag_url' => $flagUrl,
                         'languages' => $languages,
                     ]
                 );

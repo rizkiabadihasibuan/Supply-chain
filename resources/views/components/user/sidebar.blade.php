@@ -20,6 +20,9 @@
         <a href="{{ route('user.countries') }}" class="menu-item {{ Request::is('dashboard/countries*') ? 'active' : '' }}" aria-label="Lihat Data Negara">
             <i class="bi bi-globe2"></i> Negara
         </a>
+        <a href="{{ route('user.ports') }}" class="menu-item {{ Request::is('dashboard/ports*') || Request::is('ports*') ? 'active' : '' }}" aria-label="Lihat Data Pelabuhan">
+            <i class="bi bi-anchor"></i> Pelabuhan
+        </a>
         <a href="{{ route('user.weather') }}" class="menu-item {{ Request::is('dashboard/weather*') ? 'active' : '' }}" aria-label="Lihat Informasi Cuaca">
             <i class="bi bi-cloud-sun-fill"></i> Weather
         </a>

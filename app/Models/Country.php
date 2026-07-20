@@ -44,6 +44,7 @@ class Country extends Model
         'currency_id',
         'code',
         'name',
+        'capital',
         'subregion',
         'population',
         'area',

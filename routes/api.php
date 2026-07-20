@@ -52,6 +52,7 @@ Route::prefix('v1')->group(function () {
         // DASHBOARD & ANALYTICS
         Route::get('/dashboard', [DashboardController::class, 'summary']);
         Route::get('/analytics', [AnalyticsController::class, 'index']);
+        Route::get('/recommendations', [\App\Http\Controllers\Api\RecommendationController::class, 'index']);
 
         // COUNTRY MODULE
         Route::get('/countries/search', [CountryController::class, 'search']);
@@ -161,5 +162,6 @@ Route::middleware(['auth:web'])->group(function () {
     Route::get('/comparison', [\App\Http\Controllers\Api\ComparisonController::class, 'index']);
     Route::get('/dashboard', [\App\Http\Controllers\Api\DashboardController::class, 'summary']);
     Route::get('/analytics', [\App\Http\Controllers\Api\AnalyticsController::class, 'index']);
+    Route::get('/recommendations', [\App\Http\Controllers\Api\RecommendationController::class, 'index']);
 });
 

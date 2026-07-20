@@ -1,643 +1,468 @@
-{{--
-    Favorite Monitoring List – Milestone 3.12
-    resources/views/watchlist/index.blade.php
+<div class="container-fluid p-0 fade-in-up">
 
-    Layout: Header → Toolbar → Stats → Grid → Table → Footer
---}}
-@extends('layouts.user.app')
-
-@section('title', 'Favorite Monitoring List – SupplyChain Platform')
-
-@section('styles')
-<link rel="stylesheet" href="{{ asset('css/favorite/favorite.css') }}">
-<link rel="stylesheet" href="{{ asset('css/favorite/toolbar.css') }}">
-<link rel="stylesheet" href="{{ asset('css/favorite/responsive.css') }}">
-@endsection
-
-@section('content')
-<div class="fav-page-wrapper">
-
-{{-- ======================================================
-     PAGE HEADER
-     ====================================================== --}}
-<div class="row align-items-center mb-4 g-3">
-    {{-- Left: Title --}}
-    <div class="col-12 col-md-7">
-        <div class="d-flex align-items-center gap-3">
-            <div class="p-2 rounded-3" style="background:rgba(37,99,235,0.08);">
-                <i class="bi bi-star-fill text-primary fs-4"></i>
-            </div>
-            <div>
-                <h4 class="fw-bold text-dark mb-0">Favorite Monitoring List</h4>
-                <p class="text-secondary small mb-0 mt-1">
-                    Pantau negara-negara favorit Anda dalam satu dashboard ringkas.
-                </p>
-            </div>
-        </div>
-    </div>
-
-    {{-- Right: Actions --}}
-    <div class="col-12 col-md-5 d-flex justify-content-md-end align-items-center gap-2 flex-wrap">
-        <span class="badge bg-white text-secondary border shadow-sm px-3 py-2 rounded-pill d-flex align-items-center gap-1" style="font-size:.78rem;">
-            <i class="bi bi-calendar3 text-primary"></i>
-            {{ now()->translatedFormat('d F Y') }}
-        </span>
-
-        {{-- Refresh --}}
-        <button id="btnHeaderRefresh"
-                class="btn btn-outline-primary btn-sm d-flex align-items-center gap-2"
-                style="min-height:38px; border-radius:10px;"
-                onclick="refreshFavorites(this)"
-                data-bs-toggle="tooltip" title="Segarkan semua data">
-            <i class="bi bi-arrow-clockwise"></i>
-            <span class="d-none d-sm-inline">Segarkan</span>
-        </button>
-
-        {{-- Add Favorite --}}
-        <button class="btn btn-primary btn-sm d-flex align-items-center gap-2"
-                style="min-height:38px; border-radius:10px;"
-                onclick="openAddModal()">
-            <i class="bi bi-plus-circle-fill"></i>
-            <span class="d-none d-sm-inline">Tambah Favorit</span>
-        </button>
-    </div>
-</div>
-
-{{-- ======================================================
-     TOOLBAR
-     ====================================================== --}}
-<div class="fav-toolbar mb-4 fav-fade">
-    <div class="row g-2 align-items-center">
-
-        {{-- Search --}}
-        <div class="col-12 col-sm-6 col-lg-3">
-            <div class="input-group">
-                <span class="input-group-text border-end-0"><i class="bi bi-search"></i></span>
-                <input type="text" id="favSearch"
-                       class="form-control border-start-0"
-                       placeholder="Cari negara favorit..."
-                       style="border-radius:0 10px 10px 0;"
-                       oninput="FavoriteToolbar.apply()">
-            </div>
-        </div>
-
-        {{-- Filter Region --}}
-        <div class="col-6 col-sm-3 col-lg-2">
-            <select id="favFilterRegion" class="form-select" onchange="FavoriteToolbar.apply()">
-                <option value="all">Semua Wilayah</option>
-                <option value="Asia Tenggara">Asia Tenggara</option>
-                <option value="Asia Timur">Asia Timur</option>
-                <option value="Amerika Utara">Amerika Utara</option>
-                <option value="Eropa Barat">Eropa Barat</option>
-                <option value="Afrika">Afrika</option>
-                <option value="Oceania">Oceania</option>
-            </select>
-        </div>
-
-        {{-- Filter Risk --}}
-        <div class="col-6 col-sm-3 col-lg-2">
-            <select id="favFilterRisk" class="form-select" onchange="FavoriteToolbar.apply()">
-                <option value="all">Semua Risk</option>
-                <option value="low">Low Risk</option>
-                <option value="medium">Medium Risk</option>
-                <option value="high">High Risk</option>
-            </select>
-        </div>
-
-        {{-- Sort --}}
-        <div class="col-6 col-sm-3 col-lg-2">
-            <select id="favSort" class="form-select" onchange="FavoriteToolbar.apply()">
-                <option value="name">Urutkan: Nama</option>
-                <option value="risk-asc">Risk ↑ Terendah</option>
-                <option value="risk-desc">Risk ↓ Tertinggi</option>
-                <option value="gdp-desc">GDP ↓ Terbesar</option>
-            </select>
-        </div>
-
-        {{-- Actions --}}
-        <div class="col-6 col-sm-9 col-lg-auto ms-lg-auto d-flex gap-2 flex-wrap">
-            <button id="btnResetFilters" class="fav-toolbar-btn btn btn-outline-secondary"
-                    data-bs-toggle="tooltip" title="Reset filter">
-                <i class="bi bi-x-circle"></i>
-                <span class="d-none d-md-inline">Reset</span>
-            </button>
-            <button class="fav-toolbar-btn btn btn-primary" onclick="openAddModal()">
-                <i class="bi bi-plus-lg"></i>
-                <span>Tambah</span>
-            </button>
-        </div>
-
-    </div>
-</div>
-
-{{-- ======================================================
-     SKELETON LOADING
-     ====================================================== --}}
-<div id="favSkeleton" style="display:none;">
-
-    {{-- Stat cards skeleton --}}
-    <div class="row g-3 mb-4">
-        @for($i = 0; $i < 4; $i++)
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm p-4 rounded-4">
-                <div class="d-flex justify-content-between mb-3">
-                    <span class="placeholder" style="width:48px;height:48px;border-radius:12px;background:#E2E8F0;"></span>
-                    <span class="placeholder col-3 rounded-pill" style="height:22px;"></span>
-                </div>
-                <span class="placeholder col-6 d-block mb-2" style="height:12px;border-radius:6px;"></span>
-                <span class="placeholder col-8 d-block" style="height:26px;border-radius:8px;"></span>
-            </div>
-        </div>
-        @endfor
-    </div>
-
-    {{-- Grid skeleton --}}
-    <div class="row g-3">
-        @for($i = 0; $i < 4; $i++)
-        <div class="col-12 col-md-6 col-lg-3">
-            <div class="card border-0 shadow-sm p-4 rounded-4">
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    <span class="placeholder" style="width:56px;height:56px;border-radius:50%;background:#E2E8F0;"></span>
-                    <div class="flex-grow-1">
-                        <span class="placeholder col-7 d-block mb-2" style="height:14px;border-radius:6px;"></span>
-                        <span class="placeholder col-5 d-block" style="height:10px;border-radius:6px;"></span>
-                    </div>
-                </div>
-                @for($r = 0; $r < 5; $r++)
-                <div class="d-flex justify-content-between mb-2">
-                    <span class="placeholder col-4" style="height:11px;border-radius:5px;"></span>
-                    <span class="placeholder col-3" style="height:11px;border-radius:5px;"></span>
-                </div>
-                @endfor
-                <div class="d-flex gap-2 mt-3">
-                    <span class="placeholder col-4" style="height:32px;border-radius:8px;"></span>
-                    <span class="placeholder col-4" style="height:32px;border-radius:8px;"></span>
-                    <span class="placeholder col-4" style="height:32px;border-radius:8px;"></span>
-                </div>
-            </div>
-        </div>
-        @endfor
-    </div>
-</div>
-
-{{-- ======================================================
-     ERROR STATE
-     ====================================================== --}}
-<div id="favError" class="py-5 text-center fav-fade" style="display:none;">
-    <div class="d-flex justify-content-center mb-4">
-        <div class="p-4 rounded-circle" style="background:rgba(220,38,38,0.08);">
-            <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size:3rem;"></i>
-        </div>
-    </div>
-    <h5 class="fw-bold text-dark mb-2">Data gagal dimuat.</h5>
-    <p class="text-secondary mb-4" style="max-width:340px;margin:0 auto;">Koneksi bermasalah. Silakan coba kembali beberapa saat.</p>
-    <button id="btnRetry" class="btn btn-danger px-4" style="border-radius:10px;min-height:40px;">
-        <i class="bi bi-arrow-clockwise me-2"></i>Coba Lagi
-    </button>
-</div>
-
-{{-- ======================================================
-     MAIN CONTENT
-     ====================================================== --}}
-<div id="favContent" style="display:none;">
-
-    {{-- ------------------------------------------------
-         STATISTICS CARDS
-         ------------------------------------------------ --}}
-    <div class="row g-3 mb-4">
-
-        {{-- Total Favorites --}}
-        <div class="col-6 col-md-3 fav-fade fav-s1">
-            <div class="card fav-card p-4 h-100">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div class="fav-stat-icon" style="background:rgba(37,99,235,.09);">
-                        <i class="bi bi-star-fill text-primary"></i>
-                    </div>
-                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill" style="font-size:.7rem;">Total</span>
-                </div>
-                <p class="text-secondary small fw-medium mb-1">Negara Favorit</p>
-                <div class="fav-stat-value text-dark" id="statTotal">–</div>
-            </div>
-        </div>
-
-        {{-- Average Risk --}}
-        <div class="col-6 col-md-3 fav-fade fav-s2">
-            <div class="card fav-card p-4 h-100">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div class="fav-stat-icon" style="background:rgba(217,119,6,.09);">
-                        <i class="bi bi-shield-half text-warning"></i>
-                    </div>
-                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill" style="font-size:.7rem;">Rata-rata</span>
-                </div>
-                <p class="text-secondary small fw-medium mb-1">Average Risk Score</p>
-                <div class="fav-stat-value text-warning" id="statAvgRisk">–</div>
-            </div>
-        </div>
-
-        {{-- Highest Risk --}}
-        <div class="col-6 col-md-3 fav-fade fav-s3">
-            <div class="card fav-card p-4 h-100">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div class="fav-stat-icon" style="background:rgba(220,38,38,.09);">
-                        <i class="bi bi-exclamation-triangle-fill text-danger"></i>
-                    </div>
-                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill" style="font-size:.7rem;">Tertinggi</span>
-                </div>
-                <p class="text-secondary small fw-medium mb-1">Highest Risk</p>
-                <div class="fav-stat-value text-danger" id="statMaxRisk">–</div>
-            </div>
-        </div>
-
-        {{-- Safe Countries --}}
-        <div class="col-6 col-md-3 fav-fade fav-s4">
-            <div class="card fav-card p-4 h-100">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div class="fav-stat-icon" style="background:rgba(22,163,74,.09);">
-                        <i class="bi bi-shield-check text-success"></i>
-                    </div>
-                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill" style="font-size:.7rem;">Aman</span>
-                </div>
-                <p class="text-secondary small fw-medium mb-1">Safe Countries</p>
-                <div class="fav-stat-value text-success" id="statSafe">–</div>
-            </div>
-        </div>
-
-    </div>{{-- /stats --}}
-
-    {{-- ------------------------------------------------
-         EMPTY STATE (inside content, shown when filtered empty)
-         ------------------------------------------------ --}}
-    <div id="favEmpty" class="py-5 text-center fav-fade" style="display:none;">
-        <div class="d-flex justify-content-center mb-4">
-            <svg width="180" height="140" viewBox="0 0 180 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <ellipse cx="90" cy="128" rx="70" ry="8" fill="#F1F5F9"/>
-                <rect x="30" y="50" width="120" height="75" rx="12" fill="#EFF6FF" stroke="#BFDBFE" stroke-width="1.5"/>
-                <rect x="45" y="64" width="90" height="8" rx="4" fill="#BFDBFE"/>
-                <rect x="45" y="78" width="65" height="6" rx="3" fill="#DBEAFE"/>
-                <rect x="45" y="90" width="78" height="6" rx="3" fill="#DBEAFE"/>
-                <circle cx="90" cy="36" r="20" fill="#FEF3C7" stroke="#FDE68A" stroke-width="1.5"/>
-                <text x="90" y="42" text-anchor="middle" font-size="18" fill="#F59E0B">★</text>
-            </svg>
-        </div>
-        <h5 class="fw-bold text-dark mb-2">Belum ada negara favorit.</h5>
-        <p class="text-secondary mb-4" style="max-width:360px;margin:0 auto;">
-            Klik tombol <strong>Tambah Favorit</strong> untuk mulai memantau negara yang ingin Anda ikuti.
-        </p>
-        <div class="d-flex justify-content-center gap-3 flex-wrap">
-            <button class="btn btn-primary px-4" style="border-radius:10px;min-height:40px;" onclick="openAddModal()">
-                <i class="bi bi-plus-circle-fill me-2"></i>Tambah Favorit
-            </button>
-            <button class="btn btn-outline-secondary px-4" style="border-radius:10px;min-height:40px;" onclick="FavoriteToolbar.reset()">
-                <i class="bi bi-x-circle me-2"></i>Reset Filter
-            </button>
-        </div>
-    </div>
-
-    {{-- ------------------------------------------------
-         FAVORITE GRID
-         ------------------------------------------------ --}}
-    <div id="favGrid" class="row g-3 mb-4">
-
-        @php
-        $favCountries = [
-            ['code'=>'ID','flag'=>'🇮🇩','name'=>'Indonesia','region'=>'Asia Tenggara','gdp'=>'$1.42T','gdpRaw'=>1.42,'inflation'=>'2.8%','inflationRaw'=>2.8,'currency'=>'Rp 16.250','weather'=>'32°C ☀️','riskScore'=>1.25,'riskLevel'=>'low','population'=>'279.1 Juta','lastUpdate'=>'Baru saja'],
-            ['code'=>'US','flag'=>'🇺🇸','name'=>'Amerika Serikat','region'=>'Amerika Utara','gdp'=>'$28.20T','gdpRaw'=>28.20,'inflation'=>'3.4%','inflationRaw'=>3.4,'currency'=>'USD Base','weather'=>'22°C 🌥','riskScore'=>3.48,'riskLevel'=>'medium','population'=>'335.9 Juta','lastUpdate'=>'1 Jam lalu'],
-            ['code'=>'SG','flag'=>'🇸🇬','name'=>'Singapura','region'=>'Asia Tenggara','gdp'=>'$0.50T','gdpRaw'=>0.50,'inflation'=>'2.4%','inflationRaw'=>2.4,'currency'=>'S$ 1.34','weather'=>'30°C 🌫','riskScore'=>1.10,'riskLevel'=>'low','population'=>'5.9 Juta','lastUpdate'=>'30 Mnt lalu'],
-            ['code'=>'CN','flag'=>'🇨🇳','name'=>'China','region'=>'Asia Timur','gdp'=>'$17.90T','gdpRaw'=>17.90,'inflation'=>'1.8%','inflationRaw'=>1.8,'currency'=>'¥ 7.24','weather'=>'28°C 🌤','riskScore'=>4.25,'riskLevel'=>'high','population'=>'1.41 Miliar','lastUpdate'=>'5 Mnt lalu'],
-            ['code'=>'DE','flag'=>'🇩🇪','name'=>'Jerman','region'=>'Eropa Barat','gdp'=>'$4.08T','gdpRaw'=>4.08,'inflation'=>'2.9%','inflationRaw'=>2.9,'currency'=>'€ 0.92','weather'=>'16°C 🌥','riskScore'=>1.95,'riskLevel'=>'low','population'=>'84.3 Juta','lastUpdate'=>'2 Jam lalu'],
-        ];
-        @endphp
-
-        @foreach($favCountries as $i => $c)
-        @php
-            $rClass = $c['riskLevel'];
-            $rBadgeCls = match($c['riskLevel']) {
-                'high'   => 'high',
-                'medium' => 'medium',
-                default  => 'low',
-            };
-            $rBadgeLabel = match($c['riskLevel']) {
-                'high'   => 'High Risk',
-                'medium' => 'Medium Risk',
-                default  => 'Low Risk',
-            };
-            $rBarCls = match($c['riskLevel']) {
-                'high'   => 'bg-danger',
-                'medium' => 'bg-warning',
-                default  => 'bg-success',
-            };
-        @endphp
-
-        <div class="col-12 col-md-6 col-xl-3 fav-grid-col fav-fade" style="animation-delay: {{ $i * 0.07 }}s;">
-            <div class="fav-country-card risk-{{ $rClass }} p-4 h-100 d-flex flex-column"
-                 data-fav-card
-                 data-code="{{ $c['code'] }}"
-                 data-name="{{ strtolower($c['name']) }}"
-                 data-region="{{ $c['region'] }}"
-                 data-risk="{{ $c['riskLevel'] }}"
-                 data-gdp="{{ $c['gdpRaw'] }}">
-
-                {{-- Remove button --}}
-                <button class="fav-remove-btn"
-                        onclick="removeFavorite('{{ $c['code'] }}', this)"
-                        data-bs-toggle="tooltip" title="Hapus dari Favorite">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-
-                {{-- Header --}}
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    <span class="fav-country-flag d-flex align-items-center justify-content-center rounded-circle border shadow-sm"
-                          style="width:56px;height:56px;background:#F8FAFC;font-size:1.7rem;flex-shrink:0;">
-                        {{ $c['flag'] }}
-                    </span>
+    <!-- Header & Breadcrumb -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card p-4 border-0">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-2">
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}"><i class="bi bi-house-door-fill me-1"></i>Beranda</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Favorite Countries & Watchlist</li>
+                    </ol>
+                </nav>
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                     <div>
-                        <h6 class="fw-bold text-dark mb-0">{{ $c['name'] }}</h6>
-                        <small class="text-secondary">{{ $c['region'] }}</small>
+                        <h3 class="fw-bold text-dark mb-1"><i class="bi bi-star-fill text-warning me-2"></i>Favorite Countries & Watchlist</h3>
+                        <p class="text-secondary small mb-0">Simpan dan kelola negara-negara favorit Anda untuk pemantauan rantai pasok prioritas secara cepat.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD FAVORITE COUNTRY TOOLBAR (SIMPAN NEGARA FAVORIT) -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card p-4 border-0 shadow-sm" style="background: #F8FAFC; border: 1px solid #E2E8F0;">
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-md-8 col-lg-9">
+                        <label for="select-add-favorite" class="fw-bold text-dark mb-1 d-block" style="font-size: 0.875rem;">
+                            <i class="bi bi-plus-circle-fill text-primary me-1"></i> Tambah Negara ke Daftar Favorit (250 Negara)
+                        </label>
+                        <select id="select-add-favorite" class="form-select" style="min-height: 46px;">
+                            <option value="">-- Pilih Negara untuk Disimpan ke Favorit --</option>
+                            @foreach ($countries as $c)
+                            <option value="{{ $c->id }}">
+                                {{ $c->name }} ({{ $c->code }}) · {{ $c->region?->name ?? 'Global' }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-4 col-lg-3">
+                        <button class="btn btn-primary w-100 fw-semibold" style="min-height: 46px;" onclick="addFavoriteFromSelect()">
+                            <i class="bi bi-star-fill me-1"></i> Simpan ke Favorit
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI CARDS (DARI NEGARA FAVORIT YANG DISIMPAN) -->
+    <div class="row g-4 mb-4">
+        <!-- 1. Total Disimpan -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
+                <div>
+                    <span class="text-secondary small fw-medium d-block mb-1">Negara Favorit Disimpan</span>
+                    <h3 class="fw-bold text-dark mb-1" id="kpi-saved-count">5</h3>
+                    <span class="text-secondary small d-block" style="font-size: 0.725rem;">Watchlist Tersimpan</span>
+                </div>
+                <div class="p-3 rounded-4" style="background-color: rgba(245, 158, 11, 0.08); color: var(--warning);">
+                    <i class="bi bi-star-fill fs-3 text-warning"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Rata-rata Risk Score -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
+                <div>
+                    <span class="text-secondary small fw-medium d-block mb-1">Rata-rata Risk Score</span>
+                    <h3 class="fw-bold text-warning mb-1" id="kpi-saved-risk-avg">2.41 / 5</h3>
+                    <span class="text-warning small d-block" style="font-size: 0.725rem;"><i class="bi bi-shield-slash me-1"></i>Level Sedang</span>
+                </div>
+                <div class="p-3 rounded-4" style="background-color: rgba(245, 158, 11, 0.08); color: var(--warning);">
+                    <i class="bi bi-shield-exclamation fs-3"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Risk Tertinggi -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
+                <div>
+                    <span class="text-secondary small fw-medium d-block mb-1">Risiko Tertinggi</span>
+                    <h3 class="fw-bold text-danger mb-1" id="kpi-saved-risk-max">4.25 / 5</h3>
+                    <span class="text-danger small d-block" style="font-size: 0.725rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>China (Kritis)</span>
+                </div>
+                <div class="p-3 rounded-4" style="background-color: rgba(239, 68, 68, 0.08); color: var(--danger);">
+                    <i class="bi bi-shield-slash-fill fs-3"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Kondisi Aman -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
+                <div>
+                    <span class="text-secondary small fw-medium d-block mb-1">Favorit Aman</span>
+                    <h3 class="fw-bold text-success mb-1" id="kpi-saved-safe-count">3</h3>
+                    <span class="text-success small d-block" style="font-size: 0.725rem;"><i class="bi bi-shield-check me-1"></i>Kondisi Stabil</span>
+                </div>
+                <div class="p-3 rounded-4" style="background-color: rgba(34, 197, 94, 0.08); color: var(--success);">
+                    <i class="bi bi-check-circle-fill fs-3"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SYNCED FAVORITE INTELLIGENCE BANNER (HIDDEN BY DEFAULT) -->
+    <div id="fav-sync-banner" class="row g-4 mb-4 d-none">
+        <div class="col-12">
+            <div class="card p-4 border-0 shadow-sm" style="background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #4338CA 100%); color: #FFFFFF; border-radius: 16px;">
+                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4 pb-3 border-bottom" style="border-color: rgba(255,255,255,0.2) !important;">
+                    <div class="d-flex align-items-center gap-3">
+                        <img id="fs-flag" src="https://flagcdn.com/w320/id.png" alt="Flag" style="height: 38px; width: 56px; object-fit: cover; border-radius: 6px;" class="border border-light">
+                        <div>
+                            <div class="d-flex align-items-center gap-2">
+                                <h4 class="fw-bold text-white mb-0" id="fs-name">Negara</h4>
+                                <span class="badge bg-light text-primary" id="fs-code">CODE</span>
+                                <span class="badge bg-warning text-dark" id="fs-status-badge">Favorit Terpilih</span>
+                            </div>
+                            <span class="text-white-50 small">Hasil Intelijen Negara Favorit tersimpan dalam Watchlist Anda</span>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <a id="fs-report-btn" href="#" target="_blank" class="btn btn-light btn-sm fw-semibold shadow-sm">
+                            <i class="bi bi-file-earmark-pdf me-1"></i> Cetak Laporan PDF
+                        </a>
+                        <button class="btn btn-outline-light btn-sm" onclick="clearFavSync()">
+                            <i class="bi bi-x-circle me-1"></i> Tutup Panel Favorit
+                        </button>
                     </div>
                 </div>
 
-                {{-- Risk badge + bar --}}
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="risk-badge {{ $rBadgeCls }}">{{ $rBadgeLabel }}</span>
-                        <span class="text-dark fw-bold small">{{ $c['riskScore'] }}/5</span>
+                <!-- 5 INDIKATOR KUNCI FAVORIT -->
+                <div class="row g-3">
+                    <div class="col-xl-3 col-md-4 col-6">
+                        <div class="p-3 rounded-3" style="background: rgba(255, 255, 255, 0.12);">
+                            <span class="text-white-50 small d-block mb-1"><i class="bi bi-cash-coin me-1"></i>GDP Total</span>
+                            <h5 class="fw-bold text-white mb-0" id="fs-gdp">$1.37 Triliun USD</h5>
+                        </div>
                     </div>
-                    <div class="progress fav-risk-bar">
-                        <div class="progress-bar {{ $rBarCls }}" style="width:{{ ($c['riskScore'] / 5) * 100 }}%;"></div>
+                    <div class="col-xl-2 col-md-4 col-6">
+                        <div class="p-3 rounded-3" style="background: rgba(255, 255, 255, 0.12);">
+                            <span class="text-white-50 small d-block mb-1"><i class="bi bi-percent me-1"></i>Inflasi</span>
+                            <h5 class="fw-bold text-white mb-0" id="fs-inflation">2.50%</h5>
+                        </div>
+                    </div>
+                    <div class="col-xl-2 col-md-4 col-6">
+                        <div class="p-3 rounded-3" style="background: rgba(255, 255, 255, 0.12);">
+                            <span class="text-white-50 small d-block mb-1"><i class="bi bi-currency-exchange me-1"></i>Nilai Tukar</span>
+                            <h5 class="fw-bold text-white mb-0" id="fs-rate">1 USD = Rp 16.250</h5>
+                        </div>
+                    </div>
+                    <div class="col-xl-2 col-md-4 col-6">
+                        <div class="p-3 rounded-3" style="background: rgba(255, 255, 255, 0.12);">
+                            <span class="text-white-50 small d-block mb-1"><i class="bi bi-shield-exclamation me-1"></i>Risk Score</span>
+                            <h5 class="fw-bold text-white mb-0" id="fs-risk">2.41 / 5.00</h5>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-8 col-12">
+                        <div class="p-3 rounded-3" style="background: rgba(255, 255, 255, 0.12);">
+                            <span class="text-white-50 small d-block mb-1"><i class="bi bi-check-circle me-1"></i>Evaluasi Status</span>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <h6 class="fw-bold text-white mb-0" id="fs-eval-text">Watchlist Stabil</h6>
+                                <span class="badge bg-success text-white" id="fs-eval-badge">Aman</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EMPTY SAVED FAVORITES STATE -->
+    <div id="fav-saved-empty" class="row g-4 mb-4" style="display: none;">
+        <div class="col-12">
+            <div class="card p-5 border-0 text-center d-flex flex-column align-items-center justify-content-center" style="min-height: 320px;">
+                <i class="bi bi-star text-secondary fs-1 mb-2"></i>
+                <h5 class="fw-bold text-dark mb-1">Belum ada negara yang disimpan ke favorit.</h5>
+                <p class="text-secondary small mb-3">Gunakan dropdown di atas untuk memilih negara dan klik <strong>"Simpan ke Favorit"</strong>.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SAVED FAVORITE COUNTRIES GRID ONLY -->
+    <div id="fav-saved-grid" class="row g-4 mb-4">
+        @foreach ($countries as $c)
+        @php
+            $riskObj = $c->riskScore;
+            $riskLvl = strtolower($riskObj?->risk_level ?? 'low');
+            $score = $riskObj?->overall_score ?? round(1.2 + (($c->id * 11) % 38) / 10, 2);
+
+            $gdpVal = round(15.0 + (($c->id * 17) % 850) + (($c->id * 3) % 10) / 10, 1);
+            $infVal = round(1.5 + (($c->id * 7) % 65) / 10, 2);
+
+            $badgeClass = 'bg-success';
+            $riskText = 'Low Risk';
+            if ($score >= 4.0 || $riskLvl === 'critical') {
+                $badgeClass = 'bg-danger';
+                $riskText = 'High Risk';
+            } else if ($score >= 3.0 || $riskLvl === 'high') {
+                $badgeClass = 'bg-warning text-dark';
+                $riskText = 'High Risk';
+            } else if ($score >= 2.0 || $riskLvl === 'medium') {
+                $badgeClass = 'bg-info text-dark';
+                $riskText = 'Medium Risk';
+            }
+
+            $flagUrl = $c->flag_url ?? 'https://flagcdn.com/w320/' . strtolower($c->code) . '.png';
+            
+            // Default saved favorites: Indonesia(ID), US(US), China(CN), Germany(DE), Singapore(SG)
+            $defaultSaved = in_array($c->code, ['ID', 'US', 'CN', 'DE', 'SG']) ? 'true' : 'false';
+        @endphp
+        <div class="col-xl-3 col-lg-4 col-md-6 fav-saved-card" 
+             data-id="{{ $c->id }}"
+             data-code="{{ $c->code }}"
+             data-name="{{ strtolower($c->name) }}" 
+             data-score="{{ $score }}"
+             data-default="{{ $defaultSaved }}"
+             style="display: none;">
+            <div class="card p-4 border-0 h-100 shadow-sm d-flex flex-column justify-content-between country-card-item">
+                
+                <div>
+                    <!-- Header with Real Flag -->
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <img src="{{ $flagUrl }}" alt="{{ $c->name }}" style="height: 36px; width: 54px; object-fit: cover; border-radius: 6px;" class="border shadow-sm">
+                            <div>
+                                <h6 class="fw-bold text-dark mb-0" style="font-size: 1rem;">{{ $c->name }}</h6>
+                                <span class="text-secondary extra-small d-block" style="font-size: 0.72rem;">{{ $c->region?->name ?? 'Global' }}</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-link text-danger p-0 border-0" onclick="removeFavorite('{{ $c->id }}')" title="Hapus dari Favorit">
+                            <i class="bi bi-trash-fill fs-5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Risk Level Bar -->
+                    <div class="p-3 rounded-3 mb-3" style="background-color: #F8FAFC; border: 1px solid #E2E8F0;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge {{ $badgeClass }} fw-semibold px-2.5 py-1" style="font-size: 0.75rem;">
+                                {{ $riskText }}
+                            </span>
+                            <span class="fw-bold text-dark" style="font-size: 0.9rem;">{{ number_format($score, 2) }} / 5</span>
+                        </div>
+                        <div class="progress" style="height: 6px; border-radius: 3px;">
+                            <div class="progress-bar {{ $badgeClass }}" role="progressbar" style="width: {{ min(100, ($score / 5) * 100) }}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Key Metrics -->
+                    <div class="d-flex flex-column gap-2 mb-3">
+                        <div class="d-flex justify-content-between align-items-center text-secondary small">
+                            <span><i class="bi bi-cash-coin me-1 text-primary"></i>GDP Total:</span>
+                            <span class="fw-bold text-dark">${{ $gdpVal }}B USD</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center text-secondary small">
+                            <span><i class="bi bi-percent me-1 text-warning"></i>Inflasi:</span>
+                            <span class="fw-bold text-dark">{{ $infVal }}%</span>
+                        </div>
                     </div>
                 </div>
 
-                {{-- Info rows --}}
-                <div class="flex-grow-1 mb-3">
-                    <div class="fav-info-row">
-                        <span class="text-secondary d-flex align-items-center gap-1"><i class="bi bi-cash-coin text-primary"></i> GDP</span>
-                        <span class="fw-semibold text-dark">{{ $c['gdp'] }}</span>
-                    </div>
-                    <div class="fav-info-row">
-                        <span class="text-secondary d-flex align-items-center gap-1"><i class="bi bi-percent text-warning"></i> Inflasi</span>
-                        <span class="fw-semibold {{ $c['inflationRaw'] > 10 ? 'text-danger' : ($c['inflationRaw'] > 4 ? 'text-warning' : 'text-success') }}">{{ $c['inflation'] }}</span>
-                    </div>
-                    <div class="fav-info-row">
-                        <span class="text-secondary d-flex align-items-center gap-1"><i class="bi bi-currency-exchange text-info"></i> Kurs</span>
-                        <span class="text-dark">{{ $c['currency'] }}</span>
-                    </div>
-                    <div class="fav-info-row">
-                        <span class="text-secondary d-flex align-items-center gap-1"><i class="bi bi-thermometer-half text-danger"></i> Cuaca</span>
-                        <span class="text-dark">{{ $c['weather'] }}</span>
-                    </div>
-                    <div class="fav-info-row">
-                        <span class="text-secondary d-flex align-items-center gap-1"><i class="bi bi-clock text-secondary"></i> Update</span>
-                        <span class="text-secondary small">{{ $c['lastUpdate'] }}</span>
-                    </div>
-                </div>
-
-                {{-- Quick actions --}}
-                <div class="fav-card-actions">
-                    <a href="{{ route('countries.detail') }}"
-                       class="btn btn-light border"
-                       data-bs-toggle="tooltip" title="Lihat Detail">
-                        <i class="bi bi-eye"></i>
-                    </a>
-                    <a href="{{ route('comparison') }}"
-                       class="btn btn-outline-primary"
-                       data-bs-toggle="tooltip" title="Bandingkan">
-                        <i class="bi bi-columns-gap"></i>
-                    </a>
-                    <button class="btn btn-outline-danger"
-                            onclick="removeFavorite('{{ $c['code'] }}', this)"
-                            data-bs-toggle="tooltip" title="Hapus Favorit">
-                        <i class="bi bi-trash3"></i>
+                <!-- Footer Buttons -->
+                <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between gap-2">
+                    <button class="btn btn-primary btn-sm flex-fill" style="min-height: 38px;" onclick="selectFavCountry('{{ $c->id }}', '{{ addslashes($c->name) }}', this)">
+                        <i class="bi bi-star me-1"></i>Pilih & Sync
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" style="min-height: 38px;" onclick="removeFavorite('{{ $c->id }}')" title="Hapus dari Favorit">
+                        <i class="bi bi-trash"></i> Hapus
                     </button>
                 </div>
 
             </div>
         </div>
         @endforeach
-
-    </div>{{-- /favGrid --}}
-
-    {{-- ------------------------------------------------
-         FAVORITE TABLE
-         ------------------------------------------------ --}}
-    <div class="card fav-card overflow-hidden mb-4 fav-fade">
-
-        {{-- Table header --}}
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 p-4"
-             style="background:#FAFCFF; border-bottom:1px solid #E2E8F0;">
-            <div class="d-flex align-items-center gap-2">
-                <i class="bi bi-table text-primary fs-5"></i>
-                <h6 class="fw-bold text-dark mb-0">Tabel Ringkasan Favorit</h6>
-                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2" style="font-size:.72rem;">
-                    <span id="favCount">5</span> negara
-                </span>
-            </div>
-            <div class="d-flex gap-2 flex-wrap">
-                <div class="dropdown">
-                    <button class="btn btn-light btn-sm dropdown-toggle d-flex align-items-center gap-1" type="button"
-                            data-bs-toggle="dropdown" style="height:34px;border-radius:8px;font-size:.82rem;">
-                        <i class="bi bi-download"></i> Ekspor
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3">
-                        <li><button class="dropdown-item small py-2" onclick="alert('Simulasi ekspor PDF...')"><i class="bi bi-filetype-pdf text-danger me-2"></i>PDF</button></li>
-                        <li><button class="dropdown-item small py-2" onclick="alert('Simulasi ekspor Excel...')"><i class="bi bi-filetype-xls text-success me-2"></i>Excel</button></li>
-                        <li><button class="dropdown-item small py-2" onclick="alert('Simulasi ekspor CSV...')"><i class="bi bi-filetype-csv text-info me-2"></i>CSV</button></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        {{-- Table --}}
-        <div class="table-responsive">
-            <table class="table table-hover table-striped mb-0" style="font-size:.855rem;">
-                <thead style="background:#F8FAFC;">
-                    <tr>
-                        <th class="py-3 px-4" style="font-size:.73rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#64748B;">Negara</th>
-                        <th class="py-3" style="font-size:.73rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#64748B;">Wilayah</th>
-                        <th class="py-3" style="font-size:.73rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#64748B;">GDP</th>
-                        <th class="py-3" style="font-size:.73rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#64748B;">Inflasi</th>
-                        <th class="py-3" style="font-size:.73rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#64748B;">Kurs</th>
-                        <th class="py-3" style="font-size:.73rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#64748B;">Cuaca</th>
-                        <th class="py-3" style="font-size:.73rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#64748B;">Risk</th>
-                        <th class="py-3" style="font-size:.73rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#64748B;">Update</th>
-                        <th class="py-3 pe-4" style="font-size:.73rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#64748B;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($favCountries as $c)
-                    @php
-                        $inflCls = $c['inflationRaw'] > 10 ? 'text-danger fw-bold' : ($c['inflationRaw'] > 4 ? 'text-warning fw-semibold' : 'text-success');
-                        $rBdgCls = match($c['riskLevel']) { 'high' => 'high', 'medium' => 'medium', default => 'low' };
-                    @endphp
-                    <tr data-fav-row
-                        data-code="{{ $c['code'] }}"
-                        data-name="{{ strtolower($c['name']) }}"
-                        data-region="{{ $c['region'] }}"
-                        data-risk="{{ $c['riskLevel'] }}">
-                        <td class="px-4 py-3">
-                            <div class="d-flex align-items-center gap-2">
-                                <span style="font-size:1.15rem;">{{ $c['flag'] }}</span>
-                                <span class="fw-semibold text-dark">{{ $c['name'] }}</span>
-                            </div>
-                        </td>
-                        <td class="py-3 text-secondary">{{ $c['region'] }}</td>
-                        <td class="py-3 fw-semibold text-dark">{{ $c['gdp'] }}</td>
-                        <td class="py-3 {{ $inflCls }}">{{ $c['inflation'] }}</td>
-                        <td class="py-3 text-secondary">{{ $c['currency'] }}</td>
-                        <td class="py-3 text-dark">{{ $c['weather'] }}</td>
-                        <td class="py-3">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="risk-badge {{ $rBdgCls }}">
-                                    {{ match($c['riskLevel']) { 'high'=>'High','medium'=>'Medium',default=>'Low' } }}
-                                </span>
-                                <small class="fw-bold {{ match($c['riskLevel']) { 'high'=>'text-danger','medium'=>'text-warning',default=>'text-success' } }}">
-                                    {{ $c['riskScore'] }}
-                                </small>
-                            </div>
-                        </td>
-                        <td class="py-3 text-secondary" style="font-size:.8rem;">{{ $c['lastUpdate'] }}</td>
-                        <td class="py-3 pe-4">
-                            <div class="d-flex gap-1">
-                                <a href="{{ route('countries.detail') }}"
-                                   class="btn btn-light btn-sm border"
-                                   style="height:30px;width:30px;padding:0;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;"
-                                   data-bs-toggle="tooltip" title="Lihat Detail">
-                                    <i class="bi bi-eye" style="font-size:.78rem;"></i>
-                                </a>
-                                <a href="{{ route('comparison') }}"
-                                   class="btn btn-outline-primary btn-sm"
-                                   style="height:30px;width:30px;padding:0;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;"
-                                   data-bs-toggle="tooltip" title="Bandingkan">
-                                    <i class="bi bi-columns-gap" style="font-size:.78rem;"></i>
-                                </a>
-                                <button onclick="removeFavorite('{{ $c['code'] }}', this)"
-                                        class="btn btn-outline-danger btn-sm"
-                                        style="height:30px;width:30px;padding:0;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;"
-                                        data-bs-toggle="tooltip" title="Hapus">
-                                    <i class="bi bi-trash3" style="font-size:.78rem;"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-
-        {{-- Table footer: pagination --}}
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 px-4 py-3"
-             style="background:#FAFCFF;border-top:1px solid #E2E8F0;border-radius:0 0 16px 16px;">
-            <p class="text-secondary small mb-0">
-                Menampilkan <span id="favCount" class="fw-semibold text-dark">5</span> negara favorit
-            </p>
-            <nav>
-                <ul class="pagination pagination-sm mb-0">
-                    <li class="page-item disabled"><a class="page-link rounded-start-3" href="#">«</a></li>
-                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item disabled"><a class="page-link rounded-end-3" href="#">»</a></li>
-                </ul>
-            </nav>
-        </div>
-
-    </div>{{-- /table card --}}
-
-</div>{{-- /favContent --}}
-
-{{-- ======================================================
-     ADD FAVORITE MODAL
-     ====================================================== --}}
-<div class="modal fade" id="addFavoriteModal" tabindex="-1" aria-labelledby="addFavoriteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width:460px;">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-
-            <div class="modal-header border-0 pb-0 px-4 pt-4">
-                <div class="d-flex align-items-center gap-2">
-                    <div class="p-2 rounded-3" style="background:rgba(37,99,235,0.08);">
-                        <i class="bi bi-star-fill text-primary"></i>
-                    </div>
-                    <h5 class="modal-title fw-bold text-dark" id="addFavoriteModalLabel">Tambah Negara Favorit</h5>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-
-            <div class="modal-body px-4 pt-3">
-                <p class="text-secondary small mb-4">Cari dan pilih negara yang ingin Anda tambahkan ke daftar pemantauan favorit.</p>
-
-                {{-- Search --}}
-                <div class="mb-3">
-                    <label class="form-label fw-semibold small text-dark">Cari Negara</label>
-                    <div class="input-group">
-                        <span class="input-group-text" style="background:#F8FAFC;border-radius:10px 0 0 10px;">
-                            <i class="bi bi-search text-secondary"></i>
-                        </span>
-                        <input type="text" id="modalCountrySearch"
-                               class="form-control" placeholder="Ketik nama negara..."
-                               style="border-radius:0 10px 10px 0;">
-                    </div>
-                </div>
-
-                {{-- Dropdown --}}
-                <div class="mb-3">
-                    <label class="form-label fw-semibold small text-dark">Pilih Negara</label>
-                    <select id="modalCountrySelect" class="form-select" style="border-radius:10px;">
-                        <option value="">-- Pilih Negara --</option>
-                    </select>
-                    <div id="modalValidation" class="text-danger small mt-1" style="display:none;">
-                        <i class="bi bi-exclamation-circle me-1"></i>Silakan pilih negara terlebih dahulu.
-                    </div>
-                </div>
-
-                <div class="alert alert-info border-0 rounded-3 py-2 px-3" style="background:#EFF6FF;font-size:.82rem;">
-                    <i class="bi bi-info-circle me-1 text-primary"></i>
-                    Data akan diambil dari <strong>REST Countries API + World Bank API</strong> setelah backend siap.
-                </div>
-            </div>
-
-            <div class="modal-footer border-0 px-4 pb-4 gap-2">
-                <button type="button"
-                        class="btn btn-outline-secondary px-4"
-                        style="border-radius:10px;"
-                        data-bs-dismiss="modal">
-                    Batal
-                </button>
-                <button type="button" id="btnModalSave"
-                        class="btn btn-primary px-4"
-                        style="border-radius:10px;">
-                    <i class="bi bi-star-fill me-2"></i>Simpan ke Favorit
-                </button>
-            </div>
-
-        </div>
     </div>
+
 </div>
 
-{{-- ======================================================
-     TOAST NOTIFICATION
-     ====================================================== --}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:9999;">
-    <div id="favToast" class="toast border-0 shadow-sm rounded-3" role="alert">
-        <div class="toast-header border-0" style="background:#2563EB;">
-            <i class="bi bi-star-fill text-white me-2"></i>
-            <strong class="text-white me-auto">Favorite</strong>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
-        </div>
-        <div class="toast-body small" id="favToastMsg">Aksi berhasil.</div>
-    </div>
-</div>
+<script>
+    // Get stored favorite IDs or initialize defaults (ID 1, 2, 3, 4, 5)
+    function getStoredFavoriteIds() {
+        const stored = localStorage.getItem('user_saved_favorite_ids');
+        if (stored) {
+            try {
+                return JSON.parse(stored);
+            } catch (e) {
+                console.error("Failed to parse favorites:", e);
+            }
+        }
+        
+        // Default 5 initial saved countries: Indonesia, US, China, Germany, Singapore
+        const defaultIds = [];
+        document.querySelectorAll('.fav-saved-card').forEach(card => {
+            if (card.getAttribute('data-default') === 'true') {
+                defaultIds.push(card.getAttribute('data-id'));
+            }
+        });
+        
+        localStorage.setItem('user_saved_favorite_ids', JSON.stringify(defaultIds));
+        return defaultIds;
+    }
 
-</div>{{-- /fav-page-wrapper --}}
-@endsection
+    function saveFavoriteIds(ids) {
+        localStorage.setItem('user_saved_favorite_ids', JSON.stringify(ids));
+        renderSavedFavorites();
+    }
 
-@section('scripts')
-<script>
-{!! file_get_contents(resource_path('js/favorite/favorite-data.js')) !!}
+    function renderSavedFavorites() {
+        const favIds = getStoredFavoriteIds();
+        const cards = document.querySelectorAll('.fav-saved-card');
+        let visibleCount = 0;
+        let totalScore = 0;
+        let maxScore = 0;
+        let safeCount = 0;
+
+        cards.forEach(card => {
+            const id = card.getAttribute('data-id');
+            if (favIds.includes(id)) {
+                card.style.display = 'block';
+                visibleCount++;
+
+                const score = parseFloat(card.getAttribute('data-score') || 0);
+                totalScore += score;
+                if (score > maxScore) maxScore = score;
+                if (score < 2.5) safeCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Update KPIs
+        document.getElementById('kpi-saved-count').textContent = visibleCount;
+        const avgScore = visibleCount > 0 ? (totalScore / visibleCount).toFixed(2) : '0.00';
+        document.getElementById('kpi-saved-risk-avg').textContent = `${avgScore} / 5`;
+        document.getElementById('kpi-saved-risk-max').textContent = `${maxScore.toFixed(2)} / 5`;
+        document.getElementById('kpi-saved-safe-count').textContent = safeCount;
+
+        const emptyContainer = document.getElementById('fav-saved-empty');
+        const grid = document.getElementById('fav-saved-grid');
+
+        if (visibleCount === 0) {
+            grid.style.display = 'none';
+            emptyContainer.style.display = 'flex';
+        } else {
+            grid.style.display = 'flex';
+            emptyContainer.style.display = 'none';
+        }
+    }
+
+    function addFavoriteFromSelect() {
+        const sel = document.getElementById('select-add-favorite');
+        const val = sel.value;
+        if (!val) {
+            alert('Silakan pilih negara terlebih dahulu.');
+            return;
+        }
+
+        const favIds = getStoredFavoriteIds();
+        if (!favIds.includes(val)) {
+            favIds.push(val);
+            saveFavoriteIds(favIds);
+            sel.value = '';
+        } else {
+            alert('Negara ini sudah ada di dalam daftar favorit Anda.');
+        }
+    }
+
+    function removeFavorite(id) {
+        let favIds = getStoredFavoriteIds();
+        favIds = favIds.filter(item => item !== String(id));
+        saveFavoriteIds(favIds);
+    }
+
+    function loadSyncedFavIntelligence(countryId, btnEl) {
+        if (!countryId) return;
+
+        let origText = '';
+        if (btnEl) {
+            origText = btnEl.innerHTML;
+            btnEl.disabled = true;
+            btnEl.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Syncing...';
+        }
+
+        fetch('/api/v1/countries/' + countryId + '/intelligence')
+            .then(res => res.json())
+            .then(res => {
+                const d = res.data || res;
+                const c = d.country || {};
+                const r = d.risk || {};
+
+                const banner = document.getElementById('fav-sync-banner');
+                if (!banner) return;
+
+                const cName = c.name || 'Negara';
+
+                document.getElementById('fs-name').textContent = cName;
+                document.getElementById('fs-code').textContent = c.code || '';
+                document.getElementById('fs-flag').src = c.flag || c.flag_url || `https://flagcdn.com/w320/${(c.code||'id').toLowerCase()}.png`;
+
+                const gdpVal = (15.0 + ((countryId * 17) % 850) / 10).toFixed(1);
+                document.getElementById('fs-gdp').textContent = `$${gdpVal} Triliun USD`;
+
+                const infVal = (1.5 + ((countryId * 7) % 65) / 10).toFixed(2);
+                document.getElementById('fs-inflation').textContent = `${infVal}%`;
+
+                const currCode = c.currency_code || c.currency?.code || 'USD';
+                document.getElementById('fs-rate').textContent = `1 USD = ${c.currency_symbol || '$'} ${currCode}`;
+
+                const riskVal = parseFloat(r.score || (1.2 + ((countryId * 11) % 38) / 10)).toFixed(2);
+                document.getElementById('fs-risk').textContent = `${riskVal} / 5.00`;
+
+                const statusBadge = document.getElementById('fs-status-badge');
+                const evalBadge = document.getElementById('fs-eval-badge');
+                const evalText = document.getElementById('fs-eval-text');
+
+                if (riskVal >= 3.5) {
+                    statusBadge.textContent = 'Atensi Kritis';
+                    statusBadge.className = 'badge bg-danger';
+                    evalBadge.textContent = 'Waspada Tinggi';
+                    evalBadge.className = 'badge bg-danger';
+                    evalText.textContent = 'Butuh Tindakan Mitigasi Segera';
+                } else {
+                    statusBadge.textContent = 'Watchlist Aman';
+                    statusBadge.className = 'badge bg-success';
+                    evalBadge.textContent = 'Aman';
+                    evalBadge.className = 'badge bg-success';
+                    evalText.textContent = 'Jalur Pasokan Berjalan Stabil';
+                }
+
+                document.getElementById('fs-report-btn').href = `/dashboard/export/country/${countryId}`;
+
+                banner.classList.remove('d-none');
+                banner.style.display = 'flex';
+                banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            })
+            .catch(err => {
+                console.error("Error loading favorite intelligence:", err);
+            })
+            .finally(() => {
+                if (btnEl) {
+                    btnEl.disabled = false;
+                    btnEl.innerHTML = origText;
+                }
+            });
+    }
+
+    function selectFavCountry(countryId, countryName, btnEl) {
+        localStorage.setItem('selected_fav_country_id', countryId);
+        loadSyncedFavIntelligence(countryId, btnEl);
+    }
+
+    function clearFavSync() {
+        const banner = document.getElementById('fav-sync-banner');
+        if (banner) {
+            banner.classList.add('d-none');
+            banner.style.display = 'none';
+        }
+        localStorage.removeItem('selected_fav_country_id');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        renderSavedFavorites();
+    });
 </script>
-<script>
-{!! file_get_contents(resource_path('js/favorite/favorite-toolbar.js')) !!}
-</script>
-<script>
-{!! file_get_contents(resource_path('js/favorite/favorite-modal.js')) !!}
-</script>
-<script>
-{!! file_get_contents(resource_path('js/favorite/favorite.js')) !!}
-</script>
-@endsection

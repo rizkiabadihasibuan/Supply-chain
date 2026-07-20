@@ -27,7 +27,38 @@ class UserController extends Controller
      */
     public function dashboard(): View
     {
-        return view('pages.user.dashboard.index');
+        $countriesCount = Country::count();
+        $portsCount     = Port::count();
+        $articlesCount  = NewsArticle::count();
+        $avgRiskScore   = RiskScore::avg('final_risk_score') ?? 0;
+
+        $topHighRisks = Country::with(['riskScore'])
+            ->whereHas('riskScore')
+            ->get()
+            ->sortByDesc(fn($c) => $c->riskScore?->final_risk_score ?? 0)
+            ->take(5);
+
+        $topLowRisks = Country::with(['riskScore'])
+            ->whereHas('riskScore')
+            ->get()
+            ->sortBy(fn($c) => $c->riskScore?->final_risk_score ?? 0)
+            ->take(5);
+
+        $latestNews = NewsArticle::latest()->take(4)->get();
+        $portsList  = Port::with(['country.riskScore'])->take(5)->get();
+        $watchlistsCount = Watchlist::where('user_id', Auth::id())->count();
+
+        return view('pages.user.dashboard.index', compact(
+            'countriesCount',
+            'portsCount',
+            'articlesCount',
+            'avgRiskScore',
+            'topHighRisks',
+            'topLowRisks',
+            'latestNews',
+            'portsList',
+            'watchlistsCount'
+        ));
     }
 
     /**
@@ -57,9 +88,11 @@ class UserController extends Controller
      */
     public function currency(): View
     {
+        $countries = Country::with(['currency', 'region', 'riskScore'])->get();
         $currencies = Currency::all();
-        return view('pages.user.currency.index', compact('currencies'));
+        return view('pages.user.currency.index', compact('countries', 'currencies'));
     }
+
 
     /**
      * News Module.
@@ -67,9 +100,11 @@ class UserController extends Controller
      */
     public function news(): View
     {
-        $articles = NewsArticle::latest()->get();
-        return view('pages.user.news.index', compact('articles'));
+        $countries = Country::with(['region', 'currency'])->get();
+        $articles = NewsArticle::with('country')->latest()->get();
+        return view('pages.user.news.index', compact('countries', 'articles'));
     }
+
 
     /**
      * Risk Analysis Module.
@@ -77,9 +112,11 @@ class UserController extends Controller
      */
     public function risk(): View
     {
+        $countries = Country::with(['riskScore.classification', 'region'])->get();
         $riskScores = RiskScore::with(['country.region', 'classification'])->orderBy('final_risk_score', 'desc')->get();
-        return view('pages.user.risk.index', compact('riskScores'));
+        return view('pages.user.risk.index', compact('countries', 'riskScores'));
     }
+
 
     /**
      * Country Comparison Module.
@@ -97,13 +134,10 @@ class UserController extends Controller
      */
     public function favorite(): View
     {
-        $userId = Auth::id() ?? 1;
-        $watchlists = Watchlist::with(['countries.riskScore', 'countries.region'])
-            ->where('user_id', $userId)
-            ->get();
-
-        return view('pages.user.favorite.index', compact('watchlists'));
+        $countries = Country::with(['riskScore.classification', 'region', 'currency'])->get();
+        return view('pages.user.favorite.index', compact('countries'));
     }
+
 
     /**
      * Visualization Module.
@@ -111,9 +145,10 @@ class UserController extends Controller
      */
     public function visualization(): View
     {
-        $countries = Country::with('riskScore')->get();
+        $countries = Country::with(['riskScore.classification', 'region', 'currency'])->get();
         return view('dashboard.visualization.index', compact('countries'));
     }
+
 
     /**
      * Profile Module.
@@ -126,12 +161,44 @@ class UserController extends Controller
     }
 
     /**
-     * Ports Module.
+     * Ports Module – World Port Index Dataset.
      * Route: GET /dashboard/ports
      */
     public function ports(): View
     {
-        $ports = Port::with('country.riskScore')->get();
-        return view('ports.index', compact('ports'));
+        $ports     = Port::with(['country.region', 'country.riskScore.classification'])->get();
+        $countries = Country::with(['region'])->orderBy('name')->get();
+
+        // Aggregate stats
+        $totalPorts  = $ports->count();
+        $largePorts  = $ports->where('size', 'Large')->count();
+        $mediumPorts = $ports->where('size', 'Medium')->count();
+        $smallPorts  = $ports->where('size', 'Small')->count();
+
+        // Continent breakdown
+        $byContinent = $ports->groupBy(fn ($p) => $p->country?->region?->name ?? 'Other')
+            ->map->count();
+
+        $portJsonData = $ports->map(function ($p) {
+            return [
+                'id'          => $p->id,
+                'code'        => $p->code,
+                'name'        => $p->name,
+                'country'     => $p->country?->name ?? '—',
+                'countryCode' => strtolower($p->country?->code ?? 'un'),
+                'continent'   => $p->country?->region?->name ?? '—',
+                'lat'         => (float) $p->latitude,
+                'lng'         => (float) $p->longitude,
+                'size'        => $p->size ?? '—',
+                'type'        => $p->type ?? '—',
+                'harbor'      => $p->harbor_type ?? '—',
+            ];
+        })->values();
+
+        return view('pages.user.ports.index', compact(
+            'ports', 'countries',
+            'totalPorts', 'largePorts', 'mediumPorts', 'smallPorts',
+            'byContinent', 'portJsonData'
+        ));
     }
 }

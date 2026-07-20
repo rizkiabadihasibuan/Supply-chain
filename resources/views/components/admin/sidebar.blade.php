@@ -14,7 +14,7 @@
         </button>
     </div>
     <div class="sidebar-menu">
-        <a href="{{ route('admin.dashboard') }}" class="menu-item {{ Request::is('admin') && !Request::is('admin/*') ? 'active' : '' }}" aria-label="Buka Dashboard Admin">
+        <a href="{{ route('admin.dashboard') }}" class="menu-item {{ Request::is('admin') || Request::is('admin/dashboard*') ? 'active' : '' }}" aria-label="Buka Dashboard Admin">
             <i class="bi bi-grid-1x2-fill"></i> Dashboard
         </a>
         <a href="{{ route('admin.users') }}" class="menu-item {{ Request::is('admin/users*') ? 'active' : '' }}" aria-label="Kelola Pengguna">

@@ -76,6 +76,7 @@ Route::middleware('auth')->group(function () {
     })->name('profile');
 
     Route::get('/countries/detail', fn () => view('countries.show'))->name('countries.detail');
+    Route::get('/dashboard/export/country/{id}', [\App\Http\Controllers\ReportExportController::class, 'exportCountryReport'])->name('report.export.country');
 });
 
 /*

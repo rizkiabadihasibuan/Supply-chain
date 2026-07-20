@@ -33,16 +33,16 @@
             </div>
         </div>
 
-        {{-- Skeleton Loading Container --}}
-        <div id="admin-skeleton-container" class="row g-4">
+        {{-- Skeleton Loading Container (Hidden) --}}
+        <div id="admin-skeleton-container" style="display: none;" class="row g-4">
             <div class="col-12">
                 <x-loading-state type="card" count="4" height="120px" />
                 <x-loading-state type="card" count="2" height="280px" />
             </div>
         </div>
 
-        {{-- ══════ MAIN DASHBOARD CONTENT (Hidden on loading skeleton) ══════ --}}
-        <div id="admin-main-content" style="display: none;">
+        {{-- ══════ MAIN DASHBOARD CONTENT (Direct Display) ══════ --}}
+        <div id="admin-main-content">
             
             {{-- ══════ QUICK STATISTICS (8 KPI Cards) ══════ --}}
             <div class="row g-3 kpi-row mb-4">

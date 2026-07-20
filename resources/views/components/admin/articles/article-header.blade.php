@@ -1,50 +1,33 @@
 {{-- ═══════════════════════════════════════════════════
-     ADMIN ARTICLE HEADER COMPONENT – Milestone 3.15D
+     ADMIN ARTICLE HEADER COMPONENT
      resources/views/components/admin/articles/article-header.blade.php
      ═══════════════════════════════════════════════════ --}}
 
 @props([
     'title' => 'Article Management',
-    'subtitle' => 'Kelola artikel analisis supply chain yang dipublikasikan kepada pengguna.',
-    'adminName' => 'Administrator',
-    'adminAvatar' => 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop'
+    'subtitle' => 'Kelola artikel analisis supply chain & intelijen berita yang dipublikasikan kepada pengguna.',
 ])
 
-<div class="admin-port-header-container flex-wrap g-3">
-    <div class="admin-header-left">
-        <nav aria-label="Breadcrumb navigasi admin">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-                <li class="breadcrumb-item"><a href="{{ route('admin') }}">Admin</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Article Management</li>
-            </ol>
-        </nav>
-        <h3>{{ $title }}</h3>
-        <p>{{ $subtitle }}</p>
-    </div>
+<div class="card p-4 border-0 mb-4 shadow-sm" style="border-radius: 20px; background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 50%, #0C4A6E 100%); color: #fff; position: relative; overflow: hidden;">
+    <div style="position: absolute; right: -40px; top: -40px; width: 220px; height: 220px; background: radial-gradient(circle, rgba(56,189,248,0.15) 0%, transparent 70%); border-radius: 50%;"></div>
     
-    <div class="admin-port-header-right">
-        {{-- Search Article --}}
-        <div class="position-relative" style="width: 260px;">
-            <input type="text" class="form-control" placeholder="Cari judul artikel..." style="min-height: 40px; padding-left: 2.25rem; font-size: 0.85rem;" id="header-article-search" aria-label="Cari artikel global">
-            <i class="bi bi-search position-absolute text-secondary" style="left: 14px; top: 50%; transform: translateY(-50%); font-size: 0.85rem;"></i>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-2" style="font-size: 0.82rem;">
+            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-white-50 text-decoration-none"><i class="bi bi-house-door-fill me-1"></i>Admin</a></li>
+            <li class="breadcrumb-item active text-white" aria-current="page">Articles</li>
+        </ol>
+    </nav>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 relative-index" style="z-index: 2;">
+        <div>
+            <h3 class="fw-bold text-white mb-1 d-flex align-items-center gap-2">
+                <i class="bi bi-file-earmark-text text-info"></i> {{ $title }}
+            </h3>
+            <p class="text-white-50 small mb-0">{{ $subtitle }}</p>
         </div>
-
-        {{-- Notification --}}
-        <a href="{{ route('admin.dashboard') }}" class="btn btn-light btn-sm border position-relative" style="min-height: 40px; width: 40px; border-radius: 50% !important; padding:0; display:flex; align-items:center; justify-content:center;" title="Buka Notifikasi" aria-label="Buka notifikasi">
-            <i class="bi bi-bell text-secondary"></i>
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; padding: 0.25em 0.4em;">
-                3
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-info bg-opacity-20 text-info border border-info border-opacity-25 px-3 py-2 rounded-pill fw-semibold" style="font-size: 0.78rem;">
+                <i class="bi bi-newspaper me-1"></i> News Intelligence
             </span>
-        </a>
-
-        {{-- Admin Info --}}
-        <div class="d-flex align-items-center gap-2 border px-3 py-1.5 rounded-pill bg-white">
-            <img src="{{ $adminAvatar }}" alt="Admin Avatar" class="rounded-circle" width="30" height="30" style="object-fit: cover;">
-            <div class="d-none d-sm-block text-start">
-                <span class="fw-bold text-dark d-block" style="font-size: 0.8rem; line-height: 1.1;">{{ $adminName }}</span>
-                <span class="text-secondary" style="font-size: 0.65rem;">System Owner</span>
-            </div>
         </div>
     </div>
 </div>

@@ -31,13 +31,13 @@
             <x-admin.articles.error-state />
         </div>
 
-        {{-- Skeleton Loading Container --}}
-        <div id="articles-skeleton-container" class="mb-2">
+        {{-- Skeleton Loading Container (Hidden) --}}
+        <div id="articles-skeleton-container" style="display: none;" class="mb-2">
             <x-admin.articles.loading-state />
         </div>
 
-        {{-- ══════ MAIN CONTENT AREA ══════ --}}
-        <div id="articles-main-content" style="display: none;">
+        {{-- ══════ MAIN CONTENT AREA (Direct Display) ══════ --}}
+        <div id="articles-main-content">
 
             {{-- ══════ ACTION TOOLBAR ══════ --}}
             <div class="article-toolbar-container">
@@ -61,19 +61,19 @@
                 </div>
             </div>
 
-            {{-- ══════ STATISTICS (4 Cards) ══════ --}}
+            {{-- ══════ STATISTICS (4 Cards from DB) ══════ --}}
             <div class="row g-3 mb-4">
                 <div class="col-12 col-sm-6 col-md-3">
-                    <x-admin.articles.statistics-card title="Total Artikel" value="125 Artikel" icon="file-earmark-text" color="primary" />
+                    <x-admin.articles.statistics-card title="Total Artikel" value="{{ $articles->count() }} Artikel" icon="file-earmark-text" color="primary" />
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
-                    <x-admin.articles.statistics-card title="Published" value="94" icon="check-circle" color="success" />
+                    <x-admin.articles.statistics-card title="Published" value="{{ $articles->count() }}" icon="check-circle" color="success" />
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
-                    <x-admin.articles.statistics-card title="Draft" value="21" icon="pencil-square" color="warning" />
+                    <x-admin.articles.statistics-card title="Draft" value="0" icon="pencil-square" color="warning" />
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
-                    <x-admin.articles.statistics-card title="Archived" value="10" icon="archive" color="secondary" />
+                    <x-admin.articles.statistics-card title="Archived" value="0" icon="archive" color="secondary" />
                 </div>
             </div>
 
@@ -128,14 +128,22 @@
                 </div>
             </div>
 
-            {{-- ══════ ARTICLE DATA TABLE ══════ --}}
+            {{-- ══════ ARTICLE DATA TABLE (Real DB Data) ══════ --}}
             <div class="mb-4">
                 <x-admin.articles.article-table>
-                    <x-admin.articles.article-row no="1" title="Global Supply Chain Disruptions in 2026: An Overview" category="Supply Chain" status="Published" author="Administrator" publishedAt="18-07-2026" views="1,250" thumbnail="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=150&auto=format&fit=crop" content="Analisis mendalam mengenai gangguan rantai pasok global pada tahun 2026." />
-                    <x-admin.articles.article-row no="2" title="Understanding Exchange Rate Fluctuations in Trade" category="Currency" status="Published" author="Administrator" publishedAt="17-07-2026" views="850" thumbnail="https://images.unsplash.com/photo-1618042164219-62c820f10723?q=80&w=150&auto=format&fit=crop" content="Bagaimana pergerakan mata uang asing berdampak pada biaya pengiriman barang." />
-                    <x-admin.articles.article-row no="3" title="Port Congestion Trends in Southeast Asia" category="Port" status="Published" author="Administrator" publishedAt="16-07-2026" views="450" thumbnail="https://images.unsplash.com/photo-1578575437130-527eed3abbec?q=80&w=150&auto=format&fit=crop" content="Laporan khusus tren kemacetan pelabuhan utama di kawasan Asia Tenggara." />
-                    <x-admin.articles.article-row no="4" title="Weather-Induced Risks in Maritime Logistics" category="Weather" status="Draft" author="Administrator" publishedAt="—" views="0" thumbnail="" content="Menilai dampak cuaca ekstrem pada rute pelayaran dan strategi mitigasi risiko." />
-                    <x-admin.articles.article-row no="5" title="Green Logistics: The Future of Global Freight" category="Logistics" status="Archived" author="Administrator" publishedAt="10-06-2026" views="120" thumbnail="https://images.unsplash.com/photo-1521898284481-a5ec348cb555?q=80&w=150&auto=format&fit=crop" content="Membahas inisiatif logistik hijau dan dekarbonisasi dalam transportasi kargo global." />
+                    @foreach($articles as $index => $art)
+                        <x-admin.articles.article-row 
+                            :no="$index + 1"
+                            :title="$art->title" 
+                            :category="$art->category ?? 'Supply Chain'" 
+                            status="Published" 
+                            :author="$art->source ?? 'Administrator'" 
+                            :publishedAt="$art->published_at ? \Carbon\Carbon::parse($art->published_at)->format('d-m-Y') : 'Recent'" 
+                            views="350" 
+                            :thumbnail="$art->url_to_image" 
+                            :content="$art->description ?? $art->content" 
+                        />
+                    @endforeach
                 </x-admin.articles.article-table>
             </div>
 

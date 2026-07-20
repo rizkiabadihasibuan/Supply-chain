@@ -1,424 +1,473 @@
-{{--
-    Country Comparison Engine – Milestone 3.11
-    resources/views/comparison/index.blade.php
---}}
 @extends('layouts.user.app')
 
-@section('title', 'Country Comparison – SupplyChain Platform')
+@section('title', 'Country Comparison Engine – SupplyChain Platform')
 
 @section('styles')
 <link rel="stylesheet" href="{{ asset('css/comparison/comparison.css') }}">
+<style>
+    .cmp-preset-btn {
+        background: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-radius: 20px;
+        padding: 6px 16px;
+        font-size: 0.825rem;
+        font-weight: 500;
+        color: #334155;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    .cmp-preset-btn:hover {
+        background: #2563EB;
+        color: #FFFFFF;
+        border-color: #2563EB;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    }
+    .cmp-vs-circle {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2563EB, #0284C7);
+        color: #FFFFFF;
+        font-weight: 800;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+    .cmp-vs-circle:hover {
+        transform: rotate(180deg) scale(1.08);
+    }
+</style>
 @endsection
 
 @section('content')
-<div class="cmp-page-wrapper">
+@php
+    $countryDataMap = [];
+    foreach ($countries as $c) {
+        $score = $c->riskScore?->overall_score ?? round(1.2 + (($c->id * 11) % 38) / 10, 2);
+        $riskLvl = strtolower($c->riskScore?->risk_level ?? 'low');
 
-{{-- ======================================================
-     PAGE HEADER
-     ====================================================== --}}
-<div class="row align-items-center mb-4 g-3">
-    <div class="col-12 col-md-7">
-        <div class="d-flex align-items-center gap-3">
-            <div class="p-2 rounded-3" style="background:rgba(37,99,235,0.08);">
-                <i class="bi bi-columns-gap text-primary fs-4"></i>
-            </div>
-            <div>
-                <h4 class="fw-bold text-dark mb-0">Country Comparison Engine</h4>
-                <p class="text-secondary small mb-0 mt-1">Bandingkan kondisi ekonomi, cuaca, mata uang, dan tingkat risiko dua negara dalam satu dashboard.</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-md-5 d-flex justify-content-md-end align-items-center gap-2 flex-wrap">
-        <span class="badge bg-white text-secondary border shadow-sm px-3 py-2 rounded-pill d-flex align-items-center gap-1" style="font-size:.78rem;">
-            <i class="bi bi-calendar3 text-primary"></i>
-            {{ now()->translatedFormat('d F Y') }}
-        </span>
-        <button class="btn btn-outline-primary btn-sm d-flex align-items-center gap-2" style="min-height:38px;" onclick="alert('Simulasi ekspor laporan perbandingan...')">
-            <i class="bi bi-download"></i>
-            <span class="d-none d-sm-inline">Ekspor Laporan</span>
-        </button>
-    </div>
-</div>
+        $gdpVal = round(15.0 + (($c->id * 17) % 850) + (($c->id * 3) % 10) / 10, 1);
+        $infVal = round(1.5 + (($c->id * 7) % 65) / 10, 1);
 
-{{-- ======================================================
-     COMPARISON TOOLBAR
-     ====================================================== --}}
-<div class="cmp-toolbar mb-4 cmp-fade">
-    <div class="row g-3 align-items-end">
-        {{-- Country A --}}
-        <div class="col-12 col-md-4">
-            <label for="selectCountryA" class="cmp-label-a mb-1 d-block">
-                <i class="bi bi-flag-fill me-1"></i> Negara A
-            </label>
-            <select id="selectCountryA" class="form-select" style="border-left:3px solid #2563EB !important;">
-                <option value="">-- Pilih Negara A --</option>
-                <option value="ID">🇮🇩 Indonesia</option>
-                <option value="CN">🇨🇳 China</option>
-                <option value="US">🇺🇸 Amerika Serikat</option>
-                <option value="NL">🇳🇱 Belanda</option>
-                <option value="SD">🇸🇩 Sudan</option>
-                <option value="SG">🇸🇬 Singapura</option>
-                <option value="JP">🇯🇵 Jepang</option>
-                <option value="DE">🇩🇪 Jerman</option>
-            </select>
-        </div>
+        $currCode = $c->currency?->code ?? 'USD';
+        $currSymbol = $c->currency?->symbol ?? '$';
+        
+        $rateStr = "1 USD = {$currSymbol} 1.0";
+        if ($currCode === 'IDR') $rateStr = 'Rp 16.250 / USD';
+        else if ($currCode === 'EUR') $rateStr = '€ 0.92 / USD';
+        else if ($currCode === 'CNY') $rateStr = '¥ 7.24 / USD';
+        else if ($currCode === 'JPY') $rateStr = '¥ 155.4 / USD';
 
-        {{-- VS Badge --}}
-        <div class="col-12 col-md-auto d-flex justify-content-center align-items-center pb-1">
-            <div class="cmp-vs-badge">VS</div>
-        </div>
+        $countryDataMap[$c->code] = [
+            'code' => $c->code,
+            'flag' => $c->flag_url ? $c->flag_url : "https://flagcdn.com/w320/" . strtolower($c->code) . ".png",
+            'name' => $c->name,
+            'region' => $c->region?->name ?? 'Global',
+            'capital' => $c->capital ?? 'Ibukota',
+            'currency' => $currCode,
+            'currencyRate' => $rateStr,
+            'gdp' => $gdpVal,
+            'gdpLabel' => '$' . $gdpVal . 'B',
+            'inflation' => $infVal,
+            'inflationLabel' => $infVal . '%',
+            'population' => round(10.0 + (($c->id * 13) % 250), 1),
+            'populationLabel' => round(10.0 + (($c->id * 13) % 250), 1) . ' Juta',
+            'weather' => (18 + (($c->id * 7) % 18)) . '°C',
+            'weatherLabel' => (18 + (($c->id * 7) % 18)) . '°C ' . (($c->id % 2 === 0) ? 'Cerah ☀️' : 'Hujan 🌧️'),
+            'riskScore' => $score,
+            'riskLevel' => $riskLvl,
+            'export' => '$' . round(5.0 + (($c->id * 9) % 180), 1) . 'B',
+            'import' => '$' . round(4.0 + (($c->id * 8) % 160), 1) . 'B',
+            'growth' => '+' . round(1.5 + (($c->id * 3) % 45) / 10, 2) . '%',
+        ];
+    }
+@endphp
 
-        {{-- Country B --}}
-        <div class="col-12 col-md-4">
-            <label for="selectCountryB" class="cmp-label-b mb-1 d-block">
-                <i class="bi bi-flag-fill me-1"></i> Negara B
-            </label>
-            <select id="selectCountryB" class="form-select" style="border-left:3px solid #0891B2 !important;">
-                <option value="">-- Pilih Negara B --</option>
-                <option value="ID">🇮🇩 Indonesia</option>
-                <option value="CN">🇨🇳 China</option>
-                <option value="US" selected>🇺🇸 Amerika Serikat</option>
-                <option value="NL">🇳🇱 Belanda</option>
-                <option value="SD">🇸🇩 Sudan</option>
-                <option value="SG">🇸🇬 Singapura</option>
-                <option value="JP">🇯🇵 Jepang</option>
-                <option value="DE">🇩🇪 Jerman</option>
-            </select>
-        </div>
+<div class="container-fluid p-0 fade-in-up">
 
-        {{-- Actions --}}
-        <div class="col-12 col-md-auto d-flex gap-2 ms-md-auto">
-            <button id="btnCompare"
-                    class="btn btn-primary d-flex align-items-center gap-2 flex-grow-1 justify-content-center"
-                    style="min-height:42px; min-width:130px; border-radius:10px;">
-                <i class="bi bi-play-circle-fill"></i> Bandingkan
-            </button>
-            <button id="btnReset"
-                    class="btn btn-outline-secondary d-flex align-items-center gap-2"
-                    style="min-height:42px; border-radius:10px;"
-                    data-bs-toggle="tooltip" title="Reset perbandingan">
-                <i class="bi bi-x-circle"></i>
-                <span class="d-none d-sm-inline">Reset</span>
-            </button>
-        </div>
-    </div>
-</div>
-
-{{-- ======================================================
-     EMPTY STATE
-     ====================================================== --}}
-<div id="secEmpty" class="py-5 text-center cmp-fade" style="display:none;">
-    <div class="d-flex justify-content-center mb-4">
-        <svg width="200" height="150" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="10" y="100" width="80" height="10" rx="5" fill="#BFDBFE"/>
-            <rect x="25" y="60" width="20" height="40" rx="4" fill="#93C5FD"/>
-            <rect x="52" y="45" width="20" height="55" rx="4" fill="#2563EB" opacity=".6"/>
-            <rect x="110" y="100" width="80" height="10" rx="5" fill="#BAE6FD"/>
-            <rect x="125" y="65" width="20" height="35" rx="4" fill="#67E8F9"/>
-            <rect x="152" y="50" width="20" height="50" rx="4" fill="#0891B2" opacity=".6"/>
-            <line x1="100" y1="20" x2="100" y2="120" stroke="#E2E8F0" stroke-width="2" stroke-dasharray="5,4"/>
-            <circle cx="100" cy="15" r="12" fill="#F1F5F9" stroke="#E2E8F0" stroke-width="1.5"/>
-            <text x="100" y="19" text-anchor="middle" font-size="12" fill="#94A3B8">⟺</text>
-        </svg>
-    </div>
-    <h5 class="fw-bold text-dark mb-2">Pilih dua negara untuk mulai melakukan perbandingan.</h5>
-    <p class="text-secondary mb-4" style="max-width:380px; margin:0 auto;">Gunakan dropdown di atas untuk memilih <span class="fw-semibold text-primary">Negara A</span> dan <span class="fw-semibold" style="color:#0891B2;">Negara B</span>, lalu klik <strong>Bandingkan</strong>.</p>
-    <button class="btn btn-primary px-4" style="border-radius:10px; min-height:40px;" onclick="document.getElementById('btnCompare').click()">
-        <i class="bi bi-play-circle-fill me-2"></i>Mulai Perbandingan
-    </button>
-</div>
-
-{{-- ======================================================
-     SKELETON LOADING
-     ====================================================== --}}
-<div id="secSkeleton" style="display:none;">
+    <!-- Header & Breadcrumb -->
     <div class="row g-4 mb-4">
-        <div class="col-12 col-md-6">
-            <div class="card border-0 shadow-sm p-4 rounded-4">
-                <div class="d-flex gap-3 mb-3 align-items-center">
-                    <span class="placeholder" style="width:52px;height:52px;border-radius:50%;background:#E2E8F0;"></span>
-                    <div class="flex-grow-1">
-                        <span class="placeholder col-7 d-block mb-2" style="height:14px;border-radius:6px;"></span>
-                        <span class="placeholder col-4 d-block" style="height:10px;border-radius:6px;"></span>
-                    </div>
-                </div>
-                @for($i=0;$i<6;$i++)
-                <div class="d-flex justify-content-between mb-2">
-                    <span class="placeholder col-4" style="height:12px;border-radius:5px;"></span>
-                    <span class="placeholder col-3" style="height:12px;border-radius:5px;"></span>
-                </div>
-                @endfor
-            </div>
-        </div>
-        <div class="col-12 col-md-6">
-            <div class="card border-0 shadow-sm p-4 rounded-4">
-                <div class="d-flex gap-3 mb-3 align-items-center">
-                    <span class="placeholder" style="width:52px;height:52px;border-radius:50%;background:#BAE6FD;"></span>
-                    <div class="flex-grow-1">
-                        <span class="placeholder col-7 d-block mb-2" style="height:14px;border-radius:6px;"></span>
-                        <span class="placeholder col-4 d-block" style="height:10px;border-radius:6px;"></span>
-                    </div>
-                </div>
-                @for($i=0;$i<6;$i++)
-                <div class="d-flex justify-content-between mb-2">
-                    <span class="placeholder col-4" style="height:12px;border-radius:5px;"></span>
-                    <span class="placeholder col-3" style="height:12px;border-radius:5px;"></span>
-                </div>
-                @endfor
-            </div>
-        </div>
-    </div>
-    <div class="card border-0 shadow-sm p-4 rounded-4">
-        <span class="placeholder col-4 d-block mb-3" style="height:16px;border-radius:6px;"></span>
-        <div class="placeholder-glow" style="height:240px;border-radius:12px;background:#F1F5F9;overflow:hidden;">
-            <span class="placeholder w-100 h-100"></span>
-        </div>
-    </div>
-</div>
-
-{{-- ======================================================
-     RESULT SECTION (hidden until JS renders data)
-     ====================================================== --}}
-<div id="secResult" style="display:none;">
-
-    {{-- ------------------------------------------------
-         KPI COMPARISON CARDS
-         ------------------------------------------------ --}}
-    <div class="row g-4 mb-4">
-
-        {{-- Country A Card --}}
-        <div class="col-12 col-md-6">
-            <div class="card viz-card cmp-strip-a p-4 cmp-fade cmp-fade-1">
-                {{-- Header --}}
-                <div class="d-flex align-items-center gap-3 pb-3 mb-3 border-bottom">
-                    <span id="kpiAFlag" class="d-flex align-items-center justify-content-center rounded-circle border shadow-sm" style="width:52px;height:52px;font-size:1.6rem;background:#F8FAFC;flex-shrink:0;">🏳</span>
+        <div class="col-12">
+            <div class="card p-4 border-0">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-2">
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}"><i class="bi bi-house-door-fill me-1"></i>Beranda</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Country Comparison Engine</li>
+                    </ol>
+                </nav>
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                     <div>
-                        <p class="cmp-label-a mb-0">Negara A</p>
-                        <h5 id="kpiAName" class="fw-bold text-dark mb-0">–</h5>
-                        <small id="kpiARegion" class="text-secondary"></small>
-                        <small class="text-muted"> · Ibu Kota: </small>
-                        <small id="kpiACapital" class="text-secondary"></small>
+                        <h3 class="fw-bold text-dark mb-1"><i class="bi bi-intersect text-primary me-2"></i>Country Comparison Engine</h3>
+                        <p class="text-secondary small mb-0">Bandingkan secara head-to-head indikator ekonomi, cuaca, nilai tukar, dan tingkat risiko 250 negara dalam satu dashboard.</p>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
 
-                {{-- KPI rows --}}
-                @php
-                $kpiRowsA = [
-                    ['id'=>'kpiAGdp',       'label'=>'GDP',          'icon'=>'bi-cash-coin',          'color'=>'primary'],
-                    ['id'=>'kpiAInflation',  'label'=>'Inflasi',      'icon'=>'bi-percent',            'color'=>'warning'],
-                    ['id'=>'kpiAPopulation', 'label'=>'Populasi',     'icon'=>'bi-people',             'color'=>'primary'],
-                    ['id'=>'kpiACurrency',   'label'=>'Kurs',         'icon'=>'bi-currency-exchange',  'color'=>'info'],
-                    ['id'=>'kpiAWeather',    'label'=>'Cuaca',        'icon'=>'bi-thermometer-half',   'color'=>'danger'],
-                    ['id'=>'kpiARisk',       'label'=>'Risk Score',   'icon'=>'bi-shield-exclamation', 'color'=>'danger'],
-                    ['id'=>'kpiAExport',     'label'=>'Ekspor',       'icon'=>'bi-arrow-up-right-circle','color'=>'success'],
-                    ['id'=>'kpiAImport',     'label'=>'Impor',        'icon'=>'bi-arrow-down-left-circle','color'=>'secondary'],
-                    ['id'=>'kpiAGrowth',     'label'=>'Pertumbuhan',  'icon'=>'bi-graph-up-arrow',     'color'=>'success'],
-                ];
-                @endphp
+    <!-- COMPARISON SELECTOR TOOLBAR -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card p-4 border-0 shadow-sm">
+                <div class="row g-3 align-items-end">
+                    <!-- Country A Dropdown -->
+                    <div class="col-12 col-md-5">
+                        <label for="selectCountryA" class="fw-bold text-primary mb-1 d-block" style="font-size: 0.875rem;">
+                            <i class="bi bi-flag-fill me-1"></i> Negara A (Acuan Utama)
+                        </label>
+                        <select id="selectCountryA" class="form-select border-primary" style="min-height: 46px; border-left: 4px solid #2563EB !important;">
+                            <option value="">-- Pilih Negara A --</option>
+                            @foreach ($countries as $c)
+                            <option value="{{ $c->code }}" {{ $c->code === 'ID' ? 'selected' : '' }}>
+                                {{ $c->name }} ({{ $c->code }})
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
 
-                <div class="d-flex flex-column gap-2">
-                    @foreach($kpiRowsA as $row)
-                    <div class="d-flex justify-content-between align-items-center py-1">
-                        <span class="text-secondary small d-flex align-items-center gap-2">
-                            <i class="bi {{ $row['icon'] }} text-{{ $row['color'] }}"></i>
-                            {{ $row['label'] }}
-                        </span>
-                        <div class="d-flex align-items-center gap-2">
-                            <span id="{{ $row['id'] }}" class="fw-semibold text-dark">–</span>
-                            @if($row['label'] === 'Risk Score')
-                                <span id="kpiARiskBadge" class="badge rounded-pill" style="font-size:.7rem;"></span>
-                            @endif
+                    <!-- VS Badge & Swap Button -->
+                    <div class="col-12 col-md-2 d-flex justify-content-center align-items-center py-2">
+                        <div class="cmp-vs-circle" onclick="swapCountries()" title="Tukar Negara A & B">
+                            VS
                         </div>
                     </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
 
-        {{-- Country B Card --}}
-        <div class="col-12 col-md-6">
-            <div class="card viz-card cmp-strip-b p-4 cmp-fade cmp-fade-2">
-                {{-- Header --}}
-                <div class="d-flex align-items-center gap-3 pb-3 mb-3 border-bottom">
-                    <span id="kpiBFlag" class="d-flex align-items-center justify-content-center rounded-circle border shadow-sm" style="width:52px;height:52px;font-size:1.6rem;background:#F0FDFF;flex-shrink:0;">🏳</span>
-                    <div>
-                        <p class="cmp-label-b mb-0">Negara B</p>
-                        <h5 id="kpiBName" class="fw-bold text-dark mb-0">–</h5>
-                        <small id="kpiBRegion" class="text-secondary"></small>
-                        <small class="text-muted"> · Ibu Kota: </small>
-                        <small id="kpiBCapital" class="text-secondary"></small>
+                    <!-- Country B Dropdown -->
+                    <div class="col-12 col-md-5">
+                        <label for="selectCountryB" class="fw-bold text-info mb-1 d-block" style="font-size: 0.875rem;">
+                            <i class="bi bi-flag-fill me-1"></i> Negara B (Pembanding)
+                        </label>
+                        <select id="selectCountryB" class="form-select border-info" style="min-height: 46px; border-left: 4px solid #0891B2 !important;">
+                            <option value="">-- Pilih Negara B --</option>
+                            @foreach ($countries as $c)
+                            <option value="{{ $c->code }}" {{ $c->code === 'US' ? 'selected' : '' }}>
+                                {{ $c->name }} ({{ $c->code }})
+                            </option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
 
-                {{-- KPI rows --}}
-                @php
-                $kpiRowsB = [
-                    ['id'=>'kpiBGdp',       'label'=>'GDP',          'icon'=>'bi-cash-coin',          'color'=>'primary'],
-                    ['id'=>'kpiBInflation',  'label'=>'Inflasi',      'icon'=>'bi-percent',            'color'=>'warning'],
-                    ['id'=>'kpiBPopulation', 'label'=>'Populasi',     'icon'=>'bi-people',             'color'=>'primary'],
-                    ['id'=>'kpiBCurrency',   'label'=>'Kurs',         'icon'=>'bi-currency-exchange',  'color'=>'info'],
-                    ['id'=>'kpiBWeather',    'label'=>'Cuaca',        'icon'=>'bi-thermometer-half',   'color'=>'danger'],
-                    ['id'=>'kpiBRisk',       'label'=>'Risk Score',   'icon'=>'bi-shield-exclamation', 'color'=>'danger'],
-                    ['id'=>'kpiBExport',     'label'=>'Ekspor',       'icon'=>'bi-arrow-up-right-circle','color'=>'success'],
-                    ['id'=>'kpiBImport',     'label'=>'Impor',        'icon'=>'bi-arrow-down-left-circle','color'=>'secondary'],
-                    ['id'=>'kpiBGrowth',     'label'=>'Pertumbuhan',  'icon'=>'bi-graph-up-arrow',     'color'=>'success'],
-                ];
-                @endphp
-
-                <div class="d-flex flex-column gap-2">
-                    @foreach($kpiRowsB as $row)
-                    <div class="d-flex justify-content-between align-items-center py-1">
-                        <span class="text-secondary small d-flex align-items-center gap-2">
-                            <i class="bi {{ $row['icon'] }} text-{{ $row['color'] }}"></i>
-                            {{ $row['label'] }}
-                        </span>
-                        <div class="d-flex align-items-center gap-2">
-                            <span id="{{ $row['id'] }}" class="fw-semibold text-dark">–</span>
-                            @if($row['label'] === 'Risk Score')
-                                <span id="kpiBRiskBadge" class="badge rounded-pill" style="font-size:.7rem;"></span>
-                            @endif
-                        </div>
+                <!-- Quick Presets Pills & Action Buttons -->
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-4 pt-3 border-top">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <span class="text-secondary small fw-semibold me-1">Preset Populer:</span>
+                        <button class="cmp-preset-btn" onclick="applyPreset('ID', 'US')">🇮🇩 Indonesia vs 🇺🇸 US</button>
+                        <button class="cmp-preset-btn" onclick="applyPreset('CN', 'JP')">🇨🇳 China vs 🇯🇵 Jepang</button>
+                        <button class="cmp-preset-btn" onclick="applyPreset('DE', 'GB')">🇩🇪 Jerman vs 🇬🇧 Inggris</button>
+                        <button class="cmp-preset-btn" onclick="applyPreset('SG', 'ID')">🇸🇬 Singapura vs 🇮🇩 Indonesia</button>
                     </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-    </div>{{-- /KPI row --}}
 
-    {{-- ------------------------------------------------
-         CHARTS
-         ------------------------------------------------ --}}
-    <div class="row g-4 mb-4">
-
-        {{-- Radar Chart (full width on mobile, half on desktop) --}}
-        <div class="col-12 col-lg-6">
-            <div class="card viz-card p-4 h-100 cmp-fade cmp-fade-3">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div>
-                        <h6 class="fw-bold text-dark mb-1">Radar Perbandingan</h6>
-                        <p class="text-secondary mb-0" style="font-size:.8rem;">Perbandingan semua indikator utama.</p>
-                    </div>
                     <div class="d-flex gap-2">
-                        <span class="badge rounded-pill px-2 py-1" style="background:rgba(37,99,235,.1);color:#2563EB;font-size:.7rem;" id="labelCountryA">Negara A</span>
-                        <span class="badge rounded-pill px-2 py-1" style="background:rgba(8,145,178,.1);color:#0891B2;font-size:.7rem;" id="labelCountryB">Negara B</span>
+                        <button id="btnCompare" class="btn btn-primary px-4 fw-semibold" style="min-height: 42px;" onclick="runComparison()">
+                            <i class="bi bi-play-circle-fill me-1"></i> Bandingkan Sekarang
+                        </button>
+                        <button id="btnReset" class="btn btn-outline-secondary px-3" style="min-height: 42px;" onclick="resetComparison()">
+                            <i class="bi bi-x-circle me-1"></i> Reset
+                        </button>
                     </div>
                 </div>
-                <div class="cmp-chart-box">
-                    <canvas id="chartRadar"></canvas>
-                </div>
-            </div>
-        </div>
 
-        {{-- GDP Bar --}}
-        <div class="col-12 col-md-6 col-lg-3">
-            <div class="card viz-card p-4 h-100 cmp-fade cmp-fade-4">
-                <h6 class="fw-bold text-dark mb-1">GDP ($T)</h6>
-                <p class="text-secondary mb-3" style="font-size:.8rem;">Perbandingan GDP.</p>
-                <div class="cmp-chart-box">
-                    <canvas id="chartGdpBar"></canvas>
-                </div>
             </div>
-        </div>
-
-        {{-- Inflation Bar + Risk Bar stacked --}}
-        <div class="col-12 col-md-6 col-lg-3 d-flex flex-column gap-4">
-            <div class="card viz-card p-4 cmp-fade cmp-fade-5">
-                <h6 class="fw-bold text-dark mb-1">Inflasi (%)</h6>
-                <p class="text-secondary mb-3" style="font-size:.8rem;">Perbandingan Inflasi.</p>
-                <div class="cmp-chart-box" style="height:160px;">
-                    <canvas id="chartInflationBar"></canvas>
-                </div>
-            </div>
-            <div class="card viz-card p-4 cmp-fade cmp-fade-6">
-                <h6 class="fw-bold text-dark mb-1">Risk Score (/5)</h6>
-                <p class="text-secondary mb-3" style="font-size:.8rem;">Perbandingan Risiko.</p>
-                <div class="cmp-chart-box" style="height:160px;">
-                    <canvas id="chartRiskBar"></canvas>
-                </div>
-            </div>
-        </div>
-
-    </div>{{-- /charts --}}
-
-    {{-- ------------------------------------------------
-         COMPARISON TABLE
-         ------------------------------------------------ --}}
-    <div class="card viz-card overflow-hidden mb-4 cmp-fade">
-        {{-- Table header toolbar --}}
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 p-4" style="background:#FAFCFF; border-bottom:1px solid #E2E8F0;">
-            <div class="d-flex align-items-center gap-2">
-                <i class="bi bi-table text-primary fs-5"></i>
-                <h6 class="fw-bold text-dark mb-0">Tabel Perbandingan Indikator</h6>
-            </div>
-            <div class="d-flex gap-2 flex-wrap">
-                <div class="dropdown">
-                    <button class="btn btn-light btn-sm d-flex align-items-center gap-1 dropdown-toggle" type="button" data-bs-toggle="dropdown" style="height:34px;border-radius:8px;font-size:.82rem;">
-                        <i class="bi bi-download"></i> Ekspor
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3">
-                        <li><button class="dropdown-item small py-2" onclick="alert('Simulasi ekspor PDF...')"><i class="bi bi-filetype-pdf text-danger me-2"></i>PDF</button></li>
-                        <li><button class="dropdown-item small py-2" onclick="alert('Simulasi ekspor Excel...')"><i class="bi bi-filetype-xls text-success me-2"></i>Excel</button></li>
-                        <li><button class="dropdown-item small py-2" onclick="alert('Simulasi ekspor CSV...')"><i class="bi bi-filetype-csv text-info me-2"></i>CSV</button></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <div class="table-responsive">
-            <table class="table cmp-table table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th>Indikator</th>
-                        <th><span id="labelCountryA2" class="cmp-label-a">Negara A</span></th>
-                        <th><span id="labelCountryB2" class="cmp-label-b">Negara B</span></th>
-                        <th>Selisih</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="cmpTableBody">
-                    {{-- Populated by comparison.js --}}
-                    <tr>
-                        <td colspan="5" class="text-center text-secondary py-4">
-                            <i class="bi bi-info-circle me-2"></i>Tekan "Bandingkan" untuk menampilkan data.
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
         </div>
     </div>
 
-    {{-- ------------------------------------------------
-         SUMMARY PANEL
-         ------------------------------------------------ --}}
-    <div class="card viz-card p-4 cmp-fade">
-        <div class="d-flex align-items-center gap-2 mb-4">
-            <div class="p-2 rounded-3" style="background:rgba(37,99,235,.08);">
-                <i class="bi bi-lightbulb-fill text-primary fs-5"></i>
+    <!-- INITIAL EMPTY STATE -->
+    <div id="secEmpty" class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card p-5 border-0 text-center d-flex flex-column align-items-center justify-content-center" style="min-height: 340px;">
+                <div class="p-3 rounded-circle bg-primary bg-opacity-10 text-primary mb-3">
+                    <i class="bi bi-intersect fs-1"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">Siap untuk membandingkan dua negara.</h5>
+                <p class="text-secondary small mb-4" style="max-width: 460px;">Pilih dua negara pada dropdown di atas atau klik salah satu preset populer di atas untuk menganalisis perbandingan risiko, GDP, inflasi, dan valuta.</p>
+                <button class="btn btn-primary px-4" style="min-height: 42px;" onclick="runComparison()">
+                    <i class="bi bi-play-circle-fill me-2"></i> Mulai Perbandingan
+                </button>
             </div>
-            <div>
-                <h6 class="fw-bold text-dark mb-0">Ringkasan Analisis</h6>
-                <p class="text-secondary small mb-0">Kesimpulan otomatis berdasarkan data perbandingan.</p>
-            </div>
-        </div>
-        <div id="summaryList" class="d-flex flex-column gap-2">
-            <p class="text-secondary text-center py-3">Panel ringkasan akan muncul setelah perbandingan selesai.</p>
         </div>
     </div>
 
-</div>{{-- /secResult --}}
+    <!-- RESULT SECTION (HEAD-TO-HEAD COMPARISON) -->
+    <div id="secResult" class="row g-4 mb-4" style="display: none;">
+        
+        <!-- SIDE-BY-SIDE CARDS (COUNTRY A VS COUNTRY B) -->
+        <div class="col-12">
+            <div class="row g-4">
+                <!-- Country A Card -->
+                <div class="col-lg-6">
+                    <div class="card p-4 border-0 shadow-sm h-100" style="border-top: 4px solid #2563EB !important;">
+                        <div class="d-flex align-items-center gap-3 pb-3 mb-3 border-bottom">
+                            <img id="kpiAFlag" src="https://flagcdn.com/w320/id.png" alt="Flag" style="height: 38px; width: 56px; object-fit: cover; border-radius: 6px;" class="border">
+                            <div>
+                                <span class="badge bg-primary px-2.5 py-1 mb-1">Negara A (Acuan)</span>
+                                <h4 id="kpiAName" class="fw-bold text-dark mb-0">Indonesia</h4>
+                                <span class="text-secondary small" id="kpiARegion">Asia Tenggara</span> · <span class="text-secondary small" id="kpiACapital">Jakarta</span>
+                            </div>
+                        </div>
 
-</div>{{-- /cmp-page-wrapper --}}
-@endsection
+                        <div class="d-flex flex-column gap-2.5">
+                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span class="text-secondary small"><i class="bi bi-cash-coin text-primary me-2"></i>GDP Total</span>
+                                <span class="fw-bold text-dark" id="kpiAGdp">$1.42T</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span class="text-secondary small"><i class="bi bi-percent text-warning me-2"></i>Tingkat Inflasi</span>
+                                <span class="fw-bold text-dark" id="kpiAInflation">2.8%</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span class="text-secondary small"><i class="bi bi-people text-info me-2"></i>Populasi Pasaran</span>
+                                <span class="fw-bold text-dark" id="kpiAPopulation">279.1 Juta</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span class="text-secondary small"><i class="bi bi-currency-exchange text-info me-2"></i>Nilai Tukar Kurs</span>
+                                <span class="fw-bold text-dark" id="kpiACurrency">Rp 16.250 / USD</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span class="text-secondary small"><i class="bi bi-thermometer-half text-danger me-2"></i>Kondisi Cuaca</span>
+                                <span class="fw-bold text-dark" id="kpiAWeather">32°C Cerah ☀️</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span class="text-secondary small"><i class="bi bi-shield-exclamation text-danger me-2"></i>Risk Score Rantai Pasok</span>
+                                <span class="badge bg-success" id="kpiARiskBadge">1.25 / 5.00 (Low)</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center py-2">
+                                <span class="text-secondary small"><i class="bi bi-graph-up-arrow text-success me-2"></i>Pertumbuhan Ekonomi</span>
+                                <span class="fw-bold text-success" id="kpiAGrowth">+5.05%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-@section('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+                <!-- Country B Card -->
+                <div class="col-lg-6">
+                    <div class="card p-4 border-0 shadow-sm h-100" style="border-top: 4px solid #0891B2 !important;">
+                        <div class="d-flex align-items-center gap-3 pb-3 mb-3 border-bottom">
+                            <img id="kpiBFlag" src="https://flagcdn.com/w320/us.png" alt="Flag" style="height: 38px; width: 56px; object-fit: cover; border-radius: 6px;" class="border">
+                            <div>
+                                <span class="badge bg-info text-dark px-2.5 py-1 mb-1">Negara B (Pembanding)</span>
+                                <h4 id="kpiBName" class="fw-bold text-dark mb-0">Amerika Serikat</h4>
+                                <span class="text-secondary small" id="kpiBRegion">Amerika Utara</span> · <span class="text-secondary small" id="kpiBCapital">Washington D.C.</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-column gap-2.5">
+                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span class="text-secondary small"><i class="bi bi-cash-coin text-primary me-2"></i>GDP Total</span>
+                                <span class="fw-bold text-dark" id="kpiBGdp">$28.20T</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span class="text-secondary small"><i class="bi bi-percent text-warning me-2"></i>Tingkat Inflasi</span>
+                                <span class="fw-bold text-dark" id="kpiBInflation">3.4%</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span class="text-secondary small"><i class="bi bi-people text-info me-2"></i>Populasi Pasaran</span>
+                                <span class="fw-bold text-dark" id="kpiBPopulation">335.9 Juta</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span class="text-secondary small"><i class="bi bi-currency-exchange text-info me-2"></i>Nilai Tukar Kurs</span>
+                                <span class="fw-bold text-dark" id="kpiBCurrency">Acuan USD ($)</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span class="text-secondary small"><i class="bi bi-thermometer-half text-danger me-2"></i>Kondisi Cuaca</span>
+                                <span class="fw-bold text-dark" id="kpiBWeather">22°C Sejuk 🌥</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span class="text-secondary small"><i class="bi bi-shield-exclamation text-danger me-2"></i>Risk Score Rantai Pasok</span>
+                                <span class="badge bg-warning text-dark" id="kpiBRiskBadge">3.48 / 5.00 (Medium)</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center py-2">
+                                <span class="text-secondary small"><i class="bi bi-graph-up-arrow text-success me-2"></i>Pertumbuhan Ekonomi</span>
+                                <span class="fw-bold text-success" id="kpiBGrowth">+2.50%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HEAD-TO-HEAD INDICATOR COMPARISON TABLE -->
+        <div class="col-12">
+            <div class="card p-4 border-0 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-table text-primary me-2"></i>Tabel Perbandingan Indikator Lengkap</h5>
+                    <a id="cmpExportPdf" href="#" target="_blank" class="btn btn-outline-primary btn-sm fw-semibold">
+                        <i class="bi bi-file-earmark-pdf me-1"></i> Cetak PDF Perbandingan
+                    </a>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table align-middle table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Indikator</th>
+                                <th><span id="tblCountryAName" class="text-primary fw-bold">Negara A</span></th>
+                                <th><span id="tblCountryBName" class="text-info fw-bold">Negara B</span></th>
+                                <th>Evaluasi Keunggulan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-semibold">💰 Total GDP</td>
+                                <td id="tblGdpA" class="fw-bold">$1.42T</td>
+                                <td id="tblGdpB" class="fw-bold">$28.20T</td>
+                                <td><span id="tblGdpWinner" class="badge bg-info text-dark">Negara B Lebih Besar</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">📊 Tingkat Inflasi</td>
+                                <td id="tblInfA" class="fw-bold">2.8%</td>
+                                <td id="tblInfB" class="fw-bold">3.4%</td>
+                                <td><span id="tblInfWinner" class="badge bg-success">Negara A Lebih Rendah</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">🛡️ Risk Score (1-5)</td>
+                                <td id="tblRiskA" class="fw-bold">1.25 (Low)</td>
+                                <td id="tblRiskB" class="fw-bold">3.48 (Medium)</td>
+                                <td><span id="tblRiskWinner" class="badge bg-success">Negara A Lebih Aman</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">📈 Pertumbuhan Ekonomi</td>
+                                <td id="tblGrowthA" class="fw-bold">+5.05%</td>
+                                <td id="tblGrowthB" class="fw-bold">+2.50%</td>
+                                <td><span id="tblGrowthWinner" class="badge bg-success">Negara A Lebih Tinggi</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
 <script>
-{!! file_get_contents(resource_path('js/comparison/comparison-data.js')) !!}
-</script>
-<script>
-{!! file_get_contents(resource_path('js/comparison/comparison-charts.js')) !!}
-</script>
-<script>
-{!! file_get_contents(resource_path('js/comparison/comparison.js')) !!}
+    const COUNTRY_DATA = @json($countryDataMap);
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Run initial comparison on load if pre-selected
+        runComparison();
+    });
+
+    function applyPreset(codeA, codeB) {
+        document.getElementById('selectCountryA').value = codeA;
+        document.getElementById('selectCountryB').value = codeB;
+        runComparison();
+    }
+
+    function swapCountries() {
+        const selA = document.getElementById('selectCountryA');
+        const selB = document.getElementById('selectCountryB');
+        const tmp = selA.value;
+        selA.value = selB.value;
+        selB.value = tmp;
+        runComparison();
+    }
+
+    function runComparison() {
+        const codeA = document.getElementById('selectCountryA').value;
+        const codeB = document.getElementById('selectCountryB').value;
+
+        const secEmpty = document.getElementById('secEmpty');
+        const secResult = document.getElementById('secResult');
+
+        if (!codeA || !codeB) {
+            secEmpty.style.display = 'flex';
+            secResult.style.display = 'none';
+            return;
+        }
+
+        const dataA = COUNTRY_DATA[codeA] || generateFallback(codeA);
+        const dataB = COUNTRY_DATA[codeB] || generateFallback(codeB);
+
+        secEmpty.style.display = 'none';
+        secResult.style.display = 'flex';
+
+        // Render Country A
+        document.getElementById('kpiAFlag').src = dataA.flag;
+        document.getElementById('kpiAName').textContent = dataA.name;
+        document.getElementById('kpiARegion').textContent = dataA.region;
+        document.getElementById('kpiACapital').textContent = dataA.capital;
+        document.getElementById('kpiAGdp').textContent = dataA.gdpLabel;
+        document.getElementById('kpiAInflation').textContent = dataA.inflationLabel;
+        document.getElementById('kpiAPopulation').textContent = dataA.populationLabel;
+        document.getElementById('kpiACurrency').textContent = dataA.currencyRate;
+        document.getElementById('kpiAWeather').textContent = dataA.weatherLabel;
+        document.getElementById('kpiAGrowth').textContent = dataA.growth;
+        
+        const badgeA = document.getElementById('kpiARiskBadge');
+        badgeA.textContent = `${dataA.riskScore} / 5.00 (${dataA.riskLevel.toUpperCase()})`;
+        badgeA.className = `badge bg-${dataA.riskLevel === 'low' ? 'success' : (dataA.riskLevel === 'medium' ? 'warning text-dark' : 'danger')}`;
+
+        // Render Country B
+        document.getElementById('kpiBFlag').src = dataB.flag;
+        document.getElementById('kpiBName').textContent = dataB.name;
+        document.getElementById('kpiBRegion').textContent = dataB.region;
+        document.getElementById('kpiBCapital').textContent = dataB.capital;
+        document.getElementById('kpiBGdp').textContent = dataB.gdpLabel;
+        document.getElementById('kpiBInflation').textContent = dataB.inflationLabel;
+        document.getElementById('kpiBPopulation').textContent = dataB.populationLabel;
+        document.getElementById('kpiBCurrency').textContent = dataB.currencyRate;
+        document.getElementById('kpiBWeather').textContent = dataB.weatherLabel;
+        document.getElementById('kpiBGrowth').textContent = dataB.growth;
+
+        const badgeB = document.getElementById('kpiBRiskBadge');
+        badgeB.textContent = `${dataB.riskScore} / 5.00 (${dataB.riskLevel.toUpperCase()})`;
+        badgeB.className = `badge bg-${dataB.riskLevel === 'low' ? 'success' : (dataB.riskLevel === 'medium' ? 'warning text-dark' : 'danger')}`;
+
+        // Table updates
+        document.getElementById('tblCountryAName').textContent = dataA.name;
+        document.getElementById('tblCountryBName').textContent = dataB.name;
+
+        document.getElementById('tblGdpA').textContent = dataA.gdpLabel;
+        document.getElementById('tblGdpB').textContent = dataB.gdpLabel;
+        document.getElementById('tblGdpWinner').textContent = dataA.gdp > dataB.gdp ? `${dataA.name} Lebih Besar` : `${dataB.name} Lebih Besar`;
+
+        document.getElementById('tblInfA').textContent = dataA.inflationLabel;
+        document.getElementById('tblInfB').textContent = dataB.inflationLabel;
+        document.getElementById('tblInfWinner').textContent = dataA.inflation < dataB.inflation ? `${dataA.name} Lebih Rendah` : `${dataB.name} Lebih Rendah`;
+
+        document.getElementById('tblRiskA').textContent = `${dataA.riskScore} (${dataA.riskLevel})`;
+        document.getElementById('tblRiskB').textContent = `${dataB.riskScore} (${dataB.riskLevel})`;
+        document.getElementById('tblRiskWinner').textContent = dataA.riskScore < dataB.riskScore ? `${dataA.name} Lebih Aman` : `${dataB.name} Lebih Aman`;
+
+        document.getElementById('tblGrowthA').textContent = dataA.growth;
+        document.getElementById('tblGrowthB').textContent = dataB.growth;
+        document.getElementById('tblGrowthWinner').textContent = parseFloat(dataA.growth) > parseFloat(dataB.growth) ? `${dataA.name} Lebih Tinggi` : `${dataB.name} Lebih Tinggi`;
+
+        document.getElementById('cmpExportPdf').href = `/dashboard/export/country/${codeA}`;
+    }
+
+    function resetComparison() {
+        document.getElementById('selectCountryA').value = '';
+        document.getElementById('selectCountryB').value = '';
+        document.getElementById('secEmpty').style.display = 'flex';
+        document.getElementById('secResult').style.display = 'none';
+    }
+
+    function generateFallback(code) {
+        return {
+            code: code,
+            flag: `https://flagcdn.com/w320/${code.toLowerCase()}.png`,
+            name: code,
+            region: 'Global',
+            capital: 'Ibukota',
+            currencyRate: 'Acuan USD',
+            gdp: 50.0,
+            gdpLabel: '$50.0B',
+            inflation: 3.0,
+            inflationLabel: '3.0%',
+            populationLabel: '50 Juta',
+            weatherLabel: '25°C Cerah ☀️',
+            riskScore: 2.5,
+            riskLevel: 'medium',
+            growth: '+3.0%'
+        };
+    }
 </script>
 @endsection

@@ -38,6 +38,8 @@ Route::prefix('admin')
          |--------------------------------------------------------------
          */
         Route::get('/users', [AdminController::class, 'users'])->name('users');
+        Route::post('/users', [AdminController::class, 'storeUser'])->name('users.store');
+        Route::delete('/users/{id}', [AdminController::class, 'destroyUser'])->name('users.destroy');
 
         /*
          |--------------------------------------------------------------
@@ -45,6 +47,8 @@ Route::prefix('admin')
          |--------------------------------------------------------------
          */
         Route::get('/ports', [AdminController::class, 'ports'])->name('ports');
+        Route::post('/ports', [AdminController::class, 'storePort'])->name('ports.store');
+        Route::delete('/ports/{id}', [AdminController::class, 'destroyPort'])->name('ports.destroy');
 
         /*
          |--------------------------------------------------------------
@@ -53,7 +57,7 @@ Route::prefix('admin')
          */
         Route::get('/articles',              [AdminController::class, 'articles'])->name('articles');
         Route::get('/articles/create',       [AdminController::class, 'articleCreate'])->name('articles.create');
-        Route::get('/articles/{id}',         [AdminController::class, 'articleDetail'])->name('articles.detail');
-        Route::get('/articles/{id}/edit',    [AdminController::class, 'articleEdit'])->name('articles.edit');
+        Route::post('/articles',             [AdminController::class, 'storeArticle'])->name('articles.store');
+        Route::delete('/articles/{id}',      [AdminController::class, 'destroyArticle'])->name('articles.destroy');
 
     });

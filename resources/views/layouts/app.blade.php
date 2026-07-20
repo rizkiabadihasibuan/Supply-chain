@@ -725,17 +725,17 @@
             <a href="{{ route('design-system') }}" class="menu-item {{ Request::is('design-system') ? 'active' : '' }}">
                 <i class="bi bi-palette-fill"></i> Design System
             </a>
-            <a href="{{ route('countries') }}" class="menu-item {{ Request::is('countries') ? 'active' : '' }}">
+            <a href="{{ route('countries') }}" class="menu-item {{ Request::is('countries') || Request::is('dashboard/countries*') ? 'active' : '' }}">
                 <i class="bi bi-globe2"></i> Negara
+            </a>
+            <a href="{{ route('ports') }}" class="menu-item {{ Request::is('ports') || Request::is('dashboard/ports*') ? 'active' : '' }}">
+                <i class="bi bi-anchor"></i> Pelabuhan
             </a>
             <a href="{{ route('weather') }}" class="menu-item {{ Request::is('weather') ? 'active' : '' }}">
                 <i class="bi bi-cloud-sun-fill"></i> Cuaca
             </a>
             <a href="{{ route('currency') }}" class="menu-item {{ Request::is('currency') ? 'active' : '' }}">
                 <i class="bi bi-cash-stack"></i> Nilai Tukar
-            </a>
-            <a href="{{ route('ports') }}" class="menu-item {{ Request::is('ports') ? 'active' : '' }}">
-                <i class="bi bi-anchor"></i> Pelabuhan
             </a>
             <a href="{{ route('news') }}" class="menu-item {{ Request::is('news') ? 'active' : '' }}">
                 <i class="bi bi-newspaper"></i> Berita

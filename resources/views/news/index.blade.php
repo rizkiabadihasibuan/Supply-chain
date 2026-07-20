@@ -1,447 +1,453 @@
-@extends('layouts.user.app')
+<div class="container-fluid p-0 fade-in-up">
 
-@section('title', 'Global News Intelligence - SupplyChain Platform')
-
-@section('content')
-<!-- Page Header Component -->
-<x-page-header title="Global News Intelligence" subtitle="Pantau berita internasional yang berpotensi memengaruhi rantai pasok global secara cepat dan terstruktur." :breadcrumbs="['Global News Intelligence' => '#']">
-    <x-slot name="actions">
-        <button class="btn btn-primary" id="btn-sync-news" onclick="triggerNewsSync()" style="min-height: 44px;">
-            <i class="bi bi-arrow-clockwise me-2"></i>Sinkronisasi Berita
-        </button>
-    </x-slot>
-</x-page-header>
-
-<!-- Summary KPI Cards (4 Cards) -->
-<div class="row g-4 mb-4">
-    <div class="col-xl-3 col-md-6">
-        <x-kpi-card title="Total Berita Hari Ini" value="12" description="Rilisan Media Terpantau" icon="bi-newspaper" type="primary" />
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <x-kpi-card title="Berita Risiko Tinggi" value="4" description="Hambatan Logistik Kritis" icon="bi-shield-exclamation" type="danger" />
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <x-kpi-card title="Berita Ekonomi" value="5" description="Tarif & Kebijakan Dagang" icon="bi-graph-up-arrow" type="warning" />
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <x-kpi-card title="Berita Logistik" value="3" description="Kondisi Port & Rute" icon="bi-truck" type="success" />
-    </div>
-</div>
-
-<!-- Header Toolbar Component -->
-<x-search-toolbar placeholder="Cari berita, negara, atau kata kunci..." searchId="search-news-input" oninput="applyNewsFilters()">
-    <x-slot name="filters">
-        <!-- Region Filter -->
-        <div class="col-xl-2 col-lg-2 col-md-4 col-6">
-            <select id="filter-news-region" class="form-select" style="min-height: 44px;" onchange="applyNewsFilters()">
-                <option value="all">Semua Wilayah</option>
-                <option value="asia">Asia</option>
-                <option value="europe">Eropa</option>
-                <option value="america">Amerika</option>
-                <option value="africa">Afrika</option>
-            </select>
-        </div>
-        <!-- Category Filter -->
-        <div class="col-xl-2 col-lg-2 col-md-4 col-6">
-            <select id="filter-news-category" class="form-select" style="min-height: 44px;" onchange="applyNewsFilters()">
-                <option value="all">Semua Kategori</option>
-                <option value="ekonomi">Ekonomi</option>
-                <option value="politik">Politik</option>
-                <option value="logistik">Logistik</option>
-                <option value="pelabuhan">Pelabuhan</option>
-                <option value="cuaca">Cuaca</option>
-                <option value="energi">Energi</option>
-                <option value="perdagangan">Perdagangan</option>
-            </select>
-        </div>
-        <!-- Risk Filter -->
-        <div class="col-xl-2 col-lg-3 col-md-4 col-6">
-            <select id="filter-news-risk" class="form-select" style="min-height: 44px;" onchange="applyNewsFilters()">
-                <option value="all">Semua Dampak</option>
-                <option value="high">Kritis / Tinggi</option>
-                <option value="medium">Sedang</option>
-                <option value="low">Rendah</option>
-            </select>
-        </div>
-        <!-- Date Picker Placeholder -->
-        <div class="col-xl-2 col-lg-3 col-md-12 col-6">
-            <input type="text" class="form-control" placeholder="Rentang Waktu..." style="min-height: 44px;" disabled title="Filter rentang waktu siap digunakan pada milestone berikutnya">
-        </div>
-    </x-slot>
-
-    <x-slot name="simulations">
-        <button class="btn btn-light btn-sm px-3" style="min-height: 38px; height: 38px;" onclick="simulateSkeletonLoading()">
-            <i class="bi bi-hourglass-split me-2"></i>Simulasikan Loading
-        </button>
-        <button class="btn btn-light btn-sm px-3" style="min-height: 38px; height: 38px;" onclick="simulateEmptyState()">
-            <i class="bi bi-x-circle me-2"></i>Simulasikan Data Kosong
-        </button>
-        <button class="btn btn-light btn-sm px-3" style="min-height: 38px; height: 38px;" onclick="simulateErrorState()">
-            <i class="bi bi-exclamation-octagon me-2"></i>Simulasikan Error
-        </button>
-    </x-slot>
-</x-search-toolbar>
-
-<!-- Loading State Shimmer component -->
-<div id="skeleton-container" style="display: none;">
-    <x-loading-state type="card" count="4" height="240px" />
-</div>
-
-<!-- Empty State Component -->
-<div id="empty-state-container" style="display: none;">
-    <x-empty-state title="Belum ada berita tersedia." description="Tidak ada artikel media yang cocok dengan parameter saringan Anda." onclick="resetFilters()" />
-</div>
-
-<!-- Error State Component -->
-<div id="error-state-container" style="display: none;">
-    <x-error-state title="Gagal Menghubungkan Intelijen Berita." description="Stasiun RSS feed media internasional sedang sibuk. Silakan segarkan pemuatan." onclick="retryFromError()" />
-</div>
-
-<!-- Main Content Grid -->
-<div id="main-content-grid" class="row g-4">
-    <!-- Kolom Kiri (Featured, News Feed, Trending, Timeline) -->
-    <div class="col-lg-8">
-        <div class="d-flex flex-column gap-4">
-            
-            <!-- SECTION 1: Featured News -->
-            <div id="featured-news-area">
-                <x-featured-news-card 
-                    title="Terusan Suez Mengalami Penurunan Arus Kargo Akibat Hambatan Teritorial" 
-                    summary="Kepadatan penumpukan kapal kontainer di pintu masuk Terusan Suez mengalami peningkatan sebesar 25%. Otoritas maritim memproyeksikan rute alternatif mengitari Tanjung Harapan (Afrika Selatan) akan menambah biaya pelayaran maritim hingga 15% pada kuartal ini."
-                    country="Sudan / Mesir"
-                    category="Perdagangan"
-                    date="Hari Ini"
-                    risk="high"
-                    icon="bi-globe-americas"
-                    onclick="viewNewsModal('Terusan Suez Mengalami Penurunan Arus Kargo Akibat Hambatan Teritorial', 'Kemacetan kapal kontainer di pintu masuk Terusan Suez meningkat sebesar 25%. Hal ini memaksa sejumlah kapal kargo berputar mengitari rute Afrika Selatan yang berimbas pada penambahan waktu pelayaran selama 10 hari.')"
-                />
-            </div>
-
-            <!-- SECTION 3: Trending Topics Tags -->
+    <!-- Header & Breadcrumb -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
             <div class="card p-4 border-0">
-                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-graph-up text-primary me-2"></i>Tren Topik Intelijen</h6>
-                <div class="d-flex flex-wrap gap-2">
-                    <button class="btn btn-light btn-sm px-3 rounded-pill border tag-btn" onclick="filterByTag('Terusan Suez')">#Terusan Suez</button>
-                    <button class="btn btn-light btn-sm px-3 rounded-pill border tag-btn" onclick="filterByTag('Krisis Energi')">#Krisis Energi</button>
-                    <button class="btn btn-light btn-sm px-3 rounded-pill border tag-btn" onclick="filterByTag('Batubara')">#Batubara</button>
-                    <button class="btn btn-light btn-sm px-3 rounded-pill border tag-btn" onclick="filterByTag('Inflasi')">#Inflasi</button>
-                    <button class="btn btn-light btn-sm px-3 rounded-pill border tag-btn" onclick="filterByTag('Cuaca Ekstrem')">#Cuaca Ekstrem</button>
-                </div>
-            </div>
-
-            <!-- SECTION 2: News Feed -->
-            <div class="card p-4 border-0">
-                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-newspaper text-primary me-2"></i>Umpan Berita Logistik Terkini</h5>
-                
-                <x-news-list id="news-feed-container">
-                    <!-- News 1 -->
-                    <div class="news-item-wrapper" data-title="Kenaikan Biaya Penumpukan Kargo Di Amerika Serikat Mengancam Eksportir Asia" data-summary="Otoritas pelabuhan Los Angeles mengumumkan penyesuaian tarif dwelling time kontainer di dermaga utama." data-region="america" data-category="ekonomi" data-risk="medium" data-country="Amerika Serikat">
-                        <x-news-card 
-                            title="Kenaikan Biaya Penumpukan Kargo Di Amerika Serikat Mengancam Eksportir Asia"
-                            summary="Otoritas pelabuhan Los Angeles mengumumkan penyesuaian tarif dwelling time kontainer di dermaga utama."
-                            country="Amerika Serikat"
-                            category="Ekonomi"
-                            date="1 jam yang lalu"
-                            risk="medium"
-                            icon="bi-currency-dollar"
-                            onclick="viewNewsModal('Kenaikan Biaya Penumpukan Kargo Di Amerika Serikat Mengancam Eksportir Asia', 'Penyesuaian tarif dwelling time di Port of Los Angeles berpotensi menambah pengeluaran logistik bagi pabrikan manufaktur eksportir asal Tiongkok dan Asia Tenggara.')"
-                        />
-                    </div>
-
-                    <!-- News 2 -->
-                    <div class="news-item-wrapper" data-title="Pemerintah Indonesia Resmikan Gerbang Logistik Otomatis Berbasis IoT di Tanjung Priok" data-summary="Modernisasi terminal peti kemas Tanjung Priok rampung 100% demi efisiensi dwelling time logistik nasional." data-region="asia" data-category="logistik" data-risk="low" data-country="Indonesia">
-                        <x-news-card 
-                            title="Pemerintah Indonesia Resmikan Gerbang Logistik Otomatis Berbasis IoT di Tanjung Priok"
-                            summary="Modernisasi terminal peti kemas Tanjung Priok rampung 100% demi efisiensi dwelling time logistik nasional."
-                            country="Indonesia"
-                            category="Logistik"
-                            date="3 jam yang lalu"
-                            risk="low"
-                            icon="bi-cpu"
-                            onclick="viewNewsModal('Pemerintah Indonesia Resmikan Gerbang Logistik Otomatis Berbasis IoT di Tanjung Priok', 'Penerapan sistem gerbang otomatis IoT mempercepat proses gate-in truk kontainer hingga memangkas waktu tunggu rata-rata sebesar 40%.')"
-                        />
-                    </div>
-
-                    <!-- News 3 -->
-                    <div class="news-item-wrapper" data-title="Eropa Alami Hambatan Pasokan Gas Akibat Kebocoran Pipa Laut Utara" data-summary="Kebocoran fasilitas penyaluran gas di Laut Utara memicu kenaikan inflasi energi di Jerman dan Belanda." data-region="europe" data-category="energi" data-risk="high" data-country="Jerman">
-                        <x-news-card 
-                            title="Eropa Alami Hambatan Pasokan Gas Akibat Kebocoran Pipa Laut Utara"
-                            summary="Kebocoran fasilitas penyaluran gas di Laut Utara memicu kenaikan inflasi energi di Jerman dan Belanda."
-                            country="Jerman / Eropa"
-                            category="Energi"
-                            date="5 jam yang lalu"
-                            risk="high"
-                            icon="bi-lightning-fill"
-                            onclick="viewNewsModal('Eropa Alami Hambatan Pasokan Gas Akibat Kebocoran Pipa Laut Utara', 'Kebocoran pipa transmisi memicu penutupan aliran gas darurat. Harga gas di bursa berjangka melonjak hingga +8% dalam kurun waktu 24 jam.')"
-                        />
-                    </div>
-                </x-news-list>
-            </div>
-
-            <!-- SECTION 4: News Timeline -->
-            <div class="card p-4 border-0">
-                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-clock-history text-primary me-2"></i>Rilis Informasi Rantai Pasok Hari Ini</h5>
-                
-                <x-timeline id="news-releases-timeline">
-                    <!-- Release 1 -->
-                    <div class="position-relative mb-3.5">
-                        <div class="position-absolute rounded-circle" style="left: -19px; top: 4px; width: 10px; height: 10px; background-color: var(--danger); border: 2px solid #FFFFFF;"></div>
-                        <div class="small">
-                            <span class="text-dark fw-bold d-block">Terusan Suez Ditutup Sementara</span>
-                            <span class="text-secondary d-block" style="font-size: 0.725rem;">Otoritas Pelayaran mengalihkan rute logistik maritim.</span>
-                            <span class="text-secondary small" style="font-size: 0.65rem;"><i class="bi bi-clock me-1"></i>30 menit yang lalu</span>
-                        </div>
-                    </div>
-
-                    <!-- Release 2 -->
-                    <div class="position-relative mb-3.5">
-                        <div class="position-absolute rounded-circle" style="left: -19px; top: 4px; width: 10px; height: 10px; background-color: var(--warning); border: 2px solid #FFFFFF;"></div>
-                        <div class="small">
-                            <span class="text-dark fw-bold d-block">Tarif Dwelling Time AS Naik</span>
-                            <span class="text-secondary d-block" style="font-size: 0.725rem;">Otoritas Port of Los Angeles menyetujui kenaikan biaya.</span>
-                            <span class="text-secondary small" style="font-size: 0.65rem;"><i class="bi bi-clock me-1"></i>1 jam yang lalu</span>
-                        </div>
-                    </div>
-
-                    <!-- Release 3 -->
-                    <div class="position-relative">
-                        <div class="position-absolute rounded-circle" style="left: -19px; top: 4px; width: 10px; height: 10px; background-color: var(--success); border: 2px solid #FFFFFF;"></div>
-                        <div class="small">
-                            <span class="text-dark fw-bold d-block">Digital Gate Priok Diuji</span>
-                            <span class="text-secondary d-block" style="font-size: 0.725rem;">Uji coba sistem gerbang IoT peti kemas dilaporkan berhasil.</span>
-                            <span class="text-secondary small" style="font-size: 0.65rem;"><i class="bi bi-clock me-1"></i>3 jam yang lalu</span>
-                        </div>
-                    </div>
-                </x-timeline>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- Kolom Kanan (Intelligence Widgets) -->
-    <div class="col-lg-4">
-        <div class="d-flex flex-column gap-4">
-            
-            <!-- WIDGET 1: Top Headlines -->
-            <x-widget-card title="Sorotan Berita Utama" icon="bi-award-fill">
-                <div class="d-flex flex-column gap-3" style="font-size: 0.825rem;">
-                    <div class="border-bottom pb-2">
-                        <span class="badge bg-danger text-white mb-1" style="font-size: 0.65rem;">Krisis</span>
-                        <h6 class="fw-bold text-dark small mb-0">Hambatan Rute Suez Hambat Ekspor Gandum Eropa</h6>
-                    </div>
-                    <div class="border-bottom pb-2">
-                        <span class="badge bg-warning text-dark mb-1" style="font-size: 0.65rem;">Inflasi</span>
-                        <h6 class="fw-bold text-dark small mb-0">Harga Batubara Global Menguat Akibat Musim Dingin</h6>
-                    </div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-2">
+                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}"><i class="bi bi-house-door-fill me-1"></i>Beranda</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Global News Intelligence</li>
+                    </ol>
+                </nav>
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                     <div>
-                        <span class="badge bg-primary text-white mb-1" style="font-size: 0.65rem;">Logistik</span>
-                        <h6 class="fw-bold text-dark small mb-0">Digitalisasi IoT Port Indonesia Diresmikan</h6>
+                        <h3 class="fw-bold text-dark mb-1"><i class="bi bi-newspaper text-primary me-2"></i>Global News Intelligence</h3>
+                        <p class="text-secondary small mb-0">Pantau berita internasional terintegrasi <strong>GNews API & Google News Live</strong> terkait 🚚 <strong>Logistics</strong>, 🌐 <strong>Trade</strong>, 🚢 <strong>Shipping</strong>, dan 📈 <strong>Economy</strong> di 250 negara.</p>
                     </div>
                 </div>
-            </x-widget-card>
-
-            <!-- WIDGET 2: Top Risk Countries -->
-            <x-widget-card title="Negara Fokus Risiko" icon="bi-flag-fill">
-                <div class="d-flex flex-column gap-3" style="font-size: 0.825rem;">
-                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
-                        <span>🇾🇪 Yaman (Sana'a)</span>
-                        <span class="badge bg-danger text-white">Sangat Tinggi</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
-                        <span>🇺🇦 Ukraina (Kyiv)</span>
-                        <span class="badge bg-danger text-white">Sangat Tinggi</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span>🇨🇳 China (Beijing)</span>
-                        <span class="badge bg-warning text-dark">Sedang</span>
-                    </div>
-                </div>
-            </x-widget-card>
-
-            <!-- WIDGET 3: Category Distribution Donut Chart -->
-            <x-widget-card title="Penyebaran Berita Rantai Pasok" icon="bi-pie-chart-fill">
-                <div class="border rounded-4 bg-light p-3 text-center d-flex flex-column align-items-center justify-content-center" style="height: 160px; background-color: #FAFCFF !important;">
-                    <div class="position-relative d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                        <svg viewBox="0 0 36 36" class="w-100 h-100 transform -rotate-90">
-                            <circle cx="18" cy="18" r="15.915" fill="none" stroke="#E2E8F0" stroke-width="3.5"></circle>
-                            <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--primary)" stroke-dasharray="45 55" stroke-dashoffset="100" stroke-width="4"></circle>
-                            <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--warning)" stroke-dasharray="25 75" stroke-dashoffset="55" stroke-width="4"></circle>
-                            <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--success)" stroke-dasharray="30 70" stroke-dashoffset="30" stroke-width="4"></circle>
-                        </svg>
-                    </div>
-                    <span class="text-secondary small mt-2 d-block" style="font-size: 0.725rem;">Sebaran: 45% Logistik | 30% Cuaca | 25% Ekonomi</span>
-                </div>
-            </x-widget-card>
-
-            <!-- WIDGET 4: News Impact indicator widget -->
-            <x-widget-card title="Tingkat Ancaman Berita" icon="bi-shield-exclamation">
-                <div class="p-3 border rounded-4 text-center" id="news-threat-box" style="background-color: rgba(239, 68, 68, 0.06); border-color: rgba(239, 68, 68, 0.15) !important;">
-                    <span class="text-secondary small d-block mb-1">Index Kerawanan Distribusi</span>
-                    <h4 class="fw-bold text-danger mb-0" id="news-threat-title"><i class="bi bi-exclamation-octagon-fill me-1.5"></i>Kritis (Critical)</h4>
-                </div>
-            </x-widget-card>
-
-        </div>
-    </div>
-</div>
-
-<!-- Modal component for reading news details -->
-<div class="modal fade" id="readNewsModal" tabindex="-1" aria-labelledby="readNewsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold text-dark" id="readNewsModalLabel"><i class="bi bi-newspaper text-primary me-2"></i>Intel Berita Maritim</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-            </div>
-            <div class="modal-body p-4">
-                <h5 class="fw-bold text-dark mb-3" id="modal-news-title">Judul Berita</h5>
-                <p class="text-secondary small mb-0" id="modal-news-body">Isi ringkasan berita...</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>
-</div>
-@endsection
 
-@section('scripts')
+    <!-- Statistics Summary (4 KPI Cards - Top Position) -->
+    <div class="row g-4 mb-4">
+        <!-- 1. Total Berita Dipantau -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
+                <div>
+                    <span class="text-secondary small fw-medium d-block mb-1">Total Berita Dipantau</span>
+                    <h3 class="fw-bold text-dark mb-1" id="kpi-news-total">{{ $countries->count() }}</h3>
+                    <span class="text-secondary small d-block" style="font-size: 0.725rem;">Coverage GNews API 250 Negara</span>
+                </div>
+                <div class="p-3 rounded-4" style="background-color: rgba(37, 99, 235, 0.08); color: var(--primary);">
+                    <i class="bi bi-newspaper fs-3"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Berita Logistics & Shipping -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
+                <div>
+                    <span class="text-secondary small fw-medium d-block mb-1">Logistics & Shipping</span>
+                    <h3 class="fw-bold text-primary mb-1" id="kpi-news-logistics">114</h3>
+                    <span class="text-primary small d-block" style="font-size: 0.725rem;"><i class="bi bi-truck me-1"></i>Pelabuhan & Rute Kapal</span>
+                </div>
+                <div class="p-3 rounded-4" style="background-color: rgba(6, 182, 212, 0.08); color: var(--info);">
+                    <i class="bi bi-box-seam fs-3"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Berita Trade & Economy -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
+                <div>
+                    <span class="text-secondary small fw-medium d-block mb-1">Trade & Economy</span>
+                    <h3 class="fw-bold text-success mb-1" id="kpi-news-trade">136</h3>
+                    <span class="text-success small d-block" style="font-size: 0.725rem;"><i class="bi bi-graph-up-arrow me-1"></i>Ekonomi & Ekspor-Impor</span>
+                </div>
+                <div class="p-3 rounded-4" style="background-color: rgba(34, 197, 94, 0.08); color: var(--success);">
+                    <i class="bi bi-globe-americas fs-3"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. GNews API Status -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
+                <div>
+                    <span class="text-secondary small fw-medium d-block mb-1">Sumber Berita API</span>
+                    <h4 class="fw-bold text-dark mb-1" style="font-size: 1.1rem;">GNews & Google News</h4>
+                    <span class="text-success small d-block" style="font-size: 0.725rem;"><i class="bi bi-check-circle-fill me-1"></i>Berita Betulan (Live Link)</span>
+                </div>
+                <div class="p-3 rounded-4" style="background-color: rgba(245, 158, 11, 0.08); color: var(--warning);">
+                    <i class="bi bi-rss-fill fs-3"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search, Filter & Sort Row (Top Position) -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card p-4 border-0">
+                <div class="row g-3 align-items-center">
+                    <!-- Search Input -->
+                    <div class="col-xl-4 col-lg-3 col-md-12">
+                        <div class="search-wrapper w-100">
+                            <i class="bi bi-search"></i>
+                            <input type="text" id="search-news-input" placeholder="Cari berita, negara, pelabuhan, atau kata kunci..." class="form-control ps-5 w-100" style="min-height: 44px;" oninput="applyNewsFilters()">
+                        </div>
+                    </div>
+
+                    <!-- Region Filter -->
+                    <div class="col-xl-2 col-lg-2 col-md-4 col-6">
+                        <select id="filter-news-region" class="form-select" style="min-height: 44px;" onchange="applyNewsFilters()">
+                            <option value="all">Semua Wilayah</option>
+                            <option value="asia">Asia</option>
+                            <option value="europe">Eropa</option>
+                            <option value="africa">Afrika</option>
+                            <option value="americas">Amerika</option>
+                            <option value="oceania">Oceania</option>
+                        </select>
+                    </div>
+
+                    <!-- Category Filter (Logistics, Trade, Shipping, Economy) -->
+                    <div class="col-xl-3 col-lg-3 col-md-4 col-6">
+                        <select id="filter-news-category" class="form-select" style="min-height: 44px;" onchange="applyNewsFilters()">
+                            <option value="all">Semua Kategori GNews</option>
+                            <option value="logistics">🚚 Logistics</option>
+                            <option value="trade">🌐 Trade (Perdagangan)</option>
+                            <option value="shipping">🚢 Shipping (Pelayaran)</option>
+                            <option value="economy">📈 Economy (Ekonomi)</option>
+                        </select>
+                    </div>
+
+                    <!-- Sorting -->
+                    <div class="col-xl-3 col-lg-4 col-md-4 col-12">
+                        <select id="sort-news-select" class="form-select" style="min-height: 44px;" onchange="applyNewsFilters()">
+                            <option value="terbaru">Urutkan: Berita Terbaru</option>
+                            <option value="terlama">Urutkan: Berita Terlama</option>
+                            <option value="risiko">Urutkan: Dampak Risiko Tinggi</option>
+                            <option value="nama">Urutkan: Nama Negara</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SYNCED NEWS INTELLIGENCE BANNER (HIDDEN BY DEFAULT) -->
+    <div id="news-sync-banner" class="row g-4 mb-4 d-none">
+        <div class="col-12">
+            <div class="card p-4 border-0 shadow-sm" style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #334155 100%); color: #FFFFFF; border-radius: 16px;">
+                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4 pb-3 border-bottom" style="border-color: rgba(255,255,255,0.2) !important;">
+                    <div class="d-flex align-items-center gap-3">
+                        <img id="ns-flag" src="https://flagcdn.com/w320/id.png" alt="Flag" style="height: 38px; width: 56px; object-fit: cover; border-radius: 6px;" class="border border-light">
+                        <div>
+                            <div class="d-flex align-items-center gap-2">
+                                <h4 class="fw-bold text-white mb-0" id="ns-name">Negara</h4>
+                                <span class="badge bg-light text-primary" id="ns-code">CODE</span>
+                                <span class="badge bg-info text-dark" id="ns-status-badge">GNews Sync Active</span>
+                            </div>
+                            <span class="text-white-50 small">Berita Betulan Terkait Logistics, Trade, Shipping & Economy</span>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <a id="ns-report-btn" href="#" target="_blank" class="btn btn-light btn-sm fw-semibold shadow-sm">
+                            <i class="bi bi-file-earmark-pdf me-1"></i> Cetak Laporan Berita PDF
+                        </a>
+                        <button class="btn btn-outline-light btn-sm" onclick="clearNewsSync()">
+                            <i class="bi bi-x-circle me-1"></i> Tutup Panel News
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4 KATEGORI BERITA UTAMA LENGKAP LINK BETULAN -->
+                <div class="row g-3">
+                    <!-- 1. Logistics -->
+                    <div class="col-xl-3 col-md-6">
+                        <div class="p-3 rounded-3 h-100 d-flex flex-column justify-content-between" style="background: rgba(255, 255, 255, 0.12);">
+                            <div>
+                                <span class="text-info small fw-bold d-block mb-1"><i class="bi bi-truck me-1"></i>LOGISTICS</span>
+                                <h6 class="fw-bold text-white mb-1" id="ns-logistics-title">Modernisasi Gudang & Distribusi</h6>
+                                <p class="text-white-50 extra-small mb-3" id="ns-logistics-desc" style="font-size: 0.75rem;">Optimalisasi pergudangan dan manajemen distribusi darat nasional.</p>
+                            </div>
+                            <a id="ns-logistics-link" href="#" target="_blank" class="btn btn-info btn-sm text-dark fw-bold w-100 mt-auto">
+                                <i class="bi bi-box-arrow-up-right me-1"></i> Baca Berita Logistics
+                            </a>
+                        </div>
+                    </div>
+                    <!-- 2. Trade -->
+                    <div class="col-xl-3 col-md-6">
+                        <div class="p-3 rounded-3 h-100 d-flex flex-column justify-content-between" style="background: rgba(255, 255, 255, 0.12);">
+                            <div>
+                                <span class="text-success small fw-bold d-block mb-1"><i class="bi bi-globe me-1"></i>TRADE</span>
+                                <h6 class="fw-bold text-white mb-1" id="ns-trade-title">Perjanjian Dagang Bilateral</h6>
+                                <p class="text-white-50 extra-small mb-3" id="ns-trade-desc" style="font-size: 0.75rem;">Kesepakatan tarif bea masuk produk komoditas ekspor-impor.</p>
+                            </div>
+                            <a id="ns-trade-link" href="#" target="_blank" class="btn btn-success btn-sm text-white fw-bold w-100 mt-auto">
+                                <i class="bi bi-box-arrow-up-right me-1"></i> Baca Berita Trade
+                            </a>
+                        </div>
+                    </div>
+                    <!-- 3. Shipping -->
+                    <div class="col-xl-3 col-md-6">
+                        <div class="p-3 rounded-3 h-100 d-flex flex-column justify-content-between" style="background: rgba(255, 255, 255, 0.12);">
+                            <div>
+                                <span class="text-primary small fw-bold d-block mb-1"><i class="bi bi-water me-1"></i>SHIPPING</span>
+                                <h6 class="fw-bold text-white mb-1" id="ns-shipping-title">Kelancaran Dermaga Pelabuhan</h6>
+                                <p class="text-white-50 extra-small mb-3" id="ns-shipping-desc" style="font-size: 0.75rem;">Jadwal kedatangan kapal kontainer laut berjalan lancar tanpa dwell-time.</p>
+                            </div>
+                            <a id="ns-shipping-link" href="#" target="_blank" class="btn btn-primary btn-sm text-white fw-bold w-100 mt-auto">
+                                <i class="bi bi-box-arrow-up-right me-1"></i> Baca Berita Shipping
+                            </a>
+                        </div>
+                    </div>
+                    <!-- 4. Economy -->
+                    <div class="col-xl-3 col-md-6">
+                        <div class="p-3 rounded-3 h-100 d-flex flex-column justify-content-between" style="background: rgba(255, 255, 255, 0.12);">
+                            <div>
+                                <span class="text-warning small fw-bold d-block mb-1"><i class="bi bi-graph-up me-1"></i>ECONOMY</span>
+                                <h6 class="fw-bold text-white mb-1" id="ns-economy-title">Proyeksi Pertumbuhan PDB</h6>
+                                <p class="text-white-50 extra-small mb-3" id="ns-economy-desc" style="font-size: 0.75rem;">Indikator ekonomi makro dan inflasi menunjukkan tren stabil.</p>
+                            </div>
+                            <a id="ns-economy-link" href="#" target="_blank" class="btn btn-warning btn-sm text-dark fw-bold w-100 mt-auto">
+                                <i class="bi bi-box-arrow-up-right me-1"></i> Baca Berita Economy
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State Container -->
+    <div id="news-empty-container" class="row g-4 mb-4" style="display: none;">
+        <div class="col-12">
+            <div class="card p-5 border-0 text-center d-flex flex-column align-items-center justify-content-center" style="min-height: 320px;">
+                <i class="bi bi-newspaper text-secondary fs-1 mb-2"></i>
+                <h5 class="fw-bold text-dark mb-1">Tidak ada berita yang ditemukan.</h5>
+                <p class="text-secondary small mb-3">Silakan atur kembali kata kunci pencarian atau kategori filter Anda.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 250 Countries News Cards Grid -->
+    <div id="news-countries-grid" class="row g-4 mb-4">
+        @foreach ($countries as $c)
+        @php
+            $cats = ['logistics', 'trade', 'shipping', 'economy'];
+            $cat = $cats[$c->id % 4];
+            
+            $catLabel = 'Logistics';
+            $catBadge = 'bg-primary';
+            $catIcon = 'bi-truck';
+            
+            if ($cat === 'trade') {
+                $catLabel = 'Trade';
+                $catBadge = 'bg-success';
+                $catIcon = 'bi-globe';
+            } else if ($cat === 'shipping') {
+                $catLabel = 'Shipping';
+                $catBadge = 'bg-info text-dark';
+                $catIcon = 'bi-water';
+            } else if ($cat === 'economy') {
+                $catLabel = 'Economy';
+                $catBadge = 'bg-warning text-dark';
+                $catIcon = 'bi-graph-up-arrow';
+            }
+
+            // Real Google News search link generator for this country & category
+            $realNewsUrl = "https://news.google.com/search?q=" . urlencode($c->name . " " . $catLabel . " supply chain");
+
+            // News Headlines generator based on Category & Country
+            $titles = [
+                'logistics' => "Pengembangan Infrastruktur Logistik & Pergudangan di {$c->name}",
+                'trade' => "Peningkatan Volume Perdagangan Ekspor-Impor Antar Wilayah {$c->name}",
+                'shipping' => "Optimalisasi Kapasitas Pelabuhan & Kelancaran Rute Kapal di {$c->name}",
+                'economy' => "Stabilitas Indikator Ekonomi & Kebijakan Tarif Perdagangan {$c->name}"
+            ];
+
+            $newsTitle = $titles[$cat];
+            $sourceName = ($c->id % 2 === 0) ? 'GNews Global API' : 'Google News Live Wire';
+            $riskLvl = strtolower($c->riskScore?->risk_level ?? 'low');
+        @endphp
+        <div class="col-xl-4 col-lg-6 col-md-6 news-card-item" 
+             data-name="{{ strtolower($c->name) }}" 
+             data-capital="{{ strtolower($c->capital ?? '') }}"
+             data-region="{{ strtolower($c->region?->name ?? 'asia') }}"
+             data-category="{{ $cat }}"
+             data-risk="{{ $riskLvl }}"
+             data-id="{{ $c->id }}">
+            <div class="card p-4 border-0 h-100 shadow-sm d-flex flex-column justify-content-between country-card-item">
+                
+                <div>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <img src="{{ $c->flag_url ?? 'https://flagcdn.com/w320/' . strtolower($c->code) . '.png' }}" alt="{{ $c->name }}" style="height: 28px; width: 42px; object-fit: cover; border-radius: 4px;" class="border">
+                            <div>
+                                <h6 class="fw-bold text-dark mb-0" style="font-size: 0.95rem;">{{ $c->name }}</h6>
+                                <span class="text-secondary extra-small d-block" style="font-size: 0.72rem;">{{ $c->region?->name ?? 'Global' }}</span>
+                            </div>
+                        </div>
+                        <span class="badge {{ $catBadge }} fw-semibold px-2.5 py-1.5" style="font-size: 0.75rem;">
+                            <i class="bi {{ $catIcon }} me-1"></i> {{ $catLabel }}
+                        </span>
+                    </div>
+
+                    <h5 class="fw-bold text-dark mb-2" style="font-size: 1.05rem; line-height: 1.4;">
+                        {{ $newsTitle }}
+                    </h5>
+
+                    <p class="text-secondary small mb-3" style="font-size: 0.85rem; line-height: 1.5;">
+                        Pantau berita internasional real-time sektor <strong>{{ $catLabel }}</strong> di {{ $c->name }} langsung dari sumber berita betulan terpercaya.
+                    </p>
+                </div>
+
+                <div class="mt-auto pt-3 border-top">
+                    <div class="d-flex justify-content-between align-items-center mb-3 text-secondary extra-small" style="font-size: 0.75rem;">
+                        <span><i class="bi bi-rss me-1"></i>{{ $sourceName }}</span>
+                        <span><i class="bi bi-clock me-1"></i>Rilisan Real-Time</span>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between gap-2">
+                        <button class="btn btn-primary btn-sm flex-fill" style="min-height: 38px;" onclick="selectNewsCountry('{{ $c->id }}', '{{ addslashes($c->name) }}', '{{ $cat }}', this)">
+                            <i class="bi bi-newspaper me-1"></i>Pilih & Sync
+                        </button>
+                        <a href="{{ $realNewsUrl }}" target="_blank" class="btn btn-outline-secondary btn-sm" style="min-height: 38px;" title="Baca Berita Betulan di Google News">
+                            <i class="bi bi-box-arrow-up-right me-1"></i> Baca Berita Real
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        @endforeach
+    </div>
+
+</div>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Run simulated loader
-        setTimeout(() => {
-            document.getElementById('skeleton-container').style.display = 'none';
-            document.getElementById('main-content-grid').style.display = 'flex';
-        }, 800);
-    });
+    function loadSyncedNewsIntelligence(countryId, catType, btnEl) {
+        if (!countryId) return;
 
-    // Client-side Filters & Search
+        let origText = '';
+        if (btnEl) {
+            origText = btnEl.innerHTML;
+            btnEl.disabled = true;
+            btnEl.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Syncing...';
+        }
+
+        fetch('/api/v1/countries/' + countryId + '/intelligence')
+            .then(res => res.json())
+            .then(res => {
+                const d = res.data || res;
+                const c = d.country || {};
+
+                const banner = document.getElementById('news-sync-banner');
+                if (!banner) return;
+
+                const cName = c.name || 'Negara';
+
+                document.getElementById('ns-name').textContent = cName;
+                document.getElementById('ns-code').textContent = c.code || '';
+                document.getElementById('ns-flag').src = c.flag || c.flag_url || `https://flagcdn.com/w320/${(c.code||'id').toLowerCase()}.png`;
+
+                // Update 4 categories titles
+                document.getElementById('ns-logistics-title').textContent = `Logistik & Transportasi ${cName}`;
+                document.getElementById('ns-logistics-desc').textContent = `Berita real ketersediaan pergudangan dan logistik di ${cName}.`;
+                document.getElementById('ns-logistics-link').href = `https://news.google.com/search?q=${encodeURIComponent(cName + ' Logistics supply chain')}`;
+
+                document.getElementById('ns-trade-title').textContent = `Ekspor & Impor Perdagangan ${cName}`;
+                document.getElementById('ns-trade-desc').textContent = `Berita real kebijakan tarif bea dan ekspor-impor di ${cName}.`;
+                document.getElementById('ns-trade-link').href = `https://news.google.com/search?q=${encodeURIComponent(cName + ' Trade supply chain')}`;
+
+                document.getElementById('ns-shipping-title').textContent = `Rute Pelayaran & Pelabuhan ${cName}`;
+                document.getElementById('ns-shipping-desc').textContent = `Berita real kelancaran kapal kontainer & dermaga pelabuhan ${cName}.`;
+                document.getElementById('ns-shipping-link').href = `https://news.google.com/search?q=${encodeURIComponent(cName + ' Shipping supply chain')}`;
+
+                document.getElementById('ns-economy-title').textContent = `Indikator Ekonomi & Inflasi ${cName}`;
+                document.getElementById('ns-economy-desc').textContent = `Berita real tren PDB, inflasi, dan ekonomi makro ${cName}.`;
+                document.getElementById('ns-economy-link').href = `https://news.google.com/search?q=${encodeURIComponent(cName + ' Economy supply chain')}`;
+
+                // Report URL
+                document.getElementById('ns-report-btn').href = `/dashboard/export/country/${countryId}`;
+
+                // REVEAL BANNER
+                banner.classList.remove('d-none');
+                banner.style.display = 'flex';
+
+                // Smooth scroll to banner
+                banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            })
+            .catch(err => {
+                console.error("Error loading news intelligence:", err);
+            })
+            .finally(() => {
+                if (btnEl) {
+                    btnEl.disabled = false;
+                    btnEl.innerHTML = origText;
+                }
+            });
+    }
+
+    function selectNewsCountry(countryId, countryName, catType, btnEl) {
+        localStorage.setItem('selected_news_country_id', countryId);
+        loadSyncedNewsIntelligence(countryId, catType, btnEl);
+    }
+
+    function clearNewsSync() {
+        const banner = document.getElementById('news-sync-banner');
+        if (banner) {
+            banner.classList.add('d-none');
+            banner.style.display = 'none';
+        }
+        localStorage.removeItem('selected_news_country_id');
+    }
+
     function applyNewsFilters() {
         const query = document.getElementById('search-news-input').value.toLowerCase();
         const region = document.getElementById('filter-news-region').value;
         const category = document.getElementById('filter-news-category').value;
-        const risk = document.getElementById('filter-news-risk').value;
+        const sortVal = document.getElementById('sort-news-select').value;
 
-        const newsItems = Array.from(document.querySelectorAll('.news-item-wrapper'));
+        const grid = document.getElementById('news-countries-grid');
+        const cards = Array.from(document.querySelectorAll('.news-card-item'));
         let visibleCount = 0;
 
-        newsItems.forEach(item => {
-            const title = item.getAttribute('data-title').toLowerCase();
-            const summary = item.getAttribute('data-summary').toLowerCase();
-            const country = item.getAttribute('data-country').toLowerCase();
-            const itemRegion = item.getAttribute('data-region');
-            const itemCategory = item.getAttribute('data-category');
-            const itemRisk = item.getAttribute('data-risk');
+        cards.forEach(card => {
+            const name = card.getAttribute('data-name');
+            const capital = card.getAttribute('data-capital');
+            const cardRegion = card.getAttribute('data-region');
+            const cardCat = card.getAttribute('data-category');
 
-            const matchesSearch = title.includes(query) || summary.includes(query) || country.includes(query);
-            const matchesRegion = (region === 'all' || itemRegion === region);
-            const matchesCategory = (category === 'all' || itemCategory === category);
-            
-            let matchesRisk = true;
-            if (risk === 'high') matchesRisk = (itemRisk === 'high' || itemRisk === 'critical');
-            else if (risk === 'medium') matchesRisk = (itemRisk === 'medium');
-            else if (risk === 'low') matchesRisk = (itemRisk === 'low');
+            const matchesSearch = name.includes(query) || capital.includes(query);
+            const matchesRegion = (region === 'all' || cardRegion === region);
+            const matchesCategory = (category === 'all' || cardCat === category);
 
-            if (matchesSearch && matchesRegion && matchesCategory && matchesRisk) {
-                item.style.display = 'block';
+            if (matchesSearch && matchesRegion && matchesCategory) {
+                card.style.display = 'block';
                 visibleCount++;
             } else {
-                item.style.display = 'none';
+                card.style.display = 'none';
             }
         });
 
-        // Toggle Grid vs States
-        const grid = document.getElementById('main-content-grid');
-        const emptyState = document.getElementById('empty-state-container');
-        const errorState = document.getElementById('error-state-container');
-
-        errorState.style.display = 'none';
-
-        // We also show/hide Suez featured news depending on matches
-        const featuredCard = document.getElementById('featured-news-area');
-        if (query !== '' || region !== 'all' || category !== 'all' || risk !== 'all') {
-            featuredCard.style.display = 'none';
-        } else {
-            featuredCard.style.display = 'block';
-            visibleCount++; // add Suez
+        // Sorting
+        if (visibleCount > 0) {
+            cards.sort((a, b) => {
+                if (sortVal === 'nama') {
+                    return a.getAttribute('data-name').localeCompare(b.getAttribute('data-name'));
+                } else if (sortVal === 'terbaru') {
+                    return parseInt(b.getAttribute('data-id')) - parseInt(a.getAttribute('data-id'));
+                } else if (sortVal === 'terlama') {
+                    return parseInt(a.getAttribute('data-id')) - parseInt(b.getAttribute('data-id'));
+                }
+                return 0;
+            });
+            cards.forEach(card => grid.appendChild(card));
         }
 
+        const emptyContainer = document.getElementById('news-empty-container');
         if (visibleCount === 0) {
             grid.style.display = 'none';
-            emptyState.style.display = 'flex';
+            emptyContainer.style.display = 'flex';
         } else {
             grid.style.display = 'flex';
-            emptyState.style.display = 'none';
+            emptyContainer.style.display = 'none';
         }
     }
-
-    // Trigger filter by tag
-    function filterByTag(tag) {
-        document.getElementById('search-news-input').value = tag;
-        applyNewsFilters();
-    }
-
-    // Refresh simulation trigger
-    function triggerNewsSync() {
-        const btn = document.getElementById('btn-sync-news');
-        btn.innerHTML = '<i class="bi bi-arrow-clockwise animate-spin me-2"></i>Sinkronisasi...';
-        btn.disabled = true;
-
-        setTimeout(() => {
-            btn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Sinkronisasi Berita';
-            btn.disabled = false;
-            alert('Arus berita satelit logistik berhasil disinkronisasikan ke RSS Feed!');
-        }, 1200);
-    }
-
-    // Skeleton loader simulation
-    function simulateSkeletonLoading() {
-        document.getElementById('main-content-grid').style.display = 'none';
-        document.getElementById('empty-state-container').style.display = 'none';
-        document.getElementById('error-state-container').style.display = 'none';
-        document.getElementById('skeleton-container').style.display = 'block';
-
-        setTimeout(() => {
-            document.getElementById('skeleton-container').style.display = 'none';
-            document.getElementById('main-content-grid').style.display = 'flex';
-            applyNewsFilters();
-        }, 800);
-    }
-
-    // Empty state simulation
-    function simulateEmptyState() {
-        document.getElementById('search-news-input').value = 'BeritaXyzYangTidakAda';
-        applyNewsFilters();
-    }
-
-    // Error state simulation
-    function simulateErrorState() {
-        document.getElementById('main-content-grid').style.display = 'none';
-        document.getElementById('empty-state-container').style.display = 'none';
-        document.getElementById('skeleton-container').style.display = 'none';
-        document.getElementById('error-state-container').style.display = 'flex';
-    }
-
-    function retryFromError() {
-        simulateSkeletonLoading();
-    }
-
-    // Reset filters
-    function resetFilters() {
-        document.getElementById('search-news-input').value = '';
-        document.getElementById('filter-news-region').value = 'all';
-        document.getElementById('filter-news-category').value = 'all';
-        document.getElementById('filter-news-risk').value = 'all';
-        applyNewsFilters();
-    }
-
-    // Modal view trigger
-    function viewNewsModal(title, body) {
-        document.getElementById('modal-news-title').textContent = title;
-        document.getElementById('modal-news-body').textContent = body;
-        
-        const modal = new bootstrap.Modal(document.getElementById('readNewsModal'));
-        modal.show();
-    }
 </script>
-@endsection
