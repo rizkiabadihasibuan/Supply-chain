@@ -900,6 +900,8 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        loadDashboardData();
+        
         const savedCountry = localStorage.getItem('selected_country_id');
         if (savedCountry) {
             localStorage.removeItem('selected_country_id');
@@ -907,9 +909,7 @@
                 const selector = document.getElementById('country-intelligence-selector');
                 if (selector) selector.value = savedCountry;
                 onCountrySelect(savedCountry);
-            }, 500);
-        } else {
-            loadDashboardData();
+            }, 600);
         }
     });
 </script>
