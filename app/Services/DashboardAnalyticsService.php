@@ -49,6 +49,7 @@ class DashboardAnalyticsService
 
     /**
      * Cache remember wrapper with registry tracking.
+     * Menyimpan array (bukan object PHP) ke cache agar aman dari deserialization error.
      */
     protected function remember(string $type, array $filters, \Closure $callback): DashboardAnalyticsDTO
     {
@@ -60,7 +61,21 @@ class DashboardAnalyticsService
         $startTime = microtime(true);
         $isHit = Cache::has($key);
 
-        $result = Cache::remember($key, now()->addSeconds($ttl), $callback);
+        // Cache array saja, bukan DTO object, untuk menghindari __PHP_Incomplete_Class
+        $cached = Cache::remember($key, now()->addSeconds($ttl), function () use ($callback) {
+            /** @var DashboardAnalyticsDTO $dto */
+            $dto = $callback();
+            return $dto->toArray();
+        });
+
+        // Jika cache corrupt (bukan array), hapus dan regenerate
+        if (!is_array($cached)) {
+            Cache::forget($key);
+            /** @var DashboardAnalyticsDTO $dto */
+            $dto = $callback();
+            $cached = $dto->toArray();
+            Cache::put($key, $cached, now()->addSeconds($ttl));
+        }
 
         $duration = (microtime(true) - $startTime) * 1000;
         Log::info("DashboardAnalyticsService: Analytics retrieved", [
@@ -69,7 +84,12 @@ class DashboardAnalyticsService
             'query_time_ms' => round($duration, 2),
         ]);
 
-        return $result;
+        // Rebuild DTO dari array yang di-cache
+        return new DashboardAnalyticsDTO(
+            $cached['type'] ?? $type,
+            $cached['data'] ?? [],
+            $cached['generated_at'] ?? null
+        );
     }
 
     /**

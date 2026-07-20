@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /** LANG EN – messages.php */
 
 return [

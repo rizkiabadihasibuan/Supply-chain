@@ -62,9 +62,9 @@ class WeatherController extends BaseApiController
                     return $this->sendError('Weather data unavailable for provided coordinates', [], 400);
                 }
             }
-            // 3. Fallback to default country (Indonesia)
+            // 3. Neither country nor coordinates provided
             else {
-                $weatherData = $this->WeatherService->getCurrentWeather('Indonesia');
+                return $this->sendError('Parameters missing. Provide either country or (latitude & longitude).', [], 400);
             }
 
             // 4. Log success

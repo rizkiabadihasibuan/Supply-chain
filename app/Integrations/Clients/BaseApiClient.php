@@ -90,6 +90,7 @@ abstract class BaseApiClient extends \App\Services\BaseApiService implements Api
 
     protected function executeRequest(string $method, string $endpoint, array $payload = []): array
     {
+        set_time_limit(120); // Prevent 30s timeout on slow API connections
         $startTime = microtime(true);
         $fullUrl = $this->getBaseUrl() . $endpoint;
         $this->logger->logRequest($method, $fullUrl, $payload);

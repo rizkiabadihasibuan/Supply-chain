@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 namespace App\Contracts;
 /** Interface untuk Weather Service */
 interface WeatherServiceInterface {

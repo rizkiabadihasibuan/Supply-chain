@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * CONFIG – news.php
  * Konfigurasi untuk GNews API Integration

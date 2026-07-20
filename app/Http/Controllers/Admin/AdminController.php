@@ -28,10 +28,17 @@ class AdminController extends Controller
         $portsCount = Port::count();
         $articlesCount = NewsArticle::count();
         $countriesCount = Country::count();
+        $watchlistsCount = \App\Models\Watchlist::count();
+        $riskRecordsCount = \App\Models\RiskScore::count();
         $recentUsers = User::latest()->limit(5)->get();
 
+        $apiLogsCount = \App\Models\ApiLog::count();
+        $avgRiskScore = \App\Models\RiskScore::avg('final_risk_score') ?? 0;
+        $todayUsersCount = User::whereDate('created_at', today())->count();
+
         return view('pages.admin.dashboard.index', compact(
-            'usersCount', 'portsCount', 'articlesCount', 'countriesCount', 'recentUsers'
+            'usersCount', 'portsCount', 'articlesCount', 'countriesCount', 'watchlistsCount', 'riskRecordsCount', 'recentUsers',
+            'apiLogsCount', 'avgRiskScore', 'todayUsersCount'
         ));
     }
 

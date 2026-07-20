@@ -28,12 +28,8 @@ class CountryApiTest extends TestCase
 
         // Create standard user & admin roles / records if needed.
         // For testing we will just bypass auth with actingAs or mock it.
-        $this->user = User::factory()->create();
-        
-        $this->admin = User::factory()->create();
-        // Grant admin role
-        $adminRole = \App\Models\Role::firstOrCreate(['name' => 'admin']);
-        $this->admin->roles()->attach($adminRole);
+        $this->user = User::factory()->create(['role' => \App\Enums\UserRole::User]);
+        $this->admin = User::factory()->create(['role' => \App\Enums\UserRole::Admin]);
     }
 
     /** @test */
@@ -92,16 +88,9 @@ class CountryApiTest extends TestCase
 
         $country = Country::where('code', 'ID')->first();
         $this->assertNotNull($country);
-        $this->assertDatabaseHas('country_coordinates', [
-            'country_id' => $country->id,
-            'latitude' => -5.0,
-            'longitude' => 120.0
-        ]);
-        $this->assertDatabaseHas('country_flags', [
-            'country_id' => $country->id,
-            'flag_url' => 'https://flagcdn.com/w320/id.png',
-            'svg_path' => 'https://flagcdn.com/id.svg'
-        ]);
+        $this->assertEquals(-5.0, $country->latitude);
+        $this->assertEquals(120.0, $country->longitude);
+        $this->assertEquals('https://flagcdn.com/w320/id.png', $country->flag_url);
     }
 
     /** @test */

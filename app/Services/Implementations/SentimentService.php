@@ -63,53 +63,40 @@ class SentimentService implements SentimentServiceInterface
         $tokens = array_filter(explode(' ', $cleanedText));
         $tokenCount = count($tokens);
 
-        // Fetch words list from dictionary
-        $posWords = $this->dictRepo->getWords($dictionaryId, 'positive');
-        $negWords = $this->dictRepo->getWords($dictionaryId, 'negative');
+        $positiveWordsObj = $this->dictRepo->getWords($dictionaryId, 'positive');
+        $negativeWordsObj = $this->dictRepo->getWords($dictionaryId, 'negative');
 
-        // Build search maps
-        $posMap = [];
-        foreach ($posWords as $word) {
-            $posMap[$word->word] = $word->score;
+        $positiveWords = [];
+        foreach ($positiveWordsObj as $pw) {
+            $positiveWords[] = strtolower($pw->word);
         }
 
-        $negMap = [];
-        foreach ($negWords as $word) {
-            $negMap[$word->word] = $word->score;
+        $negativeWords = [];
+        foreach ($negativeWordsObj as $nw) {
+            $negativeWords[] = strtolower($nw->word);
         }
 
-        $positiveScore = 0.0;
-        $negativeScore = 0.0;
-        $matchedWordsList = []; // word => [type, score, frequency, position]
+        $words = $tokens;
+        $positiveScore = 0;
+        $negativeScore = 0;
+        $matchedWordsList = []; // Untuk kebutuhan simpan ke DB log
 
-        foreach ($tokens as $pos => $token) {
-            if (isset($posMap[$token])) {
-                $positiveScore += $posMap[$token];
-                if (!isset($matchedWordsList[$token])) {
-                    $matchedWordsList[$token] = ['type' => 'positive', 'score' => $posMap[$token], 'frequency' => 0, 'position' => $pos];
-                }
-                $matchedWordsList[$token]['frequency']++;
+        foreach ($words as $pos => $word) {
+            $word = strtolower($word);
+            if (in_array($word, $positiveWords)) {
+                $positiveScore++;
+                $matchedWordsList[$word] = ['type' => 'positive', 'score' => 1.0, 'position' => $pos, 'frequency' => ($matchedWordsList[$word]['frequency'] ?? 0) + 1];
             }
-
-            if (isset($negMap[$token])) {
-                $negativeScore += $negMap[$token];
-                if (!isset($matchedWordsList[$token])) {
-                    $matchedWordsList[$token] = ['type' => 'negative', 'score' => $negMap[$token], 'frequency' => 0, 'position' => $pos];
-                }
-                $matchedWordsList[$token]['frequency']++;
+            if (in_array($word, $negativeWords)) {
+                $negativeScore++;
+                $matchedWordsList[$word] = ['type' => 'negative', 'score' => 1.0, 'position' => $pos, 'frequency' => ($matchedWordsList[$word]['frequency'] ?? 0) + 1];
             }
         }
 
+        $sentiment = $positiveScore > $negativeScore ? "Positive" : "Negative";
+        
+        $label = strtolower($sentiment);
         $totalScore = $positiveScore - $negativeScore;
-
-        if ($totalScore > 0) {
-            $label = 'positive';
-        } elseif ($totalScore < 0) {
-            $label = 'negative';
-        } else {
-            $label = 'neutral';
-        }
-
         $matchCount = count($matchedWordsList);
         $confidence = $matchCount > 0 ? (float) min(1.00, $matchCount / max(1.00, $tokenCount * 0.1)) : 0.00;
 

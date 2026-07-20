@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * CONFIG – sentiment.php
  * Konfigurasi untuk Sentiment Analysis Engine

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 namespace App\Helpers;
 /**
  * RiskHelper – Helper untuk kalkulasi dan format risk score

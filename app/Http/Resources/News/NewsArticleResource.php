@@ -15,17 +15,14 @@ class NewsArticleResource extends BaseResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'title' => $this->title,
-            'url' => $this->url,
-            'source' => $this->whenLoaded('source', function() {
-                return new NewsSourceResource($this->source);
-            }),
-            'category' => $this->whenLoaded('category', function() {
-                return new NewsCategoryResource($this->category);
-            }),
-            'sentiment_score' => $this->whenNotNull($this->sentiment_score),
-            'published_at' => $this->published_at,
+            'id'               => $this->id,
+            'title'            => $this->title,
+            'description'      => $this->description,
+            'url'              => $this->url,
+            'image_url'        => $this->image_url,
+            'author'           => $this->author,
+            'sentiment_status' => $this->sentiment_status ?? 'neutral',
+            'published_at'     => $this->published_at?->toIso8601String(),
         ];
     }
 }

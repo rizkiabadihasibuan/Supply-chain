@@ -16,6 +16,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Tambahkan StartSession & EncryptCookies ke API middleware group
+        // supaya session-based auth bisa dipakai dari AJAX di browser
+        $middleware->api(prepend: [
+            \Illuminate\Cookie\Middleware\EncryptCookies::class,
+            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+        ]);
+
         $middleware->alias([
             'admin'          => AdminMiddleware::class,
             'user'           => UserMiddleware::class,

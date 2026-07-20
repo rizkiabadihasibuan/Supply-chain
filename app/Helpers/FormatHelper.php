@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 namespace App\Helpers;
 /**
  * FormatHelper – Helper untuk format angka, tanggal, dan teks

@@ -348,6 +348,7 @@
                 }
 
                 const config = {
+                    credentials: 'include', // selalu kirim cookie (session) ke semua origin
                     ...options,
                     headers: {
                         ...defaultHeaders,
@@ -355,17 +356,27 @@
                     }
                 };
 
+                const fullUrl = `/api/${endpoint.replace(/^\//, '')}`;
+
                 try {
-                    const response = await fetch(`/api/${endpoint.replace(/^\//, '')}`, config);
+                    const response = await fetch(fullUrl, config);
+                    
+                    // Jika 401, redirect ke login
+                    if (response.status === 401) {
+                        console.warn('[SupplyChain API] Session expired, redirecting to login...');
+                        window.location.href = '/login';
+                        return;
+                    }
+
                     const data = await response.json();
                     
                     if (!response.ok) {
-                        throw new Error(data.message || `API error with status ${response.status}`);
+                        throw new Error(data.message || `API error status ${response.status}`);
                     }
                     
                     return data;
                 } catch (error) {
-                    console.error(`[SupplyChain API Error] Fetch failed for /api/${endpoint}:`, error);
+                    console.error(`[SupplyChain API Error] ${fullUrl}:`, error.message);
                     throw error;
                 }
             }

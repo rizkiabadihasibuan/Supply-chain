@@ -4,8 +4,8 @@ namespace App\Integrations\Support;
 
 class ApiRetryPolicy
 {
-    public const MAX_RETRIES = 3;
-    public const RETRY_DELAY_MS = 1000;
+    public const MAX_RETRIES = 1;
+    public const RETRY_DELAY_MS = 500;
 
     public function getRetryableStatusCodes(): array
     {

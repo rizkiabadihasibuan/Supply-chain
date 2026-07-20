@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * CONFIG – currency.php
  * Konfigurasi untuk ExchangeRate API Integration

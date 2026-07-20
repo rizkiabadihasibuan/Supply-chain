@@ -875,6 +875,7 @@
                 }
 
                 const config = {
+                    credentials: 'same-origin', // kirim session cookie bersama setiap request
                     ...options,
                     headers: {
                         ...defaultHeaders,

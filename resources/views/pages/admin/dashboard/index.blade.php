@@ -47,22 +47,22 @@
             {{-- ══════ QUICK STATISTICS (8 KPI Cards) ══════ --}}
             <div class="row g-3 kpi-row mb-4">
                 <div class="col-admin-kpi">
-                    <x-admin-stat-card title="Total Users" icon="people" value="245 Users" subtitle="Registered Users" />
+                    <x-admin-stat-card title="Total Users" icon="people" value="{{ number_format($usersCount) }} Users" subtitle="Registered Users" />
                 </div>
                 <div class="col-admin-kpi">
-                    <x-admin-stat-card title="Countries" icon="globe" value="195" subtitle="Monitored Countries" />
+                    <x-admin-stat-card title="Countries" icon="globe" value="{{ number_format($countriesCount) }}" subtitle="Monitored Countries" />
                 </div>
                 <div class="col-admin-kpi">
-                    <x-admin-stat-card title="Ports" icon="anchor" value="1,250" subtitle="World Ports Dataset" />
+                    <x-admin-stat-card title="Ports" icon="anchor" value="{{ number_format($portsCount) }}" subtitle="World Ports Dataset" />
                 </div>
                 <div class="col-admin-kpi">
-                    <x-admin-stat-card title="Articles" icon="newspaper" value="315" subtitle="Logistic Articles" />
+                    <x-admin-stat-card title="Articles" icon="newspaper" value="{{ number_format($articlesCount) }}" subtitle="Logistic Articles" />
                 </div>
                 <div class="col-admin-kpi">
-                    <x-admin-stat-card title="Watchlists" icon="bookmark-star" value="92" subtitle="Active Watchlists" />
+                    <x-admin-stat-card title="Watchlists" icon="bookmark-star" value="{{ number_format($watchlistsCount) }}" subtitle="Active Watchlists" />
                 </div>
                 <div class="col-admin-kpi">
-                    <x-admin-stat-card title="Risk Records" icon="exclamation-triangle" value="5,240" subtitle="Monitored Risks" />
+                    <x-admin-stat-card title="Risk Records" icon="exclamation-triangle" value="{{ number_format($riskRecordsCount) }}" subtitle="Monitored Risks" />
                 </div>
                 <div class="col-admin-kpi">
                     <x-admin-stat-card title="API Status" icon="wifi" value="6 / 6" subtitle="External Integration" badgeText="Healthy" badgeColor="success" />
@@ -104,27 +104,27 @@
                 <div class="system-summary-grid">
                     <div class="system-summary-item">
                         <span class="system-summary-label">Total Active User</span>
-                        <span class="system-summary-value">185 Active</span>
+                        <span class="system-summary-value">{{ number_format($usersCount) }} Active</span>
                     </div>
                     <div class="system-summary-item">
                         <span class="system-summary-label">Total Today's Login</span>
-                        <span class="system-summary-value">42 Logs</span>
+                        <span class="system-summary-value">{{ number_format($todayUsersCount) }} Logs</span>
                     </div>
                     <div class="system-summary-item">
                         <span class="system-summary-label">Total API Request</span>
-                        <span class="system-summary-value">28,450 Req</span>
+                        <span class="system-summary-value">{{ number_format($apiLogsCount) }} Req</span>
                     </div>
                     <div class="system-summary-item">
                         <span class="system-summary-label">Average Risk Score</span>
-                        <span class="system-summary-value">42.5 / 100</span>
+                        <span class="system-summary-value">{{ number_format($avgRiskScore, 1) }} / 100</span>
                     </div>
                     <div class="system-summary-item">
                         <span class="system-summary-label">Total Countries Monitored</span>
-                        <span class="system-summary-value">195 Countries</span>
+                        <span class="system-summary-value">{{ number_format($countriesCount) }} Countries</span>
                     </div>
                     <div class="system-summary-item">
                         <span class="system-summary-label">Total News Collected</span>
-                        <span class="system-summary-value">4,120 News</span>
+                        <span class="system-summary-value">{{ number_format($articlesCount) }} News</span>
                     </div>
                 </div>
             </div>

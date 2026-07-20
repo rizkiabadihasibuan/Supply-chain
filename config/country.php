@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * CONFIG – country.php
  * Konfigurasi untuk REST Countries & World Bank API Integration

@@ -1,4 +1,4 @@
-﻿{{-- ERROR 401 – Tidak Terautentikasi --}}
+{{-- ERROR 401 – Tidak Terautentikasi --}}
 @extends('layouts.user.app')
 @section('title', '401 Tidak Terautentikasi - SupplyChain Platform')
 @section('content')

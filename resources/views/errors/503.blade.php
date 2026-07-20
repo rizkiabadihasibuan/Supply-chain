@@ -1,4 +1,4 @@
-﻿{{-- ERROR 503 – Layanan Tidak Tersedia --}}
+{{-- ERROR 503 – Layanan Tidak Tersedia --}}
 @extends('layouts.user.app')
 @section('title', '503 Layanan Tidak Tersedia - SupplyChain Platform')
 @section('content')

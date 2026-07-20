@@ -6,6 +6,6 @@ class ApiTimeoutPolicy
 {
     public function getDefaultTimeout(): int
     {
-        return config('api.timeout', 10);
+        return config('api.timeout', 3);
     }
 }

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * LANG ID – validation.php
  * Pesan validasi Bahasa Indonesia

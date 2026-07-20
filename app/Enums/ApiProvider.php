@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 namespace App\Enums;
 /** ApiProvider – Daftar external API provider yang digunakan */
 enum ApiProvider: string {

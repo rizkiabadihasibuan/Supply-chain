@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 namespace App\Contracts;
 /** Interface untuk Currency Exchange Service */
 interface CurrencyServiceInterface {

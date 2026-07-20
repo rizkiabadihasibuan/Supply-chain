@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * LANG ID – messages.php
  * Pesan umum Bahasa Indonesia

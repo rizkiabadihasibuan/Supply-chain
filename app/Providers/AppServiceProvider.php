@@ -19,10 +19,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        \Illuminate\Support\Facades\Auth::extend('sanctum', function ($app, $name, array $config) {
-            return new \Illuminate\Auth\RequestGuard(function ($request) use ($app) {
-                return \Illuminate\Support\Facades\Auth::guard('web')->user();
-            }, $app['request'], $app['auth']->createUserProvider($config['provider'] ?? null));
-        });
+        //
     }
 }

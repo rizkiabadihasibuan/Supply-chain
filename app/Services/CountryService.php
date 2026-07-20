@@ -42,8 +42,12 @@ class CountryService
     /**
      * Get all countries from database
      */
-    public function getAllCountries(bool $apiFormat = false)
+    public function getAllCountries(bool $apiFormat = true)
     {
+        if ($apiFormat) {
+            $dtos = $this->getAllCountriesDTOs();
+            return array_map([$this, 'formatCountry'], $dtos);
+        }
         return $this->countryRepository->findAll();
     }
 

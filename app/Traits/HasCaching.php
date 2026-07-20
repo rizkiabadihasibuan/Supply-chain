@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 namespace App\Traits;
 use Illuminate\Support\Facades\Cache;
 /**

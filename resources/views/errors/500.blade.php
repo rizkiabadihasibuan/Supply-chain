@@ -1,4 +1,4 @@
-﻿{{-- ERROR 500 – Kesalahan Server Internal --}}
+{{-- ERROR 500 – Kesalahan Server Internal --}}
 @extends('layouts.user.app')
 @section('title', '500 Kesalahan Server Internal - SupplyChain Platform')
 @section('content')

@@ -1,4 +1,4 @@
-﻿{{-- ERROR 419 – Halaman Kedaluwarsa --}}
+{{-- ERROR 419 – Halaman Kedaluwarsa --}}
 @extends('layouts.user.app')
 @section('title', '419 Halaman Kedaluwarsa - SupplyChain Platform')
 @section('content')

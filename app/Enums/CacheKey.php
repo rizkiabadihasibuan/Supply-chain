@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 namespace App\Enums;
 /** CacheKey – Kunci cache yang digunakan secara konsisten */
 enum CacheKey: string {

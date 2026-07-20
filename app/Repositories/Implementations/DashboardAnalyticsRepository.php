@@ -366,24 +366,52 @@ class DashboardAnalyticsRepository implements DashboardAnalyticsRepositoryInterf
         $scoresQuery = RiskScore::query()->whereIn('id', $this->getLatestScoreIdsQuery());
         $this->applyFilters($scoresQuery, $filters, 'risk_scores');
 
-        $column = $component . '_score'; // weather_score, economic_score, political_score, logistics_score
-        
-        $scoresList = $scoresQuery->pluck($column)->toArray();
+        $scores = $scoresQuery->with('country')->get();
 
-        $highest = (clone $scoresQuery)->with('country')->orderBy($column, 'desc')->first();
-        $lowest = (clone $scoresQuery)->with('country')->orderBy($column, 'asc')->first();
+        $scoresList = [];
+        foreach ($scores as $score) {
+            $compScore = isset($score->components[$component]) 
+                ? (float) $score->components[$component] 
+                : (float) ($score->{$component . '_score'} ?? 0.0);
+            $scoresList[] = $compScore;
+        }
+
+        if ($scores->isEmpty()) {
+            return [
+                'scores' => [],
+                'highest' => null,
+                'lowest' => null,
+            ];
+        }
+
+        $sorted = $scores->sortByDesc(function ($score) use ($component) {
+            return isset($score->components[$component]) 
+                ? (float) $score->components[$component] 
+                : (float) ($score->{$component . '_score'} ?? 0.0);
+        });
+
+        $highest = $sorted->first();
+        $lowest = $sorted->last();
+
+        $highestVal = isset($highest->components[$component]) 
+            ? (float) $highest->components[$component] 
+            : (float) ($highest->{$component . '_score'} ?? 0.0);
+
+        $lowestVal = isset($lowest->components[$component]) 
+            ? (float) $lowest->components[$component] 
+            : (float) ($lowest->{$component . '_score'} ?? 0.0);
 
         return [
-            'scores' => array_map('floatval', $scoresList),
+            'scores' => $scoresList,
             'highest' => $highest ? [
                 'name' => $highest->country->name,
                 'code' => $highest->country->code,
-                'score' => (float) $highest->$column,
+                'score' => $highestVal,
             ] : null,
             'lowest' => $lowest ? [
                 'name' => $lowest->country->name,
                 'code' => $lowest->country->code,
-                'score' => (float) $lowest->$column,
+                'score' => $lowestVal,
             ] : null,
         ];
     }

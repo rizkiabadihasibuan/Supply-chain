@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 namespace App\Traits;
 /**
  * HasPagination – Trait untuk standarisasi pagination

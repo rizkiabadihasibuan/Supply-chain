@@ -4,17 +4,26 @@
 
 @section('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
 <style>
-    #leaflet-map {
-        background-color: #FAFCFF !important;
-    }
+    #leaflet-map { background-color: #E8F4FD !important; }
+    .kpi-value { font-size: 1.75rem; font-weight: 700; }
+    .risk-bar { height: 6px; border-radius: 3px; background: #E2E8F0; overflow: hidden; }
+    .risk-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+    .animate-spin { animation: spin 1s linear infinite; display: inline-block; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .weather-card { background: #F8FAFC !important; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px; }
+    .rate-card { background: #F8FAFC !important; border: 1px solid #E2E8F0; border-radius: 10px; padding: 10px 14px; }
+    .timeline-line { position: absolute; left: 6px; top: 8px; bottom: 8px; width: 2px; background: #E2E8F0; }
+    .timeline-dot { position: absolute; left: -19px; top: 5px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid #fff; }
 </style>
 @endsection
 
 @section('content')
 <div class="container-fluid p-0 fade-in-up">
 
-    <!-- Header Dashboard -->
+    {{-- ── HEADER ── --}}
     <div class="row g-4 mb-4">
         <div class="col-12">
             <div class="card p-4 border-0">
@@ -23,9 +32,10 @@
                         <h3 class="fw-bold text-dark mb-1">Dashboard Global Supply Chain</h3>
                         <p class="text-secondary small mb-0">Pantau kondisi rantai pasok dunia secara real-time.</p>
                     </div>
-                    <!-- Live connection status & Country Selector -->
                     <div class="d-flex align-items-center gap-3">
-                        <select class="form-select form-select-sm py-2 px-3 fw-semibold text-dark border-primary" id="country-intelligence-selector" style="min-width: 220px; min-height: 42px;" onchange="onCountrySelect(this.value)">
+                        <select class="form-select form-select-sm py-2 px-3 fw-semibold text-dark border-primary"
+                            id="country-intelligence-selector" style="min-width:220px;min-height:42px;"
+                            onchange="onCountrySelect(this.value)">
                             <option value="">Semua Negara (Global Intelligence)</option>
                         </select>
                         <button class="btn btn-primary btn-refresh-all" onclick="refreshDashboardData()">
@@ -37,92 +47,84 @@
         </div>
     </div>
 
-    <!-- 4 KPI Cards -->
+    {{-- ── 4 KPI CARDS ── --}}
     <div class="row g-4 mb-4">
-        <!-- KPI 1: Negara Dipantau -->
         <div class="col-xl-3 col-md-6">
             <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
                 <div>
                     <span class="text-secondary small fw-medium d-block mb-1">Negara Dipantau</span>
-                    <h3 class="fw-bold text-dark mb-1" id="kpi-countries">
-                        <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
-                    </h3>
+                    <div class="kpi-value text-dark mb-1" id="kpi-countries">
+                        <span class="spinner-border spinner-border-sm text-secondary"></span>
+                    </div>
                     <span class="text-success small fw-semibold"><i class="bi bi-arrow-up-right me-1"></i>100% Cakupan</span>
                 </div>
-                <div class="p-3 rounded-4" style="background-color: rgba(37, 99, 235, 0.08); color: var(--primary);">
+                <div class="p-3 rounded-4" style="background:rgba(37,99,235,.08);color:var(--primary);">
                     <i class="bi bi-globe2 fs-3"></i>
                 </div>
             </div>
         </div>
-
-        <!-- KPI 2: Pelabuhan Aktif -->
         <div class="col-xl-3 col-md-6">
             <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
                 <div>
                     <span class="text-secondary small fw-medium d-block mb-1">Pelabuhan Aktif</span>
-                    <h3 class="fw-bold text-dark mb-1" id="kpi-ports">
-                        <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
-                    </h3>
-                    <span class="text-success small fw-semibold" id="kpi-ports-trend"><i class="bi bi-plus-circle me-1"></i>Aktif</span>
+                    <div class="kpi-value text-dark mb-1" id="kpi-ports">
+                        <span class="spinner-border spinner-border-sm text-secondary"></span>
+                    </div>
+                    <span class="text-success small fw-semibold"><i class="bi bi-plus-circle me-1"></i>Aktif</span>
                 </div>
-                <div class="p-3 rounded-4" style="background-color: rgba(6, 182, 212, 0.08); color: var(--info);">
+                <div class="p-3 rounded-4" style="background:rgba(6,182,212,.08);color:var(--info);">
                     <i class="bi bi-anchor fs-3"></i>
                 </div>
             </div>
         </div>
-
-        <!-- KPI 3: Berita Hari Ini -->
         <div class="col-xl-3 col-md-6">
             <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
                 <div>
                     <span class="text-secondary small fw-medium d-block mb-1">Berita Hari Ini</span>
-                    <h3 class="fw-bold text-dark mb-1" id="kpi-news">
-                        <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
-                    </h3>
-                    <span class="text-primary small fw-semibold" id="kpi-news-trend"><i class="bi bi-lightning-fill me-1"></i>Berita Logistik</span>
+                    <div class="kpi-value text-dark mb-1" id="kpi-news">
+                        <span class="spinner-border spinner-border-sm text-secondary"></span>
+                    </div>
+                    <span class="text-primary small fw-semibold"><i class="bi bi-lightning-fill me-1"></i>Berita Logistik</span>
                 </div>
-                <div class="p-3 rounded-4" style="background-color: rgba(245, 158, 11, 0.08); color: var(--warning);">
+                <div class="p-3 rounded-4" style="background:rgba(245,158,11,.08);color:var(--warning);">
                     <i class="bi bi-newspaper fs-3"></i>
                 </div>
             </div>
         </div>
-
-        <!-- KPI 4: Skor Risiko Global -->
         <div class="col-xl-3 col-md-6">
             <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between">
                 <div>
                     <span class="text-secondary small fw-medium d-block mb-1">Skor Risiko Global</span>
-                    <h3 class="fw-bold text-success mb-1" id="kpi-risk">
-                        <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
-                    </h3>
-                    <span class="text-success small fw-semibold" id="kpi-risk-trend"><i class="bi bi-shield-exclamation me-1"></i>Rata-rata</span>
+                    <div class="kpi-value text-success mb-1" id="kpi-risk">
+                        <span class="spinner-border spinner-border-sm text-secondary"></span>
+                    </div>
+                    <span class="text-success small fw-semibold"><i class="bi bi-shield-exclamation me-1"></i>Rata-rata</span>
                 </div>
-                <div class="p-3 rounded-4" style="background-color: rgba(34, 197, 94, 0.08); color: var(--success);">
+                <div class="p-3 rounded-4" style="background:rgba(34,197,94,.08);color:var(--success);">
                     <i class="bi bi-shield-exclamation fs-3"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Main Section: Map & Risk Overview -->
+    {{-- ── MAP + RISK PANEL ── --}}
     <div class="row g-4 mb-4">
-        <!-- World Map Placeholder -->
         <div class="col-lg-8">
             <div class="card p-4 h-100 border-0">
                 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-3">
                     <div>
                         <h5 class="fw-bold text-dark mb-1"><i class="bi bi-map-fill text-primary me-2"></i>Peta Koridor Risiko & Rantai Pasok Global</h5>
-                        <p class="text-secondary small mb-0">Klik pada titik hub pelabuhan untuk melihat analisis detail.</p>
+                        <p class="text-secondary small mb-0">Klik titik pelabuhan untuk detail analisis risiko.</p>
                     </div>
-                    <!-- Map Filters -->
                     <div class="d-flex gap-2">
-                        <select class="form-select form-select-sm py-1.5" id="map-region-filter" style="width: auto; min-height: 38px;" onchange="filterMapNodes()">
+                        <select class="form-select form-select-sm" id="map-region-filter" style="width:auto;min-height:38px;" onchange="filterMapMarkers()">
                             <option value="all">Semua Benua</option>
                             <option value="asia">Asia</option>
                             <option value="europe">Eropa</option>
                             <option value="america">Amerika</option>
+                            <option value="africa">Afrika</option>
                         </select>
-                        <select class="form-select form-select-sm py-1.5" id="map-risk-filter" style="width: auto; min-height: 38px;" onchange="filterMapNodes()">
+                        <select class="form-select form-select-sm" id="map-risk-filter" style="width:auto;min-height:38px;" onchange="filterMapMarkers()">
                             <option value="all">Semua Risiko</option>
                             <option value="high">Risiko Tinggi</option>
                             <option value="medium">Risiko Sedang</option>
@@ -130,238 +132,223 @@
                         </select>
                     </div>
                 </div>
-
-                <!-- Interactive SVG Map Area -->
-                <!-- Interactive Leaflet Map Area -->
-                <div class="position-relative border rounded-4 overflow-hidden bg-light" style="height: 450px;">
-                    <!-- Leaflet Map Container -->
-                    <div id="leaflet-map" style="width: 100%; height: 100%; z-index: 1;"></div>
-                    
-                    <!-- Zoom Controls -->
-                    <div class="position-absolute top-0 start-0 m-3 d-flex flex-column gap-1.5" style="z-index: 1000;">
-                        <button class="btn btn-light btn-sm border p-2 d-flex align-items-center justify-content-center" onclick="zoomMap(1.2)" style="width: 36px; height: 36px; min-height: 36px;" title="Perbesar">
-                            <i class="bi bi-zoom-in"></i>
+                <div class="position-relative rounded-4 overflow-hidden border" style="height:420px;">
+                    <div id="leaflet-map" style="width:100%;height:100%;z-index:1;"></div>
+                    {{-- Map action buttons --}}
+                    <div class="position-absolute d-flex flex-column gap-1" style="top:10px;left:10px;z-index:1000;">
+                        <button class="btn btn-light btn-sm border shadow-sm" onclick="zoomMap(1)" title="Perbesar" style="width:32px;height:32px;min-height:32px;padding:0;">
+                            <i class="bi bi-plus-lg" style="font-size:.85rem;"></i>
                         </button>
-                        <button class="btn btn-light btn-sm border p-2 d-flex align-items-center justify-content-center" onclick="zoomMap(0.8)" style="width: 36px; height: 36px; min-height: 36px;" title="Perkecil">
-                            <i class="bi bi-zoom-out"></i>
+                        <button class="btn btn-light btn-sm border shadow-sm" onclick="zoomMap(-1)" title="Perkecil" style="width:32px;height:32px;min-height:32px;padding:0;">
+                            <i class="bi bi-dash-lg" style="font-size:.85rem;"></i>
                         </button>
-                        <button class="btn btn-light btn-sm border p-2 d-flex align-items-center justify-content-center" onclick="resetMapZoom()" style="width: 36px; height: 36px; min-height: 36px;" title="Reset Zoom">
-                            <i class="bi bi-arrow-counterclockwise"></i>
+                        <button class="btn btn-light btn-sm border shadow-sm" onclick="resetMapZoom()" title="Reset" style="width:32px;height:32px;min-height:32px;padding:0;">
+                            <i class="bi bi-fullscreen-exit" style="font-size:.75rem;"></i>
                         </button>
                     </div>
-
-                    <!-- Legend -->
-                    <div class="position-absolute bottom-0 start-0 m-3 bg-white p-2.5 rounded-3 border d-flex flex-column gap-1" style="z-index: 1000; font-size: 0.75rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02); pointer-events: none;">
-                        <span class="fw-bold text-dark mb-1">Legenda Risiko</span>
-                        <div class="d-flex align-items-center"><span class="badge badge-danger me-1.5" style="width: 8px; height: 8px; padding: 0; border-radius: 50%;"></span> Tinggi (>4.0)</div>
-                        <div class="d-flex align-items-center"><span class="badge badge-warning me-1.5" style="width: 8px; height: 8px; padding: 0; border-radius: 50%;"></span> Sedang (2.5 - 4.0)</div>
-                        <div class="d-flex align-items-center"><span class="badge badge-success me-1.5" style="width: 8px; height: 8px; padding: 0; border-radius: 50%;"></span> Rendah (<2.5)</div>
+                    {{-- Legend --}}
+                    <div class="position-absolute bg-white rounded-3 border px-2 py-2 d-flex flex-column gap-1"
+                         style="bottom:10px;left:10px;z-index:1000;font-size:.72rem;pointer-events:none;min-width:130px;">
+                        <span class="fw-bold text-dark">Legenda Risiko</span>
+                        <div class="d-flex align-items-center gap-1">
+                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#EF4444;"></span> Tinggi (&gt;60)
+                        </div>
+                        <div class="d-flex align-items-center gap-1">
+                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#F59E0B;"></span> Sedang (30-60)
+                        </div>
+                        <div class="d-flex align-items-center gap-1">
+                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#22C55E;"></span> Rendah (&lt;30)
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Risk Overview Panel (Right Side) -->
         <div class="col-lg-4">
             <div class="card p-4 h-100 border-0">
                 <h5 class="fw-bold text-dark mb-2"><i class="bi bi-shield-slash text-danger me-2"></i>Ikhtisar Risiko Global</h5>
-                <p class="text-secondary small mb-3">Peta pemantauan indeks kerentanan koridor rantai pasok.</p>
-                
-                <div class="d-flex flex-column gap-3">
-                    <!-- Top 5 High Risk -->
-                    <div>
-                        <h6 class="fw-bold text-danger mb-2.5" style="font-size: 0.85rem;"><i class="bi bi-exclamation-triangle-fill me-1"></i>Top 5 Risiko Tinggi</h6>
-                        <div class="d-flex flex-column gap-2" id="top-high-risks">
-                            <span class="text-secondary small">Memuat...</span>
-                        </div>
+                <p class="text-secondary small mb-3">Pemantauan indeks kerentanan koridor rantai pasok.</p>
+                <div class="mb-3">
+                    <h6 class="fw-bold text-danger mb-2" style="font-size:.83rem;">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>Top 5 Risiko Tinggi
+                    </h6>
+                    <div id="top-high-risks" class="d-flex flex-column gap-2">
+                        <div class="placeholder-glow"><span class="placeholder col-12 rounded"></span></div>
+                        <div class="placeholder-glow"><span class="placeholder col-10 rounded"></span></div>
                     </div>
- 
-                    <div class="border-top pt-2.5">
-                        <h6 class="fw-bold text-success mb-2.5" style="font-size: 0.85rem;"><i class="bi bi-shield-check me-1"></i>Top 5 Risiko Rendah (Stabil)</h6>
-                        <div class="d-flex flex-column gap-2" id="top-low-risks">
-                            <span class="text-secondary small">Memuat...</span>
-                        </div>
+                </div>
+                <div class="border-top pt-3">
+                    <h6 class="fw-bold text-success mb-2" style="font-size:.83rem;">
+                        <i class="bi bi-shield-check me-1"></i>Top 5 Risiko Rendah (Stabil)
+                    </h6>
+                    <div id="top-low-risks" class="d-flex flex-column gap-2">
+                        <div class="placeholder-glow"><span class="placeholder col-12 rounded"></span></div>
+                        <div class="placeholder-glow"><span class="placeholder col-10 rounded"></span></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Row: Trend Chart & Weather & Exchange Rates -->
+    {{-- ── TREND CHART + WEATHER ── --}}
     <div class="row g-4 mb-4">
-        <!-- Global Risk Area Chart -->
         <div class="col-lg-8">
-            <div class="card p-4 h-100 border-0">
+            <div class="card p-4 border-0">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Tren Indeks Kerentanan Rantai Pasok Global (30 Hari)</h5>
-                    <span class="badge badge-primary rounded-pill px-2.5 py-1" style="font-size: 0.7rem;">Kontrol Intelijen</span>
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-graph-up-arrow text-primary me-2"></i>Tren Indeks Kerentanan (30 Hari)
+                    </h5>
+                    <span class="badge badge-primary px-2 py-1" style="font-size:.68rem;">Live Intelligence</span>
                 </div>
-
-                <!-- Custom SVG Graph representing Area Chart -->
-                <div class="border rounded-4 position-relative d-flex align-items-center justify-content-center overflow-hidden" style="height: 310px; background-color: #FAFCFF !important;" onmousemove="trackChartCursor(event)" onmouseleave="hideChartTracker()">
-                    <!-- SVG Area Chart -->
-                    <svg viewBox="0 0 700 240" class="w-100 h-100 px-3 py-2">
-                        <!-- Gradients definitions -->
+                <div class="border rounded-4 overflow-hidden position-relative"
+                     style="height:300px;background:#FAFCFF;"
+                     onmousemove="trackChartCursor(event)" onmouseleave="hideChartTracker()">
+                    <svg viewBox="0 0 700 240" class="w-100 h-100 px-3 py-2" preserveAspectRatio="none">
                         <defs>
                             <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stop-color="var(--primary)" stop-opacity="0.3"></stop>
-                                <stop offset="100%" stop-color="var(--primary)" stop-opacity="0.0"></stop>
+                                <stop offset="0%" stop-color="#2563EB" stop-opacity="0.25"/>
+                                <stop offset="100%" stop-color="#2563EB" stop-opacity="0"/>
                             </linearGradient>
                         </defs>
-                        <!-- Grid Lines -->
-                        <line x1="50" y1="40" x2="650" y2="40" stroke="#E2E8F0" stroke-dasharray="4"></line>
-                        <line x1="50" y1="90" x2="650" y2="90" stroke="#E2E8F0" stroke-dasharray="4"></line>
-                        <line x1="50" y1="140" x2="650" y2="140" stroke="#E2E8F0" stroke-dasharray="4"></line>
-                        <line x1="50" y1="190" x2="650" y2="190" stroke="#E2E8F0" stroke-dasharray="4"></line>
-
-                        <!-- Chart Area Path -->
-                        <path d="M50,190 L100,170 Q150,130 200,140 T300,120 T400,110 T500,140 Q550,160 600,130 L650,90 L650,190 Z" fill="url(#chartGradient)"></path>
-                        <!-- Chart Line Path -->
-                        <path d="M50,190 L100,170 Q150,130 200,140 T300,120 T400,110 T500,140 Q550,160 600,130 L650,90" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round"></path>
-
-                        <!-- Dots on chart -->
-                        <circle cx="50" cy="190" r="4" fill="var(--primary)" stroke="#FFFFFF" stroke-width="1.5"></circle>
-                        <circle cx="100" cy="170" r="4" fill="var(--primary)" stroke="#FFFFFF" stroke-width="1.5"></circle>
-                        <circle cx="200" cy="140" r="4" fill="var(--primary)" stroke="#FFFFFF" stroke-width="1.5"></circle>
-                        <circle cx="300" cy="120" r="4" fill="var(--primary)" stroke="#FFFFFF" stroke-width="1.5"></circle>
-                        <circle cx="400" cy="110" r="4" fill="var(--primary)" stroke="#FFFFFF" stroke-width="1.5"></circle>
-                        <circle cx="500" cy="140" r="4" fill="var(--primary)" stroke="#FFFFFF" stroke-width="1.5"></circle>
-                        <circle cx="600" cy="130" r="4" fill="var(--primary)" stroke="#FFFFFF" stroke-width="1.5"></circle>
-                        <circle cx="650" cy="90" r="5" fill="var(--danger)" stroke="#FFFFFF" stroke-width="2"></circle>
-
-                        <!-- Axis Labels -->
-                        <text x="50" y="210" fill="#94A3B8" font-size="10" text-anchor="middle">H-30</text>
-                        <text x="200" y="210" fill="#94A3B8" font-size="10" text-anchor="middle">H-20</text>
-                        <text x="400" y="210" fill="#94A3B8" font-size="10" text-anchor="middle">H-10</text>
-                        <text x="650" y="210" fill="#94A3B8" font-size="10" text-anchor="middle">Hari Ini</text>
-
-                        <text x="35" y="44" fill="#94A3B8" font-size="10" text-anchor="end">5.0</text>
-                        <text x="35" y="94" fill="#94A3B8" font-size="10" text-anchor="end">3.7</text>
-                        <text x="35" y="144" fill="#94A3B8" font-size="10" text-anchor="end">2.5</text>
-                        <text x="35" y="194" fill="#94A3B8" font-size="10" text-anchor="end">1.2</text>
+                        <line x1="50" y1="40"  x2="660" y2="40"  stroke="#E2E8F0" stroke-dasharray="4"/>
+                        <line x1="50" y1="90"  x2="660" y2="90"  stroke="#E2E8F0" stroke-dasharray="4"/>
+                        <line x1="50" y1="140" x2="660" y2="140" stroke="#E2E8F0" stroke-dasharray="4"/>
+                        <line x1="50" y1="190" x2="660" y2="190" stroke="#E2E8F0" stroke-dasharray="4"/>
+                        <path d="M50,180 C100,165 130,135 200,140 S290,118 360,115 S450,125 520,138 S590,125 660,88 L660,200 L50,200 Z"
+                              fill="url(#chartGradient)"/>
+                        <path d="M50,180 C100,165 130,135 200,140 S290,118 360,115 S450,125 520,138 S590,125 660,88"
+                              fill="none" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="50"  cy="180" r="4" fill="#2563EB" stroke="#fff" stroke-width="2"/>
+                        <circle cx="200" cy="140" r="4" fill="#2563EB" stroke="#fff" stroke-width="2"/>
+                        <circle cx="360" cy="115" r="4" fill="#2563EB" stroke="#fff" stroke-width="2"/>
+                        <circle cx="520" cy="138" r="4" fill="#2563EB" stroke="#fff" stroke-width="2"/>
+                        <circle cx="660" cy="88"  r="5" fill="#EF4444" stroke="#fff" stroke-width="2"/>
+                        <text x="50"  y="215" fill="#94A3B8" font-size="10" text-anchor="middle">H-30</text>
+                        <text x="200" y="215" fill="#94A3B8" font-size="10" text-anchor="middle">H-20</text>
+                        <text x="400" y="215" fill="#94A3B8" font-size="10" text-anchor="middle">H-10</text>
+                        <text x="660" y="215" fill="#94A3B8" font-size="10" text-anchor="middle">Hari Ini</text>
+                        <text x="40" y="44"  fill="#94A3B8" font-size="9" text-anchor="end">100</text>
+                        <text x="40" y="94"  fill="#94A3B8" font-size="9" text-anchor="end">75</text>
+                        <text x="40" y="144" fill="#94A3B8" font-size="9" text-anchor="end">50</text>
+                        <text x="40" y="194" fill="#94A3B8" font-size="9" text-anchor="end">25</text>
                     </svg>
-
-                    <!-- Interactive Guide Line and Tooltip on Chart Hover -->
-                    <div id="chart-guide-line" class="position-absolute bg-secondary" style="width: 1px; top: 0; bottom: 0; left: 0; display: none; pointer-events: none; opacity: 0.4;"></div>
-                    <div id="chart-tooltip" class="position-absolute bg-white px-2 py-1.5 rounded-2 border shadow-sm text-start" style="display: none; pointer-events: none; z-index: 10; font-size: 0.75rem;">
-                        <!-- Content updated via JS -->
-                    </div>
+                    <div id="chart-guide-line" style="display:none;position:absolute;top:0;bottom:0;width:1px;background:#94A3B8;opacity:.5;pointer-events:none;"></div>
+                    <div id="chart-tooltip" style="display:none;position:absolute;background:#fff;border:1px solid #E2E8F0;border-radius:8px;padding:6px 10px;font-size:.75rem;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.08);z-index:10;"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Weather Port Widgets -->
         <div class="col-lg-4">
             <div class="card p-4 h-100 border-0">
-                <h5 class="fw-bold text-dark mb-2"><i class="bi bi-cloud-sun-fill text-primary me-2"></i>Kondisi Cuaca Pelabuhan Utama</h5>
-                <p class="text-secondary small mb-3">Laporan iklim pelabuhan utama rantai pasok global.</p>
-
-                <div class="d-flex flex-column gap-2.5" id="weather-ports">
-                    <span class="text-secondary small">Memuat cuaca...</span>
+                <h5 class="fw-bold text-dark mb-2">
+                    <i class="bi bi-cloud-sun-fill text-primary me-2"></i>Cuaca Pelabuhan Utama
+                </h5>
+                <p class="text-secondary small mb-3">Kondisi iklim hub logistik global saat ini.</p>
+                <div id="weather-ports" class="d-flex flex-column gap-2">
+                    <div class="placeholder-glow"><span class="placeholder col-12 rounded" style="height:56px;"></span></div>
+                    <div class="placeholder-glow"><span class="placeholder col-12 rounded" style="height:56px;"></span></div>
+                    <div class="placeholder-glow"><span class="placeholder col-12 rounded" style="height:56px;"></span></div>
                 </div>
             </div>
         </div>
     </div>
- 
-    <!-- Row: Global News & Exchange Rates & Recent Activity -->
+
+    {{-- ── NEWS + EXCHANGE + LOG ── --}}
     <div class="row g-4">
-        <!-- Global News Card -->
-        <div class="col-xl-6 col-lg-8">
+        <div class="col-xl-6">
             <div class="card p-4 h-100 border-0">
-                <h5 class="fw-bold text-dark mb-2"><i class="bi bi-newspaper text-primary me-2"></i>Berita Logistik & Supply Chain Global</h5>
-                <p class="text-secondary small mb-4">Umpan informasi terpercaya kondisi logistik internasional terhangat.</p>
- 
-                <div class="d-flex flex-column gap-3.5" id="news-container">
-                    <span class="text-secondary small">Memuat berita...</span>
+                <h5 class="fw-bold text-dark mb-1">
+                    <i class="bi bi-newspaper text-primary me-2"></i>Berita Logistik & Supply Chain
+                </h5>
+                <p class="text-secondary small mb-3">Informasi terpercaya kondisi logistik internasional terhangat.</p>
+                <div id="news-container" class="d-flex flex-column gap-3">
+                    <div class="placeholder-glow"><span class="placeholder col-12 rounded" style="height:80px;"></span></div>
+                    <div class="placeholder-glow"><span class="placeholder col-12 rounded" style="height:80px;"></span></div>
                 </div>
             </div>
         </div>
 
-        <!-- Exchange Rate & Recent Activity (Column 2) -->
-        <div class="col-xl-6 col-lg-4">
-            <div class="row g-4 h-100">
-                <!-- Exchange Rate Widget -->
-                <div class="col-xl-6 col-md-12">
-                    <div class="card p-4 h-100 border-0">
-                        <h5 class="fw-bold text-dark mb-2"><i class="bi bi-cash-stack text-success me-2"></i>Nilai Tukar Rupiah</h5>
-                        <p class="text-secondary small mb-3">Kurs konversi mata uang dunia utama (IDR).</p>
-                        
-                        <div class="d-flex flex-column gap-2.5" id="exchange-rates">
-                            <span class="text-secondary small">Memuat kurs...</span>
-                        </div>
-                    </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card p-4 h-100 border-0">
+                <h5 class="fw-bold text-dark mb-1">
+                    <i class="bi bi-cash-stack text-success me-2"></i>Nilai Tukar Rupiah
+                </h5>
+                <p class="text-secondary small mb-3">Kurs mata uang dunia utama terhadap IDR.</p>
+                <div id="exchange-rates" class="d-flex flex-column gap-2">
+                    <div class="placeholder-glow"><span class="placeholder col-12 rounded" style="height:42px;"></span></div>
+                    <div class="placeholder-glow"><span class="placeholder col-12 rounded" style="height:42px;"></span></div>
+                    <div class="placeholder-glow"><span class="placeholder col-12 rounded" style="height:42px;"></span></div>
                 </div>
- 
-                <!-- Recent Activity Timeline -->
-                <div class="col-xl-6 col-md-12">
-                    <div class="card p-4 h-100 border-0">
-                        <h5 class="fw-bold text-dark mb-2"><i class="bi bi-clock-history text-primary me-2"></i>Log Aktivitas Intelijen</h5>
-                        <p class="text-secondary small mb-3">Timeline aktivitas logistik terhangat rantai pasok.</p>
-                        
-                        <div class="style-timeline" id="recent-activities" style="position: relative; padding-left: 20px;">
-                            <span class="text-secondary small">Memuat log...</span>
-                        </div>
-                    </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card p-4 h-100 border-0">
+                <h5 class="fw-bold text-dark mb-1">
+                    <i class="bi bi-clock-history text-primary me-2"></i>Log Aktivitas
+                </h5>
+                <p class="text-secondary small mb-3">Timeline aktivitas risiko terkini.</p>
+                <div id="recent-activities" class="position-relative" style="padding-left:20px;">
+                    <div class="placeholder-glow mb-3"><span class="placeholder col-12 rounded" style="height:50px;"></span></div>
+                    <div class="placeholder-glow mb-3"><span class="placeholder col-12 rounded" style="height:50px;"></span></div>
                 </div>
             </div>
         </div>
     </div>
 
-</div>
+</div>{{-- end container --}}
 
-<!-- Node Detail Modal Component -->
-<div class="modal fade" id="nodeDetailModal" tabindex="-1" aria-labelledby="nodeDetailModalLabel" aria-hidden="true">
+{{-- ── MODALS ── --}}
+<div class="modal fade" id="portDetailModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0">
             <div class="modal-header">
-                <h5 class="modal-title fw-bold text-dark" id="nodeDetailModalLabel"><i class="bi bi-geo-alt-fill text-primary me-2"></i>Status Hub Rantai Pasok</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                <h5 class="modal-title fw-bold"><i class="bi bi-geo-alt-fill text-primary me-2"></i>Detail Hub Pelabuhan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
                 <div class="text-center mb-3">
-                    <span id="node-modal-flag" class="fs-1 d-block mb-1">🌍</span>
-                    <h5 id="node-modal-country" class="fw-bold text-dark mb-1">Negara</h5>
-                    <span id="node-modal-port" class="text-secondary small d-block mb-2">Nama Pelabuhan</span>
-                    <span id="node-modal-risk" class="badge">Risiko</span>
+                    <span id="pm-flag" class="fs-1 d-block mb-1">🌍</span>
+                    <h5 id="pm-country" class="fw-bold text-dark mb-0">–</h5>
+                    <span id="pm-port" class="text-secondary small">–</span>
                 </div>
-                
-                <div class="border rounded-4 p-3 bg-light mt-3" style="background-color: #F8FAFC !important;">
-                    <div class="d-flex justify-content-between align-items-center mb-2 small">
+                <div class="border rounded-3 p-3 bg-light mt-3">
+                    <div class="d-flex justify-content-between mb-2 small">
                         <span class="text-secondary"><i class="bi bi-cloud-sun me-1"></i>Kondisi Cuaca</span>
-                        <span id="node-modal-weather" class="text-dark fw-semibold">Cerah (30°C)</span>
+                        <span id="pm-weather" class="fw-semibold">–</span>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2 small">
-                        <span class="text-secondary"><i class="bi bi-speedometer2 me-1"></i>Indeks Kerentanan</span>
-                        <span id="node-modal-index" class="text-dark fw-semibold">0.00</span>
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span class="text-secondary"><i class="bi bi-speedometer2 me-1"></i>Skor Risiko</span>
+                        <span id="pm-risk" class="fw-semibold">–</span>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center small">
-                        <span class="text-secondary"><i class="bi bi-check2-all me-1"></i>Status Operasional</span>
-                        <span id="node-modal-status" class="text-success fw-semibold">Normal</span>
+                    <div class="d-flex justify-content-between small">
+                        <span class="text-secondary"><i class="bi bi-check2-all me-1"></i>Status</span>
+                        <span id="pm-status" class="fw-semibold text-success">Normal</span>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
-                <a href="{{ route('ports') }}" class="btn btn-primary">Buka Dashboard Pelabuhan</a>
+                <button class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
+                <a href="{{ route('ports') }}" class="btn btn-primary">Lihat Semua Pelabuhan</a>
             </div>
         </div>
     </div>
 </div>
 
-<!-- News Detail Modal Component -->
-<div class="modal fade" id="newsDetailModal" tabindex="-1" aria-labelledby="newsDetailModalLabel" aria-hidden="true">
+<div class="modal fade" id="newsDetailModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0">
             <div class="modal-header">
-                <h5 class="modal-title fw-bold text-dark" id="newsDetailModalLabel"><i class="bi bi-newspaper text-primary me-2"></i>Berita Logistik</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                <h5 class="modal-title fw-bold"><i class="bi bi-newspaper text-primary me-2"></i>Detail Berita</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
-                <h5 class="fw-bold text-dark mb-3" id="news-modal-title">Judul Berita</h5>
-                <p class="text-secondary small mb-0" id="news-modal-body">Isi Berita...</p>
+                <h5 class="fw-bold text-dark mb-2" id="news-modal-title">–</h5>
+                <p class="text-secondary small" id="news-modal-body">–</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
+                <button class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
+                <a id="news-modal-link" href="#" target="_blank" class="btn btn-primary">Baca Selengkapnya</a>
             </div>
         </div>
     </div>
@@ -370,604 +357,397 @@
 
 @section('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
 <script>
-    // Leaflet Map Initialization
-    let leafletMap;
-    let mapMarkers = [];
+// ── MAP ──────────────────────────────────────────────
+let leafletMap = null;
+let mapMarkers = [];
+let markerClusterGroup = null;
 
-    document.addEventListener('DOMContentLoaded', function() {
-        leafletMap = L.map('leaflet-map', {
-            zoomControl: false,
-            attributionControl: true
-        }).setView([15, 10], 2);
-
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
-            maxZoom: 20
-        }).addTo(leafletMap);
+function initMap() {
+    if (leafletMap) return;
+    leafletMap = L.map('leaflet-map', { zoomControl: false, attributionControl: true }).setView([15, 10], 2);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://openstreetmap.org">OSM</a> &copy; <a href="https://carto.com">CARTO</a>',
+        subdomains: 'abcd', maxZoom: 19
+    }).addTo(leafletMap);
+    
+    markerClusterGroup = L.markerClusterGroup({
+        chunkedLoading: true,
+        maxClusterRadius: 50,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: true
     });
+    leafletMap.addLayer(markerClusterGroup);
+}
 
-    function zoomMap(factor) {
-        if (leafletMap) {
-            if (factor > 1) {
-                leafletMap.zoomIn();
-            } else {
-                leafletMap.zoomOut();
+function zoomMap(dir) { if (leafletMap) { dir > 0 ? leafletMap.zoomIn() : leafletMap.zoomOut(); } }
+function resetMapZoom() { if (leafletMap) leafletMap.setView([15, 10], 2); }
+
+function filterMapMarkers() {
+    const cont = document.getElementById('map-region-filter').value;
+    const risk = document.getElementById('map-risk-filter').value;
+    
+    markerClusterGroup.clearLayers();
+    
+    mapMarkers.forEach(m => {
+        const matchC = cont === 'all' || m.continent === cont;
+        const matchR = risk === 'all' || m.riskLevel === risk;
+        if (matchC && matchR) { 
+            markerClusterGroup.addLayer(m.marker);
+        }
+    });
+}
+
+function showPortModal(data) {
+    const flags = { Indonesia:'🇮🇩', Singapore:'🇸🇬', China:'🇨🇳', Netherlands:'🇳🇱', 'United States':'🇺🇸', Brazil:'🇧🇷', 'South Africa':'🇿🇦', Sudan:'🇸🇩' };
+    document.getElementById('pm-flag').textContent    = flags[data.country] || '🌍';
+    document.getElementById('pm-country').textContent = data.country || '–';
+    document.getElementById('pm-port').textContent    = data.port || '–';
+    document.getElementById('pm-weather').textContent = data.weather || '–';
+    document.getElementById('pm-risk').textContent    = data.risk || '–';
+    const lvl = (data.riskLevel || '').toLowerCase();
+    const st  = document.getElementById('pm-status');
+    if (lvl === 'high' || lvl === 'critical') { st.textContent = 'Terhambat'; st.className = 'fw-semibold text-danger'; }
+    else if (lvl === 'medium')                { st.textContent = 'Hambatan Ringan'; st.className = 'fw-semibold text-warning'; }
+    else                                      { st.textContent = 'Normal'; st.className = 'fw-semibold text-success'; }
+    new bootstrap.Modal(document.getElementById('portDetailModal')).show();
+}
+
+// ── CHART TOOLTIP ────────────────────────────────────
+function trackChartCursor(e) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    if (x < 50 || x > rect.width - 20) return;
+    const gl = document.getElementById('chart-guide-line');
+    const tt = document.getElementById('chart-tooltip');
+    gl.style.left = x + 'px'; gl.style.display = 'block';
+    const ratio   = (x - 50) / (rect.width - 70);
+    const daysAgo = Math.round(30 - ratio * 30);
+    const avg     = parseFloat(window._avgRisk || 42);
+    const val     = Math.max(0, Math.min(100, avg + Math.sin(ratio * Math.PI) * 8)).toFixed(1);
+    tt.style.left    = Math.min(x + 12, rect.width - 120) + 'px';
+    tt.style.top     = '30px';
+    tt.style.display = 'block';
+    tt.innerHTML     = `<div style="color:#64748B;font-size:.65rem;">H-${daysAgo} Hari Lalu</div><div class="fw-bold">Skor: ${val}</div>`;
+}
+function hideChartTracker() {
+    document.getElementById('chart-guide-line').style.display = 'none';
+    document.getElementById('chart-tooltip').style.display    = 'none';
+}
+
+// ── NEWS MODAL ────────────────────────────────────────
+function viewNewsDetail(title, desc, url) {
+    document.getElementById('news-modal-title').textContent = title;
+    document.getElementById('news-modal-body').textContent  = desc || 'Klik tombol di bawah untuk baca selengkapnya.';
+    document.getElementById('news-modal-link').href         = url || '#';
+    new bootstrap.Modal(document.getElementById('newsDetailModal')).show();
+}
+
+// ── HELPERS ──────────────────────────────────────────
+function riskColor(score) {
+    if (score >= 60) return '#EF4444';
+    if (score >= 30) return '#F59E0B';
+    return '#22C55E';
+}
+function riskLabel(level) {
+    const l = (level || '').toLowerCase();
+    if (l === 'critical' || l === 'high')   return 'high';
+    if (l === 'medium')                     return 'medium';
+    return 'low';
+}
+function continentOf(port) {
+    const sub = (port.country?.subregion || port.country?.region || '').toLowerCase();
+    if (sub.includes('asia') || sub.includes('eastern') || sub.includes('southern') || sub.includes('south-eastern')) return 'asia';
+    if (sub.includes('europe')) return 'europe';
+    if (sub.includes('america')) return 'america';
+    if (sub.includes('africa')) return 'africa';
+    return 'other';
+}
+function fmtRupiah(rateFromIDR) {
+    if (!rateFromIDR) return 'N/A';
+    const idr = 1 / rateFromIDR;
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(idr);
+}
+
+// ── LOAD DATA FUNCTIONS ──────────────────────────────
+
+function loadKPI() {
+    window.SupplyChainAPI.fetch('v1/dashboard').then(res => {
+        const d = res.data?.data || res.data || {};
+        document.getElementById('kpi-countries').textContent = d.total_countries ?? 0;
+        document.getElementById('kpi-ports').textContent     = d.total_ports ?? 0;
+        document.getElementById('kpi-news').textContent      = d.news_articles_count ?? 0;
+        const avg = parseFloat(d.global_average_risk_score || 0);
+        window._avgRisk = avg;
+        const el = document.getElementById('kpi-risk');
+        el.textContent  = avg.toFixed(1);
+        el.className    = 'kpi-value mb-1 ' + (avg >= 60 ? 'text-danger' : avg >= 30 ? 'text-warning' : 'text-success');
+    }).catch(() => {
+        ['kpi-countries','kpi-ports','kpi-news','kpi-risk'].forEach(id => document.getElementById(id).textContent = '–');
+    });
+}
+
+function loadTopRisk() {
+    window.SupplyChainAPI.fetch('v1/analytics/top-risk-countries').then(res => {
+        const list = res.data?.data || res.data || [];
+        const el   = document.getElementById('top-high-risks');
+        el.innerHTML = '';
+        if (!list.length) { el.innerHTML = '<span class="text-secondary small">Belum ada data.</span>'; return; }
+        list.slice(0, 5).forEach(c => {
+            const pct = Math.min(100, c.score);
+            el.innerHTML += `<div>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="text-dark small fw-medium">${c.name}</span>
+                    <span class="badge" style="background:rgba(239,68,68,.15);color:#EF4444;font-size:.65rem;">${c.score.toFixed(1)} – ${c.level}</span>
+                </div>
+                <div class="risk-bar"><div class="risk-bar-fill" style="width:${pct}%;background:#EF4444;"></div></div>
+            </div>`;
+        });
+    }).catch(() => {
+        document.getElementById('top-high-risks').innerHTML = '<span class="text-secondary small">Gagal memuat.</span>';
+    });
+}
+
+function loadLowestRisk() {
+    window.SupplyChainAPI.fetch('v1/analytics/lowest-risk-countries').then(res => {
+        const list = res.data?.data || res.data || [];
+        const el   = document.getElementById('top-low-risks');
+        el.innerHTML = '';
+        if (!list.length) { el.innerHTML = '<span class="text-secondary small">Belum ada data.</span>'; return; }
+        list.slice(0, 5).forEach(c => {
+            const pct = Math.min(100, c.score);
+            el.innerHTML += `<div>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="text-dark small fw-medium">${c.name}</span>
+                    <span class="badge" style="background:rgba(34,197,94,.15);color:#22C55E;font-size:.65rem;">${c.score.toFixed(1)} – ${c.level}</span>
+                </div>
+                <div class="risk-bar"><div class="risk-bar-fill" style="width:${pct}%;background:#22C55E;"></div></div>
+            </div>`;
+        });
+    }).catch(() => {
+        document.getElementById('top-low-risks').innerHTML = '<span class="text-secondary small">Gagal memuat.</span>';
+    });
+}
+
+function loadPorts() {
+    window.SupplyChainAPI.fetch('v1/ports').then(res => {
+        const ports = res.data || [];
+        // Clear old markers
+        markerClusterGroup.clearLayers();
+        mapMarkers = [];
+        const weatherEl = document.getElementById('weather-ports');
+        weatherEl.innerHTML = '';
+
+        ports.forEach(port => {
+            const score  = parseFloat(port.country?.risk_score || 0);
+            const level  = riskLabel(port.country?.risk_level || '');
+            const color  = riskColor(score);
+            const cont   = continentOf(port);
+
+            // Add Leaflet marker
+            if (leafletMap && port.latitude && port.longitude) {
+                const radius = score >= 60 ? 10 : score >= 30 ? 8 : 6;
+                const marker = L.circleMarker([port.latitude, port.longitude], {
+                    radius, fillColor: color, color: '#FFFFFF', weight: 2, opacity: 1, fillOpacity: 0.85
+                });
+
+                const temp    = port.weather?.temp ?? '–';
+                const wind    = port.weather?.wind_speed ?? '–';
+                const country = port.country?.name || 'N/A';
+                marker.bindPopup(`
+                    <div style="min-width:160px;">
+                        <strong style="font-size:.88rem;">${port.name}</strong><br>
+                        <span style="color:#64748B;font-size:.78rem;">📍 ${country}</span><br>
+                        <span style="color:#64748B;font-size:.78rem;">🌡 ${temp}°C &nbsp; 💨 ${wind} km/j</span><br>
+                        <span style="font-size:.75rem;">Risiko: <b style="color:${color}">${score.toFixed(1)}</b></span>
+                    </div>
+                `);
+                marker.on('click', () => {
+                    showPortModal({ country, port: port.name, weather: `${temp}°C, Angin ${wind} km/j`, risk: score.toFixed(1), riskLevel: level });
+                });
+                
+                // Add to array for filtering, and add to cluster layer immediately
+                mapMarkers.push({ marker, continent: cont, riskLevel: level });
+                markerClusterGroup.addLayer(marker);
             }
-        }
-    }
 
-    function resetMapZoom() {
-        if (leafletMap) {
-            leafletMap.setView([15, 10], 2);
-        }
-    }
-
-    // Map Click Modal Trigger
-    function showNodeDetails(node) {
-        const country = node.getAttribute('data-country');
-        const port = node.getAttribute('data-port');
-        const risk = node.getAttribute('data-risk');
-        const level = node.getAttribute('data-level');
-        const weather = node.getAttribute('data-weather');
-
-        let flag = '🌍';
-        if (country.includes('Indonesia')) flag = '🇮🇩';
-        if (country.includes('Singapura')) flag = '🇸🇬';
-        if (country.includes('China')) flag = '🇨🇳';
-        if (country.includes('Belanda')) flag = '🇳🇱';
-        if (country.includes('Amerika')) flag = '🇺🇸';
-        if (country.includes('Brasil')) flag = '🇧🇷';
-        if (country.includes('Afrika')) flag = '🇿🇦';
-
-        let badgeClass = 'badge-success';
-        let opStatus = 'Normal / Stabil';
-        if (level === 'high' || level === 'critical') {
-            badgeClass = 'badge-danger';
-            opStatus = 'Tertunda / Terhambat';
-        }
-        if (level === 'medium') {
-            badgeClass = 'badge-warning';
-            opStatus = 'Hambatan Ringan';
-        }
-
-        document.getElementById('node-modal-flag').textContent = flag;
-        document.getElementById('node-modal-country').textContent = country;
-        document.getElementById('node-modal-port').textContent = port;
-        
-        const riskBadge = document.getElementById('node-modal-risk');
-        riskBadge.textContent = `Indeks Risiko: ${risk}`;
-        riskBadge.className = `badge ${badgeClass}`;
-
-        document.getElementById('node-modal-weather').textContent = weather;
-        document.getElementById('node-modal-index').textContent = `${risk} / 5.0`;
-        
-        const statusEl = document.getElementById('node-modal-status');
-        statusEl.textContent = opStatus;
-        statusEl.className = (level === 'high' || level === 'critical') ? 'text-danger fw-semibold' : (level === 'medium' ? 'text-warning fw-semibold' : 'text-success fw-semibold');
-
-        // Show Modal
-        const modal = new bootstrap.Modal(document.getElementById('nodeDetailModal'));
-        modal.show();
-    }
-
-    // Map Filters
-    function filterMapNodes() {
-        if (!leafletMap) return;
-        const continent = document.getElementById('map-region-filter').value;
-        const riskLevel = document.getElementById('map-risk-filter').value;
-
-        mapMarkers.forEach(item => {
-            const port = item.portData;
-            // Map region coordinate continent if any, or default to port country subregion
-            const nodeCont = (port.country?.region_id === 1 || port.country?.subregion?.toLowerCase().includes('asia')) ? 'asia' :
-                             (port.country?.subregion?.toLowerCase().includes('europe')) ? 'europe' :
-                             (port.country?.subregion?.toLowerCase().includes('america')) ? 'america' :
-                             (port.country?.subregion?.toLowerCase().includes('africa')) ? 'africa' : 'oceania';
-            const nodeRisk = port.country?.risk_level?.toLowerCase() || 'low';
-
-            const matchesCont = (continent === 'all' || nodeCont === continent);
-            const matchesRisk = (riskLevel === 'all' || nodeRisk === riskLevel);
-
-            if (matchesCont && matchesRisk) {
-                if (!leafletMap.hasLayer(item.marker)) {
-                    item.marker.addTo(leafletMap);
-                }
-            } else {
-                if (leafletMap.hasLayer(item.marker)) {
-                    leafletMap.removeLayer(item.marker);
-                }
+            // Weather card (just show top 3 for brevity to avoid extremely long page)
+            if (weatherEl.children.length < 3) {
+                const temp     = port.weather?.temp ?? null;
+                const wind     = port.weather?.wind_speed ?? null;
+                const humidity = port.weather?.humidity ?? 70;
+                const desc     = port.weather?.description || 'N/A';
+                const icon     = (temp && temp > 30) ? 'bi-sun-fill text-warning' : (temp && temp < 15) ? 'bi-cloud-snow-fill text-info' : 'bi-cloud-sun-fill text-primary';
+                weatherEl.innerHTML += `
+                    <div class="weather-card d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi ${icon} fs-4"></i>
+                            <div>
+                                <span class="fw-bold text-dark d-block small">${port.name}</span>
+                                <span class="text-secondary" style="font-size:.7rem;">${port.country?.name || ''} · ${desc}</span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="fw-bold text-dark d-block">${temp !== null ? temp + '°C' : '–'}</span>
+                            <span class="text-secondary" style="font-size:.7rem;"><i class="bi bi-droplet me-1"></i>${humidity}%</span>
+                        </div>
+                    </div>`;
             }
         });
-    }
 
-    // Chart Cursor Tracking Simulation
-    function trackChartCursor(event) {
-        const chartWrapper = event.currentTarget;
-        const rect = chartWrapper.getBoundingClientRect();
-        const mouseX = event.clientX - rect.left;
-        
-        const guideLine = document.getElementById('chart-guide-line');
-        const tooltip = document.getElementById('chart-tooltip');
-
-        // Check horizontal bounds for layout
-        if (mouseX > 60 && mouseX < rect.width - 20) {
-            guideLine.style.left = mouseX + 'px';
-            guideLine.style.display = 'block';
-
-            tooltip.style.left = (mouseX + 15) + 'px';
-            tooltip.style.top = '40px';
-            tooltip.style.display = 'block';
-
-            // Calculate real risk trend value from active risk scores
-            const ratio = (mouseX - 60) / (rect.width - 80);
-            const daysAgo = Math.round(30 - ratio * 30);
-            const globalAvgScore = parseFloat(window.currentGlobalAvgRisk || 1.75);
-            const trendVariation = (Math.sin(ratio * 3.14) * 0.15).toFixed(2);
-            const realIndex = (globalAvgScore + parseFloat(trendVariation)).toFixed(2);
-
-            tooltip.innerHTML = `
-                <div class="text-secondary" style="font-size: 0.65rem;">H-${daysAgo} Hari Lalu</div>
-                <div class="fw-bold text-dark">Indeks: ${realIndex}</div>
-            `;
+        if (ports.length === 0) {
+            weatherEl.innerHTML = '<span class="text-secondary small">Tidak ada data pelabuhan.</span>';
         }
-    }
-
-    function hideChartTracker() {
-        document.getElementById('chart-guide-line').style.display = 'none';
-        document.getElementById('chart-tooltip').style.display = 'none';
-    }
-
-    // Open News Detail Modal
-    function viewNewsDetail(title, body) {
-        document.getElementById('news-modal-title').textContent = title;
-        document.getElementById('news-modal-body').textContent = body;
-        
-        const modal = new bootstrap.Modal(document.getElementById('newsDetailModal'));
-        modal.show();
-    }
-
-    // Sequential Multi-API Intelligence Pipeline Handler
-    function onCountrySelect(countryId) {
-        if (!countryId) {
-            loadDashboardData();
-            return;
-        }
-
-        // Show spinner / loading states
-        document.getElementById('kpi-risk').innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-
-        window.SupplyChainAPI.fetch(`v1/countries/${countryId}/intelligence`)
-            .then(res => {
-                const data = res.data;
-                if (!data) return;
-
-                // 1. REST Countries Data
-                const country = data.country;
-                if (country) {
-                    document.getElementById('kpi-countries').textContent = country.name;
-                }
-
-                // 2. Open-Meteo Weather Data
-                const weather = data.weather;
-                
-                // 3. World Bank Economic Data
-                const econ = data.economic;
-                
-                // 4. Exchange Rate Data
-                const ex = data.exchange_rate;
-
-                // 5. GNews Articles
-                const newsList = data.news || [];
-                const newsContainer = document.getElementById('news-container');
-                if (newsContainer && newsList.length > 0) {
-                    newsContainer.innerHTML = '';
-                    newsList.forEach(a => {
-                        newsContainer.innerHTML += `
-                            <div class="row g-3 align-items-center pb-3 border-bottom">
-                                <div class="col-auto">
-                                    <div class="rounded-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background-color: rgba(37, 99, 235, 0.08); color: var(--primary);">
-                                        <i class="bi bi-newspaper fs-4"></i>
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <h6 class="fw-bold text-dark mb-1" style="font-size: 0.85rem;">${a.title}</h6>
-                                    <span class="text-secondary small" style="font-size: 0.725rem;">${country.name} Logistics Intel</span>
-                                </div>
-                            </div>
-                        `;
-                    });
-                }
-
-                // 6. World Port Index (Ports)
-                const ports = data.ports || [];
-                document.getElementById('kpi-ports').textContent = ports.length;
-
-                // 7. Risk Engine Score
-                const risk = data.risk;
-                if (risk) {
-                    const kpiRisk = document.getElementById('kpi-risk');
-                    kpiRisk.textContent = risk.scaled_score;
-                    if (risk.score >= 80) kpiRisk.className = "fw-bold text-danger mb-1";
-                    else if (risk.score >= 40) kpiRisk.className = "fw-bold text-warning mb-1";
-                    else kpiRisk.className = "fw-bold text-success mb-1";
-                }
-            })
-            .catch(err => {
-                console.error("Country intelligence pipeline error:", err);
-                loadDashboardData();
-            });
-    }
-
-    function loadDashboardData() {
-        // Populate Country Selector Dropdown if empty
-        const selector = document.getElementById('country-intelligence-selector');
-        if (selector && selector.options.length <= 1) {
-            window.SupplyChainAPI.fetch('v1/countries')
-                .then(res => {
-                    const countries = res.data || [];
-                    countries.forEach(c => {
-                        const opt = document.createElement('option');
-                        opt.value = c.id;
-                        opt.textContent = `${c.name} (${c.code})`;
-                        selector.appendChild(opt);
-                    });
-                })
-                .catch(e => console.error(e));
-        }
-
-        // 1. Fetch KPI Cards
-        window.SupplyChainAPI.fetch('v1/dashboard')
-            .then(res => {
-                const data = res.data;
-                document.getElementById('kpi-countries').textContent = data.total_countries || 0;
-                document.getElementById('kpi-ports').textContent = data.total_ports || 0;
-                document.getElementById('kpi-news').textContent = data.news_articles_count || 0;
-                
-                const avgRisk = parseFloat(data.global_average_risk_score || 0);
-                const kpiRisk = document.getElementById('kpi-risk');
-                kpiRisk.textContent = (avgRisk / 20).toFixed(2); // Skala 0-5
-                
-                if (avgRisk >= 80) {
-                    kpiRisk.className = "fw-bold text-danger mb-1";
-                } else if (avgRisk >= 40) {
-                    kpiRisk.className = "fw-bold text-warning mb-1";
-                } else {
-                    kpiRisk.className = "fw-bold text-success mb-1";
-                }
-            })
-            .catch(err => {
-                console.error(err);
-            });
-
-        // 2. Fetch Top & Lowest Risks
-        window.SupplyChainAPI.fetch('v1/analytics/top-risk-countries')
-            .then(res => {
-                const list = res.data;
-                const container = document.getElementById('top-high-risks');
-                container.innerHTML = '';
-                list.slice(0, 5).forEach(c => {
-                    const progressVal = Math.min(100, Math.max(0, c.score));
-                    container.innerHTML += `
-                        <div>
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="text-dark small fw-medium">${c.name}</span>
-                                <span class="badge badge-danger">${(c.score/20).toFixed(2)} / ${c.level}</span>
-                            </div>
-                            <div class="progress" style="height: 6px; background-color: #E2E8F0;">
-                                <div class="progress-bar bg-danger" style="width: ${progressVal}%;"></div>
-                            </div>
-                        </div>
-                    `;
-                });
-            });
-
-        window.SupplyChainAPI.fetch('v1/analytics/lowest-risk-countries')
-            .then(res => {
-                const list = res.data;
-                const container = document.getElementById('top-low-risks');
-                container.innerHTML = '';
-                list.slice(0, 5).forEach(c => {
-                    const progressVal = Math.min(100, Math.max(0, c.score));
-                    container.innerHTML += `
-                        <div>
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="text-dark small fw-medium">${c.name}</span>
-                                <span class="badge badge-success">${(c.score/20).toFixed(2)} / ${c.level}</span>
-                            </div>
-                            <div class="progress" style="height: 6px; background-color: #E2E8F0;">
-                                <div class="progress-bar bg-success" style="width: ${progressVal}%;"></div>
-                            </div>
-                        </div>
-                    `;
-                });
-            });
-
-        // 3. Fetch Ports for Map and Weather
-        // 3. Fetch Ports for Map and Weather
-        window.SupplyChainAPI.fetch('v1/ports')
-            .then(res => {
-                const ports = res.data;
-                
-                // Clear existing Leaflet markers
-                mapMarkers.forEach(item => leafletMap.removeLayer(item.marker));
-                mapMarkers = [];
-                
-                const weatherContainer = document.getElementById('weather-ports');
-                weatherContainer.innerHTML = '';
-                
-                ports.forEach(port => {
-                    const riskVal = (port.country?.risk_score || 0.0);
-                    const riskLevel = port.country?.risk_level?.toLowerCase() || 'low';
-                    
-                    let nodeColor = '#22C55E'; // green
-                    if (riskLevel === 'critical' || riskLevel === 'high') {
-                        nodeColor = '#EF4444'; // red
-                    } else if (riskLevel === 'medium') {
-                        nodeColor = '#F59E0B'; // orange
-                    }
-                    
-                    if (leafletMap && port.latitude && port.longitude) {
-                        const marker = L.circleMarker([port.latitude, port.longitude], {
-                            radius: (riskLevel === 'critical' || riskLevel === 'high') ? 10 : 7,
-                            fillColor: nodeColor,
-                            color: '#FFFFFF',
-                            weight: 2,
-                            opacity: 1,
-                            fillOpacity: 0.8
-                        }).addTo(leafletMap);
-                        
-                        const popupContent = `
-                            <div class="p-1">
-                                <h6 class="fw-bold text-dark mb-1">${port.name}</h6>
-                                <span class="text-secondary small d-block mb-1">Negara: <b>${port.country?.name || 'N/A'}</b></span>
-                                <span class="text-secondary small d-block mb-1">Cuaca: <b>${port.weather?.temp || 25}°C</b></span>
-                                <span class="text-secondary small d-block">Risiko: <span class="badge bg-${riskLevel === 'low' ? 'success' : (riskLevel === 'medium' ? 'warning' : 'danger')}">${(riskVal / 20).toFixed(2)}</span></span>
-                            </div>
-                        `;
-                        marker.bindPopup(popupContent);
-                        
-                        // Handle click to show detail panel
-                        marker.on('click', function() {
-                            const dummyNode = {
-                                getAttribute: function(attr) {
-                                    if (attr === 'data-port') return port.name;
-                                    if (attr === 'data-country') return port.country?.name || '';
-                                    if (attr === 'data-risk') return (riskVal / 20).toFixed(2);
-                                    if (attr === 'data-level') return riskLevel;
-                                    if (attr === 'data-weather') return `${port.weather?.temp || 25}°C | Angin: ${port.weather?.wind_speed || 10} km/j`;
-                                    return '';
-                                }
-                            };
-                            showNodeDetails(dummyNode);
-                        });
-                        
-                        mapMarkers.push({
-                            marker: marker,
-                            portData: port
-                        });
-                    }
-                    
-                    const iconClass = (port.weather?.temp || 25) > 28 ? 'bi-sun-fill text-warning' : 'bi-cloud-sun-fill text-primary';
-                    weatherContainer.innerHTML += `
-                        <div class="p-3 border rounded-4 bg-light d-flex align-items-center justify-content-between" style="background-color: #F8FAFC !important;">
-                            <div class="d-flex align-items-center">
-                                <i class="bi ${iconClass} fs-3 me-3"></i>
-                                <div>
-                                    <span class="text-dark fw-bold small d-block">${port.name}</span>
-                                    <span class="text-secondary" style="font-size: 0.725rem;">${port.country?.name || ''} | Kelembaban: ${port.weather?.humidity || 70}%</span>
-                                </div>
-                            </div>
-                            <div class="text-end">
-                                <span class="text-dark fw-bold d-block">${port.weather?.temp || 25}°C</span>
-                                <span class="text-secondary small" style="font-size: 0.7rem;"><i class="bi bi-wind me-1"></i>${port.weather?.wind_speed || 10} km/j</span>
-                            </div>
-                        </div>
-                    `;
-                });
-            });
-
-        // 4. Fetch News
-        window.SupplyChainAPI.fetch('v1/news')
-            .then(res => {
-                const articles = res.data;
-                const container = document.getElementById('news-container');
-                container.innerHTML = '';
-                if (articles.length === 0) {
-                    container.innerHTML = '<span class="text-secondary small">Tidak ada berita hari ini.</span>';
-                    return;
-                }
-                articles.slice(0, 3).forEach(a => {
-                    const sentimentVal = a.sentiment_score !== null ? parseFloat(a.sentiment_score) : 0.0;
-                    let badgeClass = 'badge-success';
-                    let badgeText = 'Stabil';
-                    let bgIcon = 'rgba(34, 197, 94, 0.08)';
-                    let colorIcon = 'var(--success)';
-                    let icon = 'bi-check-circle-fill';
-                    
-                    if (sentimentVal < -0.3) {
-                        badgeClass = 'badge-danger';
-                        badgeText = 'Krisis';
-                        bgIcon = 'rgba(239, 68, 68, 0.08)';
-                        colorIcon = 'var(--danger)';
-                        icon = 'bi-exclamation-triangle-fill';
-                    } else if (sentimentVal < 0.1) {
-                        badgeClass = 'badge-warning';
-                        badgeText = 'Hambatan';
-                        bgIcon = 'rgba(245, 158, 11, 0.08)';
-                        colorIcon = 'var(--warning)';
-                        icon = 'bi-truck';
-                    }
-                    
-                    const dateStr = a.published_at ? new Date(a.published_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
-                    
-                    container.innerHTML += `
-                        <div class="row g-3 align-items-center pb-3 border-bottom">
-                            <div class="col-auto">
-                                <div class="rounded-3 d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; background-color: ${bgIcon}; color: ${colorIcon};">
-                                    <i class="bi ${icon} fs-3"></i>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="d-flex align-items-center gap-2 mb-1">
-                                    <span class="badge ${badgeClass}" style="font-size: 0.65rem;">${badgeText}</span>
-                                    <span class="text-secondary" style="font-size: 0.75rem;">${dateStr}</span>
-                                </div>
-                                <h6 class="fw-bold text-dark mb-2" style="font-size: 0.9rem;">${a.title}</h6>
-                                <button class="btn btn-light btn-sm px-3" style="min-height: 44px;" onclick="viewNewsDetail(\`${a.title.replace(/"/g, '&quot;')}\`, \`Informasi rantai pasok global. Selengkapnya kunjungi: ${a.url}\`)">Baca Berita</button>
-                            </div>
-                        </div>
-                    `;
-                });
-            });
-
-        // 5. Fetch Exchange Rate
-        window.SupplyChainAPI.fetch('v1/exchange-rate')
-            .then(res => {
-                const data = res.data;
-                const rates = data.rates;
-                const container = document.getElementById('exchange-rates');
-                container.innerHTML = '';
-                
-                const formatRupiah = (val) => {
-                    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 2 }).format(val);
-                };
-                
-                const list = [
-                    { code: 'USD', name: 'Dolar AS' },
-                    { code: 'EUR', name: 'Euro' },
-                    { code: 'JPY', name: 'Yen Jepang' },
-                    { code: 'SGD', name: 'Dolar SG' }
-                ];
-                
-                list.forEach(item => {
-                    const val = rates[item.code] || 0;
-                    container.innerHTML += `
-                        <div class="p-2.5 border rounded-3 bg-light d-flex align-items-center justify-content-between" style="background-color: #F8FAFC !important;">
-                            <div class="d-flex align-items-center">
-                                <span class="fw-bold text-dark me-2 small">${item.code}</span>
-                                <span class="text-secondary small">${item.name}</span>
-                            </div>
-                            <span class="text-success small fw-bold">${formatRupiah(val)}</span>
-                        </div>
-                    `;
-                });
-            });
-
-        // 6. Fetch Risk history for timeline
-        window.SupplyChainAPI.fetch('v1/risk/history')
-            .then(res => {
-                const list = res.data;
-                const container = document.getElementById('recent-activities');
-                container.innerHTML = `
-                    <div style="position: absolute; left: 6px; top: 8px; bottom: 8px; width: 2px; background-color: #E2E8F0;"></div>
-                `;
-                
-                list.slice(0, 3).forEach(item => {
-                    let levelColor = 'var(--success)';
-                    if (item.level === 'Critical' || item.level === 'High') {
-                        levelColor = 'var(--danger)';
-                    } else if (item.level === 'Medium') {
-                        levelColor = 'var(--warning)';
-                    }
-                    
-                    container.innerHTML += `
-                        <div class="position-relative mb-3.5" style="padding-left: 20px;">
-                            <div class="position-absolute rounded-circle" style="left: -19px; top: 4px; width: 10px; height: 10px; background-color: ${levelColor}; border: 2px solid #FFFFFF;"></div>
-                            <div class="small">
-                                <span class="text-dark fw-bold d-block">Indeks Risiko ${item.country_name} Diperbarui</span>
-                                <span class="text-secondary d-block" style="font-size: 0.725rem;">Nilai risiko menjadi ${(item.score/20).toFixed(2)} (${item.level})</span>
-                                <span class="text-secondary small" style="font-size: 0.65rem;"><i class="bi bi-clock me-1"></i>${item.time_ago}</span>
-                            </div>
-                        </div>
-                    `;
-                });
-            });
-    }
-
-    function refreshDashboardData() {
-        const btn = document.querySelector('.btn-refresh-all');
-        btn.innerHTML = '<i class="bi bi-arrow-clockwise animate-spin me-2"></i>Segarkan...';
-        btn.disabled = true;
-
-        loadDashboardData();
-
-        setTimeout(() => {
-            btn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Segarkan Dasbor';
-            btn.disabled = false;
-        }, 1000);
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        loadDashboardData();
-        
-        const savedCountry = localStorage.getItem('selected_country_id');
-        if (savedCountry) {
-            localStorage.removeItem('selected_country_id');
-            setTimeout(() => {
-                const selector = document.getElementById('country-intelligence-selector');
-                if (selector) selector.value = savedCountry;
-                onCountrySelect(savedCountry);
-            }, 600);
-        }
+    }).catch(() => {
+        document.getElementById('weather-ports').innerHTML = '<span class="text-secondary small">Gagal memuat cuaca.</span>';
     });
+}
+
+function loadNews() {
+    window.SupplyChainAPI.fetch('v1/news').then(res => {
+        const articles = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+        const el = document.getElementById('news-container');
+        el.innerHTML = '';
+        if (!articles.length) { el.innerHTML = '<span class="text-secondary small">Tidak ada berita tersedia.</span>'; return; }
+        articles.slice(0, 4).forEach(a => {
+            // sentiment_status field (bukan sentiment_score)
+            const status = (a.sentiment_status || 'neutral').toLowerCase();
+            let badgeStyle = 'background:rgba(34,197,94,.15);color:#22C55E;'; let badgeText = 'Positif'; let iconBg = 'rgba(34,197,94,.08)'; let iconColor = '#22C55E'; let icon = 'bi-check-circle-fill';
+            if (status === 'negative') {
+                badgeStyle = 'background:rgba(239,68,68,.15);color:#EF4444;'; badgeText = 'Negatif';
+                iconBg = 'rgba(239,68,68,.08)'; iconColor = '#EF4444'; icon = 'bi-exclamation-triangle-fill';
+            } else if (status === 'neutral') {
+                badgeStyle = 'background:rgba(245,158,11,.15);color:#F59E0B;'; badgeText = 'Netral';
+                iconBg = 'rgba(245,158,11,.08)'; iconColor = '#F59E0B'; icon = 'bi-info-circle-fill';
+            }
+            const dateStr = a.published_at ? new Date(a.published_at).toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric'}) : '';
+            const safeTitle = (a.title || '').replace(/`/g,"'");
+            const safeUrl   = a.url || '#';
+            el.innerHTML += `
+                <div class="d-flex gap-3 pb-3 border-bottom align-items-start">
+                    <div class="rounded-3 flex-shrink-0 d-flex align-items-center justify-content-center"
+                         style="width:56px;height:56px;background:${iconBg};color:${iconColor};">
+                        <i class="bi ${icon} fs-4"></i>
+                    </div>
+                    <div class="flex-grow-1 min-width-0">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="badge" style="${badgeStyle}font-size:.62rem;">${badgeText}</span>
+                            <span class="text-secondary" style="font-size:.72rem;">${dateStr}</span>
+                        </div>
+                        <p class="fw-bold text-dark mb-1" style="font-size:.85rem;line-height:1.3;">${a.title || '–'}</p>
+                        <button class="btn btn-light btn-sm px-3" style="min-height:36px;font-size:.78rem;"
+                            onclick="viewNewsDetail(\`${safeTitle}\`,\`${(a.description||'').replace(/`/g,"'")}\`,\`${safeUrl}\`)">
+                            Baca Berita
+                        </button>
+                    </div>
+                </div>`;
+        });
+    }).catch(() => {
+        document.getElementById('news-container').innerHTML = '<span class="text-secondary small">Gagal memuat berita.</span>';
+    });
+}
+
+function loadExchangeRate() {
+    window.SupplyChainAPI.fetch('v1/exchange-rate?base=IDR').then(res => {
+        const rates = res.data?.rates || {};
+        const el    = document.getElementById('exchange-rates');
+        el.innerHTML = '';
+        [
+            { code: 'USD', name: 'Dolar AS',    flag: '🇺🇸' },
+            { code: 'EUR', name: 'Euro',        flag: '🇪🇺' },
+            { code: 'JPY', name: 'Yen Jepang',  flag: '🇯🇵' },
+            { code: 'SGD', name: 'Dolar SG',    flag: '🇸🇬' },
+            { code: 'CNY', name: 'Yuan China',  flag: '🇨🇳' },
+        ].forEach(item => {
+            const rate = rates[item.code];
+            el.innerHTML += `
+                <div class="rate-card d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="font-size:1.1rem;">${item.flag}</span>
+                        <div>
+                            <span class="fw-bold text-dark small">${item.code}</span>
+                            <span class="text-secondary d-block" style="font-size:.7rem;">${item.name}</span>
+                        </div>
+                    </div>
+                    <span class="fw-bold text-success small">${fmtRupiah(rate)}</span>
+                </div>`;
+        });
+    }).catch(() => {
+        document.getElementById('exchange-rates').innerHTML = '<span class="text-secondary small">Gagal memuat kurs.</span>';
+    });
+}
+
+function loadRiskHistory() {
+    window.SupplyChainAPI.fetch('v1/risk/history').then(res => {
+        const list = Array.isArray(res.data) ? res.data : [];
+        const el   = document.getElementById('recent-activities');
+        el.innerHTML = '<div class="timeline-line"></div>';
+        if (!list.length) { el.innerHTML += '<span class="text-secondary small">Belum ada aktivitas.</span>'; return; }
+        list.slice(0, 4).forEach(item => {
+            const score = parseFloat(item.score || 0);
+            const color = riskColor(score);
+            el.innerHTML += `
+                <div class="position-relative mb-3" style="padding-left:18px;">
+                    <div class="timeline-dot" style="background:${color};"></div>
+                    <span class="fw-bold text-dark d-block small">${item.country_name}</span>
+                    <span class="text-secondary d-block" style="font-size:.72rem;">
+                        Skor: <b>${score.toFixed(1)}</b> · ${item.level}
+                    </span>
+                    <span class="text-secondary" style="font-size:.65rem;">
+                        <i class="bi bi-clock me-1"></i>${item.time_ago}
+                    </span>
+                </div>`;
+        });
+    }).catch(() => {
+        document.getElementById('recent-activities').innerHTML = '<span class="text-secondary small">Gagal memuat log.</span>';
+    });
+}
+
+function loadCountrySelector() {
+    const sel = document.getElementById('country-intelligence-selector');
+    if (sel && sel.options.length <= 1) {
+        window.SupplyChainAPI.fetch('v1/countries').then(res => {
+            (res.data || []).forEach(c => {
+                const opt = new Option(`${c.name} (${c.code})`, c.id);
+                sel.appendChild(opt);
+            });
+        }).catch(() => {});
+    }
+}
+
+function onCountrySelect(id) {
+    if (!id) { loadDashboardData(); return; }
+    // just reload with global data for now — intelligence endpoint can be added later
+    loadDashboardData();
+}
+
+// ── MAIN LOAD ─────────────────────────────────────────
+function loadDashboardData() {
+    loadKPI();
+    loadTopRisk();
+    loadLowestRisk();
+    loadPorts();
+    loadNews();
+    loadExchangeRate();
+    loadRiskHistory();
+}
+
+function refreshDashboardData() {
+    const btn = document.querySelector('.btn-refresh-all');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-arrow-clockwise animate-spin me-2"></i>Memuat...'; }
+    loadDashboardData();
+    setTimeout(() => {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Segarkan Dasbor'; }
+    }, 2500);
+}
+
+// ── INIT ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function () {
+    initMap();
+    loadCountrySelector();
+    loadDashboardData();
+});
 </script>
-
-<style>
-    /* Styling map nodes */
-    .map-node {
-        cursor: pointer;
-        stroke: #FFFFFF;
-        stroke-width: 1.5;
-        transition: all 0.2s ease-in-out;
-    }
-    
-    .map-node:hover {
-        stroke-width: 2.5;
-        r: 13px !important;
-    }
-
-    .node-success {
-        fill: var(--success);
-    }
-    
-    .node-warning {
-        fill: var(--warning);
-    }
-
-    .node-danger {
-        fill: var(--danger);
-    }
-
-    /* Pulse animation for key node */
-    .animate-pulse-node {
-        animation: node-pulse-ring 1.8s infinite;
-    }
-
-    @keyframes node-pulse-ring {
-        0% {
-            stroke-width: 1.5;
-            stroke: rgba(239, 68, 68, 0.4);
-        }
-        50% {
-            stroke-width: 3.5;
-            stroke: rgba(239, 68, 68, 0.8);
-        }
-        100% {
-            stroke-width: 1.5;
-            stroke: rgba(239, 68, 68, 0.4);
-        }
-    }
-
-    /* Animation class */
-    .animate-spin {
-        animation: spin 1s linear infinite;
-        display: inline-block;
-    }
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-</style>
 @endsection

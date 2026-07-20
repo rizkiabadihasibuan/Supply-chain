@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 namespace App\Helpers;
 /**
  * CacheKeyHelper – Helper untuk generate cache key yang konsisten

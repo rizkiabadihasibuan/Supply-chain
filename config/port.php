@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * CONFIG – port.php
  * Konfigurasi untuk World Port Index API Integration

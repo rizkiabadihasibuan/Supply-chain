@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 namespace App\Traits;
 /**
  * HasApiResponse – Trait untuk standarisasi JSON response

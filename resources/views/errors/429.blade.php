@@ -1,4 +1,4 @@
-﻿{{-- ERROR 429 – Terlalu Banyak Permintaan --}}
+{{-- ERROR 429 – Terlalu Banyak Permintaan --}}
 @extends('layouts.user.app')
 @section('title', '429 Terlalu Banyak Permintaan - SupplyChain Platform')
 @section('content')

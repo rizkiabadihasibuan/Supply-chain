@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * LANG ID – user.php
  * Label dan teks untuk Panel User

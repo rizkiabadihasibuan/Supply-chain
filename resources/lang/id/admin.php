@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * LANG ID – admin.php
  * Label dan teks untuk Panel Admin

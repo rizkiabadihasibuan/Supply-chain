@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 namespace App\Enums;
 /** RiskLevel – Tingkat risiko rantai pasok */
 enum RiskLevel: string {

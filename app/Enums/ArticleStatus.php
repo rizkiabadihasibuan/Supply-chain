@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 namespace App\Enums;
 /** ArticleStatus – Status publikasi artikel */
 enum ArticleStatus: string {

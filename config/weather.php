@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * CONFIG – weather.php
  * Konfigurasi untuk Open-Meteo API Integration
