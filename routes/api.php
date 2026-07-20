@@ -40,7 +40,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:3,1');
 
     // PROTECTED ROUTES
-    Route::middleware(['auth:sanctum'])->group(function () {
+    Route::middleware(['auth'])->group(function () {
         
         // Auth User Profile & Logout
         Route::get('/auth/me', function (Request $request) {
@@ -145,7 +145,7 @@ Route::prefix('v1')->group(function () {
 // ==========================================
 // REST API Internal (Non-prefixed aliases for specifications compliance)
 // ==========================================
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('/countries/search', [CountryController::class, 'search']);
     Route::get('/countries/{country}/coordinates', [CountryController::class, 'coordinates']);
     Route::get('/countries/{country}/currency', [CountryController::class, 'currency']);
