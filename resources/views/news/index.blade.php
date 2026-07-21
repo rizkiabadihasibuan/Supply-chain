@@ -305,7 +305,7 @@
 
                     <div class="d-flex align-items-center justify-content-between gap-2">
                         <button class="btn btn-primary btn-sm flex-fill" style="min-height: 38px;" onclick="selectNewsCountry('{{ $c->id }}', '{{ addslashes($c->name) }}', '{{ $cat }}', this)">
-                            <i class="bi bi-newspaper me-1"></i>Pilih & Sync
+                            <i class="bi bi-newspaper me-1"></i>Pilih
                         </button>
                         <a href="{{ $realNewsUrl }}" target="_blank" class="btn btn-outline-secondary btn-sm" style="min-height: 38px;" title="Baca Berita Betulan di Google News">
                             <i class="bi bi-box-arrow-up-right me-1"></i> Baca Berita Real

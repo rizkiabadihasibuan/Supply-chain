@@ -128,7 +128,7 @@
                                 <span class="badge bg-light text-primary" id="rs-code">CODE</span>
                                 <span class="badge bg-danger" id="rs-status-badge">Tingkat Risiko Tinggi</span>
                             </div>
-                            <span class="text-white-50 small">Evaluasi Sub-Indikator Analisis Risiko Terintegrasi (Pilih & Sync Risk)</span>
+                            <span class="text-white-50 small">Evaluasi Sub-Indikator Analisis Risiko Terintegrasi (Pilih Risk)</span>
                         </div>
                     </div>
                     <div class="d-flex align-items-center gap-2">
@@ -280,7 +280,7 @@
 
                 <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between gap-2">
                     <button class="btn btn-primary btn-sm flex-fill" style="min-height: 38px;" onclick="selectRiskCountry('{{ $c->id }}', '{{ addslashes($c->name) }}', {{ $score }}, this)">
-                        <i class="bi bi-shield-exclamation me-1"></i>Pilih & Sync Risk
+                        <i class="bi bi-shield-exclamation me-1"></i>Pilih Risk
                     </button>
                     <a href="{{ route('report.export.country', $c->id) }}" target="_blank" class="btn btn-outline-secondary btn-sm" style="min-height: 38px;" title="Cetak Laporan Risiko PDF">
                         <i class="bi bi-file-earmark-pdf"></i>

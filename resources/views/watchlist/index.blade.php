@@ -266,7 +266,7 @@
                 <!-- Footer Buttons -->
                 <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between gap-2">
                     <button class="btn btn-primary btn-sm flex-fill" style="min-height: 38px;" onclick="selectFavCountry('{{ $c->id }}', '{{ addslashes($c->name) }}', this)">
-                        <i class="bi bi-star me-1"></i>Pilih & Sync
+                        <i class="bi bi-star me-1"></i>Pilih
                     </button>
                     <button class="btn btn-outline-danger btn-sm" style="min-height: 38px;" onclick="removeFavorite('{{ $c->id }}')" title="Hapus dari Favorit">
                         <i class="bi bi-trash"></i> Hapus

@@ -140,7 +140,7 @@
                                 <span class="badge bg-light text-primary" id="curs-code">CODE</span>
                                 <span class="badge bg-success" id="curs-status-badge">Menguat (+0.45%)</span>
                             </div>
-                            <span class="text-white-50 small">Hasil Sinkronisasi & Intelijen Valuta Terpilih (Pilih & Sync Currency)</span>
+                            <span class="text-white-50 small">Hasil Sinkronisasi & Intelijen Valuta Terpilih (Pilih Currency)</span>
                         </div>
                     </div>
                     <div class="d-flex align-items-center gap-2">
@@ -276,7 +276,7 @@
 
                 <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between gap-2">
                     <button class="btn btn-primary btn-sm flex-fill" style="min-height: 38px;" onclick="selectCurrencyCountry('{{ $c->id }}', this)">
-                        <i class="bi bi-currency-exchange me-1"></i>Pilih & Sync Currency
+                        <i class="bi bi-currency-exchange me-1"></i>Pilih Currency
                     </button>
                     <a href="{{ route('report.export.country', $c->id) }}" target="_blank" class="btn btn-outline-secondary btn-sm" style="min-height: 38px;" title="Cetak Laporan Keuangan PDF">
                         <i class="bi bi-file-earmark-pdf"></i>

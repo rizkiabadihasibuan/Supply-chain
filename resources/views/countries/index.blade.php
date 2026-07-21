@@ -83,7 +83,7 @@
                                 <span class="badge bg-light text-primary" id="cs-code">CODE</span>
                                 <span class="badge bg-danger" id="cs-risk-badge">Risk</span>
                             </div>
-                            <span class="text-white-50 small">Hasil Sinkronisasi & Intelijen Real-Time Terpilih (Pilih & Sync)</span>
+                            <span class="text-white-50 small">Hasil Sinkronisasi & Intelijen Real-Time Terpilih (Pilih)</span>
                         </div>
                     </div>
                     <div class="d-flex align-items-center gap-2">
@@ -289,7 +289,7 @@
 
                 <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between gap-2">
                     <button class="btn btn-primary btn-sm flex-fill" style="min-height: 38px;" onclick="selectCountryAndSyncDashboard('{{ $c->id }}', this)">
-                        <i class="bi bi-arrow-repeat me-1"></i>Pilih & Sync
+                        <i class="bi bi-arrow-repeat me-1"></i>Pilih
                     </button>
                     <a href="{{ route('report.export.country', $c->id) }}" target="_blank" class="btn btn-outline-secondary btn-sm" style="min-height: 38px;" title="Cetak Laporan Eksekutif PDF">
                         <i class="bi bi-file-earmark-pdf"></i>

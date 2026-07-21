@@ -3,24 +3,14 @@
     {{-- ── HEADER ── --}}
     <div class="row g-4 mb-4">
         <div class="col-12">
-            <div class="card p-4 border-0">
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                    <div>
-                        <h3 class="fw-bold text-dark mb-1">Dashboard Global Supply Chain</h3>
-                        <p class="text-secondary small mb-0">Pantau kondisi rantai pasok dunia secara real-time.</p>
-                    </div>
-                    <div class="d-flex align-items-center gap-3">
-                        <select class="form-select form-select-sm py-2 px-3 fw-semibold text-dark border-primary"
-                            id="country-intelligence-selector" style="min-width:220px;min-height:42px;"
-                            onchange="onCountrySelect(this.value)">
-                            <option value="">Semua Negara (Global Intelligence)</option>
-                        </select>
-                        <button class="btn btn-primary btn-refresh-all" onclick="refreshDashboardData()">
-                            <i class="bi bi-arrow-clockwise me-2"></i>Segarkan Dasbor
-                        </button>
-                    </div>
+            <div class="card p-4 border-0 shadow-sm">
+                <div>
+                    <h3 class="fw-bold text-dark mb-1">Dashboard Global Supply Chain</h3>
+                    <p class="text-secondary small mb-0">Pantau kondisi rantai pasok dunia secara real-time.</p>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
 
 
     <div class="row g-4 mb-4">
@@ -837,7 +827,8 @@ function loadCountrySelector() {
     const sel = document.getElementById('country-intelligence-selector');
     if (sel && sel.options.length <= 1) {
         window.SupplyChainAPI.fetch('v1/countries').then(res => {
-            (res.data || []).forEach(c => {
+            const list = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+            list.forEach(c => {
                 const opt = new Option(`${c.name} (${c.code})`, c.id);
                 sel.appendChild(opt);
             });

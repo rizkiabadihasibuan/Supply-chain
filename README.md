@@ -1,58 +1,178 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🌐 Global Supply Chain Monitoring & Risk Intelligence Platform
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+![Laravel](https://img.shields.io/badge/Laravel-13.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
+![PHP](https://img.shields.io/badge/PHP-8.3%2B-777BB4?style=for-the-badge&logo=php&logoColor=white)
+![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-blue.style=for-the-badge)
 
-## About Laravel
+Platform intelijen dan analisis risiko rantai pasok global berbasis web real-time yang dirancang untuk memantau indikator makroekonomi, cuaca ekstrem, aktivitas pelabuhan maritim, sentimen berita, dan stabilitas mata uang dari negara-negara di seluruh dunia.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🚀 Fitur Utama
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- 🌍 **Global Country Intelligence**:
+  - Pemetaan geolokasi interaktif berbasis **Leaflet.js** dengan skor risiko terintegrasi.
+  - Profil rinci indikator makroekonomi (GDP, Inflasi, Populasi, Mata Uang, & Kode ISO).
+- ⚡ **Pemantauan Cuaca Ekstrem (Weather Monitoring)**:
+  - Pemantauan kondisi atmosfer real-time (Suhu, Presipitasi/Hujan, Kecepatan Angin).
+  - Peringatan dini badai siklon & cuaca buruk maritim.
+- 🛡️ **Sistem Evaluasi & Skor Risiko (Risk Engine)**:
+  - Pembobotan sub-indikator otomatis (Ekonomi, Politik, Cuaca, dan Logistik Pelabuhan).
+  - Klasifikasi level risiko: *Very Low*, *Low*, *Medium*, *High*, *Critical*.
+- ⚓ **Intelijen Pelabuhan Maritim (World Port Index)**:
+  - Integrasi stasiun pelabuhan utama dunia.
+  - Analisis dampak rute logistik dan potensi penundaan kapal (*vessel delay*).
+- 📰 **Sentimen Berita & Analisis AI (News & AI Sentiment)**:
+  - Aggregator berita rantai pasok real-time dari berbagai sumber terpercaya.
+  - Analisis sentimen otomatis kata kunci negatif untuk deteksi risiko dini.
+- 💱 **Intelijen Keuangan & Valuta (Currency Exchange)**:
+  - Pelacakan nilai tukar mata uang global (USD base rate) dan analisis tren harian.
+- 📊 **Alat Komparasi Antar Negara (Comparison Tool)**:
+  - Perbandingan *head-to-head* indikator risiko, GDP, inflasi, dan valuta antara dua negara.
+- 📑 **Ekspor Laporan PDF (Automated Reporting)**:
+  - Generasi otomatis dokumen laporan intelijen eksekutif siap cetak/unduh.
+- 👥 **Manajemen Akses Multi-Peran (Role-Based Access Control)**:
+  - Dashboard khusus **User** (Analisis & Monitoring) dan **Admin** (Manajemen Data & Dataset Artikel/Pelabuhan).
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 🛠️ Stack Teknologi
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+| Komponen | Teknologi |
+| :--- | :--- |
+| **Backend Framework** | [Laravel 13.x](https://laravel.com/) (PHP 8.3+) |
+| **Frontend UI** | Blade Templates, Vanilla CSS Custom Design System, Bootstrap 5.3, Bootstrap Icons |
+| **Visualisasi Peta** | [Leaflet.js](https://leafletjs.com/) & OpenStreetMap |
+| **Database** | MySQL / MariaDB / PostgreSQL / SQLite |
+| **Arsitektur API** | RESTful API v1 dengan Resource Wrappers & Middleware Throttle |
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+---
 
-## Agentic Development
+## 📋 Persyaratan Sistem
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+Sebelum menjalankan proyek ini di lingkungan lokal Anda, pastikan telah menginstal:
 
+- **PHP** `>= 8.3` (dengan ekstensi `pdo`, `mbstring`, `openssl`, `curl`, `json`, `fileinfo`)
+- **Composer** `>= 2.5`
+- **Node.js** `>= 18.0` & **NPM**
+- **Web Server** (XAMPP / Laragon / Apache / Nginx)
+- **Database Server** (MySQL / MariaDB)
+
+---
+
+## 🔧 Panduan Instalasi & Pengaturan Lokal
+
+### 1. Clone Repositori
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone https://github.com/username/Supply-chain.git
+cd Supply-chain
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Instalasi Dependensi Backend & Frontend
+```bash
+composer install
+npm install
+```
 
-## Contributing
+### 3. Konfigurasi Environment
+Salin berkas `.env.example` menjadi `.env`:
+```bash
+cp .env.example .env
+```
+Buka berkas `.env` lalu sesuaikan konfigurasi database Anda:
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=supply_chain
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 4. Generate Key & Migrasi Database
+```bash
+php artisan key:generate
+php artisan migrate --seed
+```
 
-## Code of Conduct
+### 5. Build Aset Frontend
+```bash
+npm run build
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 6. Jalankan Server Lokal
+Anda dapat menjalankan server menggunakan script terpadu Composer:
+```bash
+composer dev
+```
+Atau jalankan server Artisan secara manual:
+```bash
+php artisan serve
+```
+Akses aplikasi melalui peramban web di: `http://127.0.0.1:8000`
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## 🔌 Dokumentasi REST API (v1)
 
-## License
+Aplikasi ini dilengkapi dengan API v1 terproteksi untuk integrasi sistem external:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+| Method | Endpoint | Deskripsi |
+| :--- | :--- | :--- |
+| `POST` | `/api/v1/auth/login` | Otentikasi pengguna & pembuatan sesi |
+| `GET` | `/api/v1/dashboard` | Ringkasan data KPI & analisis global |
+| `GET` | `/api/v1/countries` | Daftar seluruh negara & skor risiko |
+| `GET` | `/api/v1/countries/{id}/intelligence` | Intelijen lengkap satu negara |
+| `GET` | `/api/v1/weather` | Data cuaca real-time seluruh negara |
+| `GET` | `/api/v1/ports` | Daftar stasiun pelabuhan maritim |
+| `GET` | `/api/v1/risk` | Evaluasi & riwayat tren risiko |
+| `GET` | `/api/v1/currencies` | Kurs mata uang & tren harian |
+| `GET` | `/api/v1/news` | Stream berita rantai pasok global |
+| `GET` | `/api/v1/comparison?country_a={a}&country_b={b}` | Hasil komparasi dua negara |
+| `POST` | `/api/v1/watchlists` | Menambahkan negara ke daftar favorit |
+
+---
+
+## 📁 Struktur Direktori Utama
+
+```
+Supply-chain/
+├── app/
+│   ├── Console/Commands/    # Command kustom Artisan (SyncPorts, dll)
+│   ├── Http/Controllers/    # Controller Web, API, Auth, & Admin
+│   ├── Jobs/                # Background Job Queue (GenerateCountrySnapshot, dll)
+│   ├── Models/              # Model Eloquent (Country, Weather, Port, Risk, dll)
+│   ├── Repositories/        # Implementasi Pattern Repository
+│   └── Services/            # Business Logic Services
+├── database/
+│   ├── factories/           # Factory data pengujian
+│   ├── migrations/          # Schema migrasi database
+│   └── seeders/             # Seeder data awal (Countries, Ports, Risks, dll)
+├── public/                  # Asset publik terkompilasi
+├── resources/
+│   ├── css/                 # Stylesheet & Design System Token
+│   ├── js/                  # Script frontend & integrasi API
+│   └── views/               # Template Blade (Dashboard, Weather, Risk, Admin, dll)
+├── routes/
+│   ├── web.php              # Rute utama aplikasi web
+│   ├── api.php              # Rute endpoint REST API
+│   ├── admin.php            # Rute khusus panel Administrator
+│   └── user.php             # Rute khusus modul Pengguna
+└── tests/                   # Unit & Feature Automated Tests (PHPUnit/Pest)
+```
+
+---
+
+## 🧪 Pengujian Otomatis
+
+Untuk menjalankan suite pengujian otomatis PHPUnit:
+```bash
+php artisan test
+```
+
+---
+
+## 📄 Lisensi
+
+Proyek ini dirilis di bawah lisensi [MIT License](LICENSE).

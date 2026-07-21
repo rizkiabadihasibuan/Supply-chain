@@ -244,7 +244,7 @@
 
                 <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between gap-2">
                     <button class="btn btn-primary btn-sm flex-fill" style="min-height: 38px;" onclick="selectWeatherCountry('{{ $c->id }}', '{{ addslashes($c->name) }}', {{ $c->latitude ?? 0 }}, {{ $c->longitude ?? 0 }}, this)">
-                        <i class="bi bi-cloud-sun me-1"></i>Pilih & Sync Cuaca
+                        <i class="bi bi-cloud-sun me-1"></i>Pilih Cuaca
                     </button>
                     <a href="{{ route('report.export.country', $c->id) }}" target="_blank" class="btn btn-outline-secondary btn-sm" style="min-height: 38px;" title="Cetak Laporan Cuaca PDF">
                         <i class="bi bi-file-earmark-pdf"></i>
