@@ -2,14 +2,23 @@
 providers = ["php"]
 
 [phases.setup]
-nixPkgs = ["php83", "php83Packages.composer"]
+nixPkgs = [
+    "php83",
+    "php83Packages.composer",
+    "php83Extensions.pdo_mysql",
+    "php83Extensions.mbstring",
+    "php83Extensions.gd",
+    "php83Extensions.zip",
+    "php83Extensions.bcmath"
+]
 
 [phases.build]
 cmds = [
     "composer install --no-dev --optimize-autoloader",
     "php artisan config:clear",
-    "php artisan route:clear"
+    "php artisan route:clear",
+    "php artisan view:clear"
 ]
 
 [start]
-cmd = "php artisan serve --host=0.0.0.0 --port=$PORT"
+cmd = "php artisan storage:link && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=$PORT"
