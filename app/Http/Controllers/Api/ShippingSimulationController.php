@@ -58,7 +58,7 @@ class ShippingSimulationController extends Controller
         // Check if origin & dest are same
         $isSameCountry = ($originCountryId === $destCountryId);
 
-        // Generate strictly maritime sea-only waypoints (ocean corridors and sea straits)
+        // Generate strictly maritime sea-only waypoints via BFS Sea Graph Solver
         $waypoints = $this->generateMaritimeWaypoints($originLat, $originLng, $destLat, $destLng, $isSameCountry);
 
         // Calculate total distance in Nautical Miles
@@ -174,18 +174,9 @@ class ShippingSimulationController extends Controller
      */
     private function resolveCoastalPort(Country $country): array
     {
-        // 1. Try to find a valid port from country's ports relationship in DB
-        $dbPort = $country->ports()->whereNotNull('latitude')->whereNotNull('longitude')->first();
-        if ($dbPort && abs((float) $dbPort->latitude) > 0.01 && abs((float) $dbPort->longitude) > 0.01) {
-            return [
-                'name' => $dbPort->name,
-                'code' => $dbPort->code,
-                'lat'  => (float) $dbPort->latitude,
-                'lng'  => (float) $dbPort->longitude,
-            ];
-        }
+        $codeUpper = strtoupper($country->code ?? '');
 
-        // 2. Global Coastal Maritime Port Dictionary for major world countries
+        // 1. Global Verified Coastal Maritime Sea Port Dictionary
         $coastalDictionary = [
             'ID' => ['name' => 'Tanjung Priok – Jakarta', 'code' => 'IDTPP', 'lat' => -6.10, 'lng' => 106.88],
             'CN' => ['name' => 'Port of Shanghai', 'code' => 'CNSHA', 'lat' => 30.62, 'lng' => 122.05],
@@ -217,9 +208,19 @@ class ShippingSimulationController extends Controller
             'NZ' => ['name' => 'Port of Auckland', 'code' => 'NZAKL', 'lat' => -36.84, 'lng' => 174.77],
         ];
 
-        $codeUpper = strtoupper($country->code ?? '');
         if (isset($coastalDictionary[$codeUpper])) {
             return $coastalDictionary[$codeUpper];
+        }
+
+        // 2. Search valid port from country's ports relationship in DB
+        $dbPort = $country->ports()->whereNotNull('latitude')->whereNotNull('longitude')->first();
+        if ($dbPort && abs((float) $dbPort->latitude) > 0.01 && abs((float) $dbPort->longitude) > 0.01) {
+            return [
+                'name' => $dbPort->name,
+                'code' => $dbPort->code,
+                'lat'  => (float) $dbPort->latitude,
+                'lng'  => (float) $dbPort->longitude,
+            ];
         }
 
         // 3. Fallback: Search nearest port in the entire `ports` table
@@ -243,7 +244,7 @@ class ShippingSimulationController extends Controller
     }
 
     /**
-     * Generate sea-only maritime waypoints navigating around landmasses via sea straits & ocean corridors.
+     * Generate sea-only maritime waypoints using a global sea node graph router.
      */
     private function generateMaritimeWaypoints(float $lat1, float $lng1, float $lat2, float $lng2, bool $isSame): array
     {
@@ -255,234 +256,112 @@ class ShippingSimulationController extends Controller
             ];
         }
 
-        // Pure Water Sea Nodes (Strictly in ocean water)
-        $seaNodes = [
-            'GULF_OF_FINLAND'   => [59.8, 25.0],
+        // 1. Pure Ocean Sea Nodes (Strictly Water Coords)
+        $nodes = [
+            'FINLAND_GULF'      => [59.8, 25.0],
             'BALTIC_SEA'        => [57.5, 19.0],
             'KATTEGAT'          => [56.5, 11.5],
             'NORTH_SEA'         => [54.0, 4.0],
             'ENGLISH_CHANNEL'   => [50.0, -1.0],
             'ATLANTIC_BISCAY'   => [44.0, -9.0],
             'GIBRALTAR'         => [35.9, -5.3],
-            'MEDITERRANEAN_WEST'=> [37.0, 5.0],
-            'MEDITERRANEAN_MID' => [35.5, 18.0],
-            'SUEZ_CANAL'        => [29.9, 32.5],
-            'RED_SEA_NORTH'     => [27.0, 34.5],
-            'RED_SEA_SOUTH'     => [15.0, 41.5],
+            'MED_WEST'          => [37.0, 5.0],
+            'MED_MID'           => [35.5, 18.0],
+            'MED_EAST'          => [34.0, 28.0],
+            'SUEZ'              => [29.9, 32.5],
+            'RED_SEA_N'         => [27.0, 34.5],
+            'RED_SEA_S'         => [15.0, 41.5],
             'BAB_EL_MANDEB'     => [12.5, 43.5],
             'GULF_OF_ADEN'      => [12.5, 47.0],
-            'ARABIAN_SEA'       => [12.0, 60.0],
+            'ARABIAN_SEA'       => [14.0, 62.0],
             'INDIAN_OCEAN_MID'  => [0.0, 75.0],
             'INDIAN_OCEAN_EAST' => [6.0, 88.0],
-            'MALACCA_NORTH'     => [5.5, 95.0],
+            'MALACCA_N'         => [5.5, 95.0],
             'MALACCA_STRAIT'    => [2.5, 101.5],
-            'SINGAPORE_STRAIT'  => [1.25, 103.8],
-            'SUNDA_STRAIT'      => [-5.9, 105.8],
+            'SINGAPORE'         => [1.25, 103.8],
             'JAVA_SEA'          => [-5.0, 110.0],
-            'SOUTH_CHINA_SOUTH' => [7.0, 108.0],
-            'SOUTH_CHINA_MID'   => [14.0, 114.0],
+            'SUNDA_STRAIT'      => [-5.9, 105.8],
+            'SOUTH_CHINA_S'     => [7.0, 108.0],
+            'SOUTH_CHINA_M'     => [14.0, 114.0],
             'TAIWAN_STRAIT'     => [23.5, 119.5],
             'EAST_CHINA_SEA'    => [29.0, 124.0],
-            'JAPAN_PACIFIC'     => [35.0, 142.0],
             'PHILIPPINE_SEA'    => [18.0, 128.0],
-            'PACIFIC_MID'       => [20.0, 175.0],
-            'US_WEST_COAST'     => [33.0, -120.0],
+            'JAPAN_PACIFIC'     => [35.0, 142.0],
+            'PACIFIC_HAWAII'    => [21.0, -157.0],
+            'US_WEST'           => [33.0, -120.0],
             'PANAMA_PACIFIC'    => [8.5, -79.5],
             'PANAMA_ATLANTIC'   => [9.5, -79.9],
             'CARIBBEAN'         => [15.0, -75.0],
             'ATLANTIC_US_EAST'  => [32.0, -75.0],
+            'ATLANTIC_SOUTH'    => [-20.0, -35.0],
             'CAPE_GOOD_HOPE'    => [-34.5, 19.0],
+            'AUSTRALIA_W'       => [-32.0, 115.0],
+            'AUSTRALIA_E'       => [-34.0, 152.0],
         ];
 
-        // Geographic Region Detections
-        $isBaltic1 = ($lat1 > 54 && $lng1 > 10 && $lng1 < 32);
-        $isBaltic2 = ($lat2 > 54 && $lng2 > 10 && $lng2 < 32);
+        // 2. Pure Water Edges (Undirected Graph)
+        $graph = [
+            'FINLAND_GULF'      => ['BALTIC_SEA'],
+            'BALTIC_SEA'        => ['FINLAND_GULF', 'KATTEGAT'],
+            'KATTEGAT'          => ['BALTIC_SEA', 'NORTH_SEA'],
+            'NORTH_SEA'         => ['KATTEGAT', 'ENGLISH_CHANNEL'],
+            'ENGLISH_CHANNEL'   => ['NORTH_SEA', 'ATLANTIC_BISCAY'],
+            'ATLANTIC_BISCAY'   => ['ENGLISH_CHANNEL', 'GIBRALTAR', 'ATLANTIC_US_EAST'],
+            'GIBRALTAR'         => ['ATLANTIC_BISCAY', 'MED_WEST'],
+            'MED_WEST'          => ['GIBRALTAR', 'MED_MID'],
+            'MED_MID'           => ['MED_WEST', 'MED_EAST'],
+            'MED_EAST'          => ['MED_MID', 'SUEZ'],
+            'SUEZ'              => ['MED_EAST', 'RED_SEA_N'],
+            'RED_SEA_N'         => ['SUEZ', 'RED_SEA_S'],
+            'RED_SEA_S'         => ['RED_SEA_N', 'BAB_EL_MANDEB'],
+            'BAB_EL_MANDEB'     => ['RED_SEA_S', 'GULF_OF_ADEN'],
+            'GULF_OF_ADEN'      => ['BAB_EL_MANDEB', 'ARABIAN_SEA', 'INDIAN_OCEAN_MID'],
+            'ARABIAN_SEA'       => ['GULF_OF_ADEN', 'INDIAN_OCEAN_MID', 'INDIAN_OCEAN_EAST'],
+            'INDIAN_OCEAN_MID'  => ['ARABIAN_SEA', 'GULF_OF_ADEN', 'INDIAN_OCEAN_EAST', 'CAPE_GOOD_HOPE'],
+            'INDIAN_OCEAN_EAST' => ['INDIAN_OCEAN_MID', 'ARABIAN_SEA', 'MALACCA_N', 'SUNDA_STRAIT', 'AUSTRALIA_W'],
+            'MALACCA_N'         => ['INDIAN_OCEAN_EAST', 'MALACCA_STRAIT'],
+            'MALACCA_STRAIT'    => ['MALACCA_N', 'SINGAPORE'],
+            'SINGAPORE'         => ['MALACCA_STRAIT', 'JAVA_SEA', 'SOUTH_CHINA_S'],
+            'SUNDA_STRAIT'      => ['INDIAN_OCEAN_EAST', 'JAVA_SEA'],
+            'JAVA_SEA'          => ['SINGAPORE', 'SUNDA_STRAIT', 'SOUTH_CHINA_S'],
+            'SOUTH_CHINA_S'     => ['SINGAPORE', 'JAVA_SEA', 'SOUTH_CHINA_M'],
+            'SOUTH_CHINA_M'     => ['SOUTH_CHINA_S', 'TAIWAN_STRAIT', 'PHILIPPINE_SEA'],
+            'TAIWAN_STRAIT'     => ['SOUTH_CHINA_M', 'EAST_CHINA_SEA'],
+            'EAST_CHINA_SEA'    => ['TAIWAN_STRAIT', 'JAPAN_PACIFIC', 'PHILIPPINE_SEA'],
+            'PHILIPPINE_SEA'    => ['EAST_CHINA_SEA', 'SOUTH_CHINA_M', 'JAPAN_PACIFIC', 'PACIFIC_HAWAII'],
+            'JAPAN_PACIFIC'     => ['EAST_CHINA_SEA', 'PHILIPPINE_SEA', 'PACIFIC_HAWAII'],
+            'PACIFIC_HAWAII'    => ['JAPAN_PACIFIC', 'PHILIPPINE_SEA', 'US_WEST', 'PANAMA_PACIFIC'],
+            'US_WEST'           => ['PACIFIC_HAWAII', 'PANAMA_PACIFIC'],
+            'PANAMA_PACIFIC'    => ['US_WEST', 'PACIFIC_HAWAII', 'PANAMA_ATLANTIC'],
+            'PANAMA_ATLANTIC'   => ['PANAMA_PACIFIC', 'CARIBBEAN'],
+            'CARIBBEAN'         => ['PANAMA_ATLANTIC', 'ATLANTIC_US_EAST', 'ATLANTIC_SOUTH'],
+            'ATLANTIC_US_EAST'  => ['CARIBBEAN', 'ATLANTIC_BISCAY', 'ATLANTIC_SOUTH'],
+            'ATLANTIC_SOUTH'    => ['ATLANTIC_US_EAST', 'CARIBBEAN', 'CAPE_GOOD_HOPE'],
+            'CAPE_GOOD_HOPE'    => ['ATLANTIC_SOUTH', 'INDIAN_OCEAN_MID'],
+            'AUSTRALIA_W'       => ['INDIAN_OCEAN_EAST', 'AUSTRALIA_E'],
+            'AUSTRALIA_E'       => ['AUSTRALIA_W', 'PHILIPPINE_SEA'],
+        ];
 
-        $isEuropeNW1 = ($lat1 > 40 && $lat1 <= 60 && $lng1 >= -10 && $lng1 <= 15);
-        $isEuropeNW2 = ($lat2 > 40 && $lat2 <= 60 && $lng2 >= -10 && $lng2 <= 15);
+        // 3. Find closest Sea Node to Origin Port
+        $startNodeKey = $this->findClosestSeaNode($lat1, $lng1, $nodes);
+        
+        // 4. Find closest Sea Node to Destination Port
+        $endNodeKey = $this->findClosestSeaNode($lat2, $lng2, $nodes);
 
-        $isSEA1 = ($lat1 >= -11 && $lat1 <= 20 && $lng1 >= 90 && $lng1 <= 140);
-        $isSEA2 = ($lat2 >= -11 && $lat2 <= 20 && $lng1 >= 90 && $lng1 <= 140);
+        // 5. Compute BFS Shortest Path between $startNodeKey and $endNodeKey
+        $pathNodeKeys = $this->bfsShortestPath($graph, $startNodeKey, $endNodeKey);
 
-        $isEastAsia1 = ($lat1 > 20 && $lat1 <= 50 && $lng1 >= 110 && $lng1 <= 145);
-        $isEastAsia2 = ($lat2 > 20 && $lat2 <= 50 && $lng1 >= 110 && $lng1 <= 145);
-
-        $isUSWest1 = ($lat1 >= 25 && $lat1 <= 55 && $lng1 >= -130 && $lng1 <= -115);
-        $isUSWest2 = ($lat2 >= 25 && $lat2 <= 55 && $lng2 >= -130 && $lng2 <= -115);
-
-        $intermediateNodes = [];
-
-        // ROUTE SCENARIO 1: Baltic / Northern Europe <-> Southeast Asia / East Asia
-        if ($isBaltic1 && ($isSEA2 || $isEastAsia2)) {
-            $intermediateNodes = [
-                $seaNodes['GULF_OF_FINLAND'],
-                $seaNodes['BALTIC_SEA'],
-                $seaNodes['KATTEGAT'],
-                $seaNodes['NORTH_SEA'],
-                $seaNodes['ENGLISH_CHANNEL'],
-                $seaNodes['ATLANTIC_BISCAY'],
-                $seaNodes['GIBRALTAR'],
-                $seaNodes['MEDITERRANEAN_WEST'],
-                $seaNodes['MEDITERRANEAN_MID'],
-                $seaNodes['SUEZ_CANAL'],
-                $seaNodes['RED_SEA_NORTH'],
-                $seaNodes['RED_SEA_SOUTH'],
-                $seaNodes['BAB_EL_MANDEB'],
-                $seaNodes['GULF_OF_ADEN'],
-                $seaNodes['ARABIAN_SEA'],
-                $seaNodes['INDIAN_OCEAN_EAST'],
-                $seaNodes['MALACCA_NORTH'],
-                $seaNodes['MALACCA_STRAIT'],
-                $seaNodes['SINGAPORE_STRAIT'],
-                $seaNodes['JAVA_SEA']
-            ];
-            if ($isEastAsia2) {
-                $intermediateNodes[] = $seaNodes['SOUTH_CHINA_MID'];
-                $intermediateNodes[] = $seaNodes['TAIWAN_STRAIT'];
-            }
-        }
-        elseif ($isBaltic2 && ($isSEA1 || $isEastAsia1)) {
-            $nodes = [
-                $seaNodes['GULF_OF_FINLAND'],
-                $seaNodes['BALTIC_SEA'],
-                $seaNodes['KATTEGAT'],
-                $seaNodes['NORTH_SEA'],
-                $seaNodes['ENGLISH_CHANNEL'],
-                $seaNodes['ATLANTIC_BISCAY'],
-                $seaNodes['GIBRALTAR'],
-                $seaNodes['MEDITERRANEAN_WEST'],
-                $seaNodes['MEDITERRANEAN_MID'],
-                $seaNodes['SUEZ_CANAL'],
-                $seaNodes['RED_SEA_NORTH'],
-                $seaNodes['RED_SEA_SOUTH'],
-                $seaNodes['BAB_EL_MANDEB'],
-                $seaNodes['GULF_OF_ADEN'],
-                $seaNodes['ARABIAN_SEA'],
-                $seaNodes['INDIAN_OCEAN_EAST'],
-                $seaNodes['MALACCA_NORTH'],
-                $seaNodes['MALACCA_STRAIT'],
-                $seaNodes['SINGAPORE_STRAIT'],
-                $seaNodes['JAVA_SEA']
-            ];
-            if ($isEastAsia1) {
-                array_unshift($nodes, $seaNodes['TAIWAN_STRAIT'], $seaNodes['SOUTH_CHINA_MID']);
-            }
-            $intermediateNodes = array_reverse($nodes);
-        }
-        // ROUTE SCENARIO 2: Western Europe <-> Southeast Asia / East Asia
-        elseif ($isEuropeNW1 && ($isSEA2 || $isEastAsia2)) {
-            $intermediateNodes = [
-                $seaNodes['NORTH_SEA'],
-                $seaNodes['ENGLISH_CHANNEL'],
-                $seaNodes['ATLANTIC_BISCAY'],
-                $seaNodes['GIBRALTAR'],
-                $seaNodes['MEDITERRANEAN_WEST'],
-                $seaNodes['MEDITERRANEAN_MID'],
-                $seaNodes['SUEZ_CANAL'],
-                $seaNodes['RED_SEA_NORTH'],
-                $seaNodes['RED_SEA_SOUTH'],
-                $seaNodes['BAB_EL_MANDEB'],
-                $seaNodes['ARABIAN_SEA'],
-                $seaNodes['INDIAN_OCEAN_EAST'],
-                $seaNodes['MALACCA_NORTH'],
-                $seaNodes['MALACCA_STRAIT'],
-                $seaNodes['SINGAPORE_STRAIT'],
-                $seaNodes['JAVA_SEA']
-            ];
-            if ($isEastAsia2) {
-                $intermediateNodes[] = $seaNodes['SOUTH_CHINA_MID'];
-                $intermediateNodes[] = $seaNodes['TAIWAN_STRAIT'];
-            }
-        }
-        elseif ($isEuropeNW2 && ($isSEA1 || $isEastAsia1)) {
-            $nodes = [
-                $seaNodes['NORTH_SEA'],
-                $seaNodes['ENGLISH_CHANNEL'],
-                $seaNodes['ATLANTIC_BISCAY'],
-                $seaNodes['GIBRALTAR'],
-                $seaNodes['MEDITERRANEAN_WEST'],
-                $seaNodes['MEDITERRANEAN_MID'],
-                $seaNodes['SUEZ_CANAL'],
-                $seaNodes['RED_SEA_NORTH'],
-                $seaNodes['RED_SEA_SOUTH'],
-                $seaNodes['BAB_EL_MANDEB'],
-                $seaNodes['ARABIAN_SEA'],
-                $seaNodes['INDIAN_OCEAN_EAST'],
-                $seaNodes['MALACCA_NORTH'],
-                $seaNodes['MALACCA_STRAIT'],
-                $seaNodes['SINGAPORE_STRAIT'],
-                $seaNodes['JAVA_SEA']
-            ];
-            if ($isEastAsia1) {
-                array_unshift($nodes, $seaNodes['TAIWAN_STRAIT'], $seaNodes['SOUTH_CHINA_MID']);
-            }
-            $intermediateNodes = array_reverse($nodes);
-        }
-        // ROUTE SCENARIO 3: East Asia (China/Japan/Korea) <-> Southeast Asia (Indonesia/Singapore)
-        elseif (($isEastAsia1 && $isSEA2) || ($isSEA1 && $isEastAsia2)) {
-            $nodes = [
-                $seaNodes['EAST_CHINA_SEA'],
-                $seaNodes['TAIWAN_STRAIT'],
-                $seaNodes['SOUTH_CHINA_MID'],
-                $seaNodes['SOUTH_CHINA_SOUTH'],
-                $seaNodes['SINGAPORE_STRAIT'],
-                $seaNodes['JAVA_SEA']
-            ];
-            if ($isSEA1 && $isEastAsia2) {
-                $nodes = array_reverse($nodes);
-            }
-            $intermediateNodes = $nodes;
-        }
-        // ROUTE SCENARIO 4: US West Coast <-> East Asia / Southeast Asia
-        elseif ($isUSWest1 && ($isSEA2 || $isEastAsia2)) {
-            $intermediateNodes = [
-                $seaNodes['US_WEST_COAST'],
-                $seaNodes['PACIFIC_MID'],
-                $seaNodes['JAPAN_PACIFIC'],
-                $seaNodes['PHILIPPINE_SEA']
-            ];
-            if ($isSEA2) {
-                $intermediateNodes[] = $seaNodes['SOUTH_CHINA_MID'];
-                $intermediateNodes[] = $seaNodes['SINGAPORE_STRAIT'];
-                $intermediateNodes[] = $seaNodes['JAVA_SEA'];
-            }
-        }
-        elseif ($isUSWest2 && ($isSEA1 || $isEastAsia1)) {
-            $nodes = [
-                $seaNodes['US_WEST_COAST'],
-                $seaNodes['PACIFIC_MID'],
-                $seaNodes['JAPAN_PACIFIC'],
-                $seaNodes['PHILIPPINE_SEA']
-            ];
-            if ($isSEA1) {
-                array_push($nodes, $seaNodes['SOUTH_CHINA_MID'], $seaNodes['SINGAPORE_STRAIT'], $seaNodes['JAVA_SEA']);
-            }
-            $intermediateNodes = array_reverse($nodes);
-        }
-        // DEFAULT OCEAN ROUTE (Calculates water arc)
-        else {
-            $midLat = ($lat1 + $lat2) / 2;
-            $midLng = ($lng1 + $lng2) / 2;
-            
-            $dLat = $lat2 - $lat1;
-            $dLng = $lng2 - $lng1;
-            $curvatureFactor = 0.20;
-
-            $offsetLat = -$dLng * $curvatureFactor;
-            $offsetLng = $dLat * $curvatureFactor;
-
-            $intermediateNodes[] = [$midLat + $offsetLat, $midLng + $offsetLng];
-        }
-
-        // Construct full chain of waypoints: [lat1, lng1] -> nodes... -> [lat2, lng2]
+        // 6. Build chain of coordinates: [lat1, lng1] -> Node_1 -> Node_2 ... -> Node_N -> [lat2, lng2]
         $chain = [];
         $chain[] = [$lat1, $lng1];
-        foreach ($intermediateNodes as $node) {
-            $chain[] = $node;
+        foreach ($pathNodeKeys as $nodeKey) {
+            if (isset($nodes[$nodeKey])) {
+                $chain[] = $nodes[$nodeKey];
+            }
         }
         $chain[] = [$lat2, $lng2];
 
-        // Interpolate along chain segments to produce smooth water path
+        // 7. Interpolate smoothly along all segments
         $finalWaypoints = [];
         $chainCount = count($chain);
 
@@ -490,9 +369,9 @@ class ShippingSimulationController extends Controller
             $pA = $chain[$k];
             $pB = $chain[$k + 1];
 
-            $segmentSteps = 6;
+            $segmentSteps = 8;
             for ($s = 0; $s < $segmentSteps; $s++) {
-                if ($k > 0 && $s === 0) continue;
+                if ($k > 0 && $s === 0) continue; // avoid duplicate points at junctions
                 $t = $s / $segmentSteps;
                 $lat = $pA[0] + ($pB[0] - $pA[0]) * $t;
                 $lng = $pA[1] + ($pB[1] - $pA[1]) * $t;
@@ -500,7 +379,7 @@ class ShippingSimulationController extends Controller
             }
         }
 
-        // Force exact start and end coordinates
+        // Force exact start and destination points
         $finalWaypoints[0] = [round($lat1, 5), round($lng1, 5)];
         $finalWaypoints[count($finalWaypoints) - 1] = [round($lat2, 5), round($lng2, 5)];
 
@@ -508,9 +387,63 @@ class ShippingSimulationController extends Controller
     }
 
     /**
+     * Find closest Sea Node in graph to given lat/lng.
+     */
+    private function findClosestSeaNode(float $lat, float $lng, array $nodes): string
+    {
+        $minDist = 999999.0;
+        $closestKey = (string) array_key_first($nodes);
+
+        foreach ($nodes as $key => $coord) {
+            $dist = $this->haversineGreatCircleDistance($lat, $lng, $coord[0], $coord[1]);
+            if ($dist < $minDist) {
+                $minDist = $dist;
+                $closestKey = (string) $key;
+            }
+        }
+
+        return $closestKey;
+    }
+
+    /**
+     * BFS Shortest Path algorithm on Sea Node Graph.
+     */
+    private function bfsShortestPath(array $graph, string $start, string $target): array
+    {
+        if ($start === $target) {
+            return [$start];
+        }
+
+        $visited = [$start => true];
+        $queue = [[$start]];
+
+        while (!empty($queue)) {
+            $path = array_shift($queue);
+            $node = end($path);
+
+            if ($node === $target) {
+                return $path;
+            }
+
+            if (isset($graph[$node])) {
+                foreach ($graph[$node] as $neighbor) {
+                    if (!isset($visited[$neighbor])) {
+                        $visited[$neighbor] = true;
+                        $newPath = $path;
+                        $newPath[] = $neighbor;
+                        $queue[] = $newPath;
+                    }
+                }
+            }
+        }
+
+        return [$start, $target];
+    }
+
+    /**
      * Calculate total nautical miles along waypoints using Haversine formula.
      */
-    private function calculateTotalDistance(array $waypoints): array|float
+    private function calculateTotalDistance(array $waypoints): float
     {
         $totalKm = 0;
         $count = count($waypoints);

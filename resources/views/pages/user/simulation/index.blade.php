@@ -507,12 +507,13 @@
 
             waypoints = data.route.waypoints;
 
-            // Draw Route Polyline
+            // Draw Route Polyline with bright cyan sea path
             routePolyline = L.polyline(waypoints, {
-                color: '#2563EB',
-                weight: 4,
-                dashArray: '8, 12',
-                opacity: 0.85
+                color: '#0284C7',
+                weight: 5,
+                dashArray: '10, 10',
+                opacity: 0.9,
+                lineJoin: 'round'
             }).addTo(map);
 
             // Origin Marker
