@@ -162,7 +162,7 @@ class ShippingSimulationController extends Controller
                         'location' => $destPortName . ', ' . $destCountry->name,
                         'status' => 'Pending',
                         'progress_pct' => 100,
-                        'description' => 'Paket berhasil dibongkar dan diserahkan kepada pihak penerima di pelabuhan tujuan.'
+                        'description' => 'Paket berhasil dibongkar dan diserahkan kepada pihak penerima di ' . $destPortName . ' (' . $destCountry->name . ').'
                     ]
                 ]
             ]
@@ -206,13 +206,43 @@ class ShippingSimulationController extends Controller
             'CA' => ['name' => 'Port of Vancouver', 'code' => 'CAVAN', 'lat' => 49.28, 'lng' => -123.11],
             'MX' => ['name' => 'Port of Manzanillo', 'code' => 'MXZLO', 'lat' => 19.05, 'lng' => -104.32],
             'NZ' => ['name' => 'Port of Auckland', 'code' => 'NZAKL', 'lat' => -36.84, 'lng' => 174.77],
+            'SE' => ['name' => 'Port of Gothenburg', 'code' => 'SEGOT', 'lat' => 57.70, 'lng' => 11.97],
+            'NO' => ['name' => 'Port of Oslo', 'code' => 'NOOSL', 'lat' => 59.90, 'lng' => 10.74],
+            'FI' => ['name' => 'Port of Helsinki', 'code' => 'FIHEL', 'lat' => 60.15, 'lng' => 24.96],
+            'DK' => ['name' => 'Port of Aarhus', 'code' => 'DKAAR', 'lat' => 56.15, 'lng' => 10.22],
+            'AR' => ['name' => 'Port of Buenos Aires', 'code' => 'ARBUE', 'lat' => -34.60, 'lng' => -58.37],
+            'CL' => ['name' => 'Port of Valparaiso', 'code' => 'CLVAP', 'lat' => -33.04, 'lng' => -71.62],
+            'PE' => ['name' => 'Port of Callao (Lima)', 'code' => 'PECALL', 'lat' => -12.05, 'lng' => -77.15],
+            'CO' => ['name' => 'Port of Cartagena', 'code' => 'COCTG', 'lat' => 10.40, 'lng' => -75.54],
+            'PK' => ['name' => 'Port of Karachi', 'code' => 'PKKHI', 'lat' => 24.84, 'lng' => 66.98],
+            'BD' => ['name' => 'Port of Chittagong', 'code' => 'BDCGP', 'lat' => 22.32, 'lng' => 91.81],
+            'LK' => ['name' => 'Port of Colombo', 'code' => 'LKCMB', 'lat' => 6.94, 'lng' => 79.84],
+            'IR' => ['name' => 'Port of Bandar Abbas', 'code' => 'IRBND', 'lat' => 27.18, 'lng' => 56.27],
+            'QA' => ['name' => 'Hamad Port (Doha)', 'code' => 'QAHMD', 'lat' => 25.02, 'lng' => 51.61],
+            'KW' => ['name' => 'Shuwaikh Port (Kuwait)', 'code' => 'KWSWK', 'lat' => 29.35, 'lng' => 47.93],
+            'OM' => ['name' => 'Port Sultan Qaboos (Muscat)', 'code' => 'OMMCT', 'lat' => 23.62, 'lng' => 58.56],
+            'NG' => ['name' => 'Lagos Port Complex', 'code' => 'NGLOS', 'lat' => 6.45, 'lng' => 3.36],
+            'KE' => ['name' => 'Mombasa Port', 'code' => 'KEMBA', 'lat' => -4.06, 'lng' => 39.66],
+            'MA' => ['name' => 'Tanger Med Port', 'code' => 'MAPTM', 'lat' => 35.89, 'lng' => -5.50],
+            'DZ' => ['name' => 'Port of Algiers', 'code' => 'DZALG', 'lat' => 36.77, 'lng' => 3.06],
+            'TN' => ['name' => 'Port of Rades (Tunis)', 'code' => 'TNRAD', 'lat' => 36.80, 'lng' => 10.28],
+            'GR' => ['name' => 'Piraeus Port (Athens)', 'code' => 'GRPIR', 'lat' => 37.94, 'lng' => 23.63],
+            'PT' => ['name' => 'Port of Sines', 'code' => 'PTSIN', 'lat' => 37.95, 'lng' => -8.87],
+            'BE' => ['name' => 'Port of Antwerp', 'code' => 'BEANR', 'lat' => 51.24, 'lng' => 4.40],
+            'IE' => ['name' => 'Dublin Port', 'code' => 'IEDUB', 'lat' => 53.34, 'lng' => -6.21],
+            'PL' => ['name' => 'Port of Gdansk', 'code' => 'PLGDN', 'lat' => 54.38, 'lng' => 18.67],
+            'UA' => ['name' => 'Odesa Sea Port', 'code' => 'UAODS', 'lat' => 46.49, 'lng' => 30.74],
+            'TW' => ['name' => 'Port of Kaohsiung', 'code' => 'TWKHH', 'lat' => 22.61, 'lng' => 120.28],
+            'HK' => ['name' => 'Hong Kong Port', 'code' => 'HKHKG', 'lat' => 22.30, 'lng' => 114.16],
+            'KH' => ['name' => 'Sihanoukville Autonomous Port', 'code' => 'KHKOS', 'lat' => 10.64, 'lng' => 103.52],
+            'MM' => ['name' => 'Yangon Port', 'code' => 'MMRGN', 'lat' => 16.77, 'lng' => 96.16],
         ];
 
         if (isset($coastalDictionary[$codeUpper])) {
             return $coastalDictionary[$codeUpper];
         }
 
-        // 2. Search valid port from country's ports relationship in DB
+        // 2. Search valid port from country's ports relationship in DB for THAT specific country
         $dbPort = $country->ports()->whereNotNull('latitude')->whereNotNull('longitude')->first();
         if ($dbPort && abs((float) $dbPort->latitude) > 0.01 && abs((float) $dbPort->longitude) > 0.01) {
             return [
@@ -223,18 +253,7 @@ class ShippingSimulationController extends Controller
             ];
         }
 
-        // 3. Fallback: Search nearest port in the entire `ports` table
-        $nearestDbPort = Port::whereNotNull('latitude')->whereNotNull('longitude')->first();
-        if ($nearestDbPort) {
-            return [
-                'name' => 'Pelabuhan ' . $country->name . ' (' . $nearestDbPort->name . ')',
-                'code' => $nearestDbPort->code,
-                'lat'  => (float) $nearestDbPort->latitude,
-                'lng'  => (float) $nearestDbPort->longitude,
-            ];
-        }
-
-        // Default coastal sea coordinates fallback
+        // 3. Fallback: Use THIS country's own name and coordinates
         return [
             'name' => 'Pelabuhan Utama ' . $country->name,
             'code' => strtoupper(substr($codeUpper, 0, 2)) . 'PRT',
