@@ -104,4 +104,12 @@ Route::prefix('dashboard')
          */
         Route::get('/ports', [UserController::class, 'ports'])->name('ports');
 
+        /*
+         |--------------------------------------------------------------
+         | Shipping Simulation Module
+         | URL: /dashboard/simulation
+         |--------------------------------------------------------------
+         */
+        Route::get('/simulation', [UserController::class, 'simulation'])->name('simulation');
+
     });

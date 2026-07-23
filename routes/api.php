@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\WatchlistController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\SettingController;
+use App\Http\Controllers\Api\ShippingSimulationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -76,6 +77,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/ports/search', [PortController::class, 'search']);
         Route::get('/ports', [PortController::class, 'index']);
         Route::get('/ports/{id}', [PortController::class, 'show']);
+
+        // SHIPPING SIMULATION MODULE
+        Route::get('/shipping/route', [ShippingSimulationController::class, 'calculateRoute']);
 
         // RISK MODULE
         Route::get('/risk/history', [RiskHistoryController::class, 'index']);

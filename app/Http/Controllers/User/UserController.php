@@ -201,4 +201,14 @@ class UserController extends Controller
             'byContinent', 'portJsonData'
         ));
     }
+
+    /**
+     * Package Shipping & Port Routing Simulation Module.
+     * Route: GET /dashboard/simulation
+     */
+    public function simulation(): View
+    {
+        $countries = Country::with(['ports', 'riskScore'])->orderBy('name')->get();
+        return view('pages.user.simulation.index', compact('countries'));
+    }
 }

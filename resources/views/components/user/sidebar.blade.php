@@ -23,6 +23,9 @@
         <a href="{{ route('user.ports') }}" class="menu-item {{ Request::is('dashboard/ports*') || Request::is('ports*') ? 'active' : '' }}" aria-label="Lihat Data Pelabuhan">
             <i class="bi bi-anchor"></i> Pelabuhan
         </a>
+        <a href="{{ route('user.simulation') }}" class="menu-item {{ Request::is('dashboard/simulation*') || Request::is('simulation*') ? 'active' : '' }}" aria-label="Simulasi Pengiriman Paket">
+            <i class="bi bi-box-seam-fill"></i> Simulasi Pengiriman
+        </a>
         <a href="{{ route('user.weather') }}" class="menu-item {{ Request::is('dashboard/weather*') ? 'active' : '' }}" aria-label="Lihat Informasi Cuaca">
             <i class="bi bi-cloud-sun-fill"></i> Weather
         </a>

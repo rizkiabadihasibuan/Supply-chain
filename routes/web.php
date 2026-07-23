@@ -114,6 +114,7 @@ Route::middleware(['auth', 'user'])->group(function () {
     Route::get('/risk',       [\App\Http\Controllers\User\UserController::class, 'risk'])->name('risk');
     Route::get('/comparison', [\App\Http\Controllers\User\UserController::class, 'comparison'])->name('comparison');
     Route::get('/watchlist',  [\App\Http\Controllers\User\UserController::class, 'favorite'])->name('watchlist');
+    Route::get('/simulation', [\App\Http\Controllers\User\UserController::class, 'simulation'])->name('simulation');
 });
 
 /*
