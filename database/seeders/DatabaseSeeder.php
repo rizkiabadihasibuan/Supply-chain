@@ -216,5 +216,10 @@ class DatabaseSeeder extends Seeder
                 $n
             );
         }
+
+        $this->call([
+            All250CountriesSeeder::class,
+            WorldPortIndexSeeder::class,
+        ]);
     }
 }
