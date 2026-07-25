@@ -1,163 +1,72 @@
 <div class="container-fluid p-0 fade-in-up">
 
-    {{-- ── HERO BANNER HEADER ── --}}
+    {{-- ── HEADER ── --}}
     <div class="row g-4 mb-4">
         <div class="col-12">
-            <div class="hero-banner p-4 p-lg-5">
-                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4 position-relative" style="z-index:2;">
-                    <div>
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <span class="glass-pill"><i class="bi bi-broadcast me-1 text-info"></i>LIVE CONTROL TOWER</span>
-                            <span class="glass-pill opacity-75"><i class="bi bi-clock-history me-1"></i>Real-time Feed</span>
-                        </div>
-                        <h2 class="fw-bold text-white mb-2" style="letter-spacing:-0.5px;">Dashboard Global Supply Chain</h2>
-                        <p class="text-white-50 mb-0" style="max-width:650px;font-size:0.95rem;">
-                            Pantau kondisi rantai pasok dunia secara real-time, lalu lintas pelabuhan utama, dan skor indeks risiko geopolitik internasional.
-                        </p>
-                    </div>
-                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                        <button class="btn btn-light btn-refresh-all fw-semibold px-3 py-2 shadow-sm rounded-3" onclick="refreshDashboardData()" style="font-size:0.88rem;color:#1e3a8a;">
-                            <i class="bi bi-arrow-clockwise me-1"></i>Segarkan Dasbor
-                        </button>
-                        <div class="dropdown">
-                            <select class="form-select border-0 shadow-sm rounded-3 text-dark fw-semibold" id="country-intelligence-selector" onchange="onCountrySelect(this.value)" style="min-height:40px;font-size:0.88rem;background:#ffffff;">
-                                <option value="">🔍 Pilih Intelijen Negara...</option>
-                            </select>
-                        </div>
-                    </div>
+            <div class="card p-4 border-0 shadow-sm">
+                <div>
+                    <h3 class="fw-bold text-dark mb-1">Dashboard Global Supply Chain</h3>
+                    <p class="text-secondary small mb-0">Pantau kondisi rantai pasok dunia secara real-time.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- ── KPI SUMMARY CARDS ── --}}
+
     <div class="row g-4 mb-4">
         <div class="col-xl-3 col-md-6">
-            <div class="kpi-card p-4 h-100 d-flex flex-row align-items-center justify-content-between">
+            <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between shadow-sm">
                 <div>
                     <span class="text-secondary small fw-medium d-block mb-1">Negara Dipantau</span>
                     <div class="kpi-value text-dark mb-1" id="kpi-countries">
                         {{ number_format($countriesCount ?? 250) }}
                     </div>
-                    <span class="badge bg-success-subtle text-success small fw-semibold px-2 py-1 rounded-pill">
-                        <i class="bi bi-arrow-up-right me-1"></i>100% Cakupan Global
-                    </span>
+                    <span class="text-success small fw-semibold"><i class="bi bi-arrow-up-right me-1"></i>100% Cakupan Global</span>
                 </div>
-                <div class="kpi-icon-wrapper" style="background:linear-gradient(135deg, rgba(37,99,235,0.15), rgba(59,130,246,0.05));color:var(--primary);">
-                    <i class="bi bi-globe2"></i>
+                <div class="p-3 rounded-4" style="background:rgba(37,99,235,.08);color:var(--primary);">
+                    <i class="bi bi-globe2 fs-3"></i>
                 </div>
             </div>
         </div>
         <div class="col-xl-3 col-md-6">
-            <div class="kpi-card p-4 h-100 d-flex flex-row align-items-center justify-content-between">
+            <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between shadow-sm">
                 <div>
                     <span class="text-secondary small fw-medium d-block mb-1">Pelabuhan Aktif</span>
                     <div class="kpi-value text-dark mb-1" id="kpi-ports">
                         {{ number_format($portsCount ?? 105) }}
                     </div>
-                    <span class="badge bg-info-subtle text-info small fw-semibold px-2 py-1 rounded-pill">
-                        <i class="bi bi-anchor me-1"></i>Terdaftar WPI
-                    </span>
+                    <span class="text-success small fw-semibold"><i class="bi bi-anchor me-1"></i>Terdaftar WPI</span>
                 </div>
-                <div class="kpi-icon-wrapper" style="background:linear-gradient(135deg, rgba(6,182,212,0.15), rgba(14,165,233,0.05));color:var(--info);">
-                    <i class="bi bi-anchor"></i>
+                <div class="p-3 rounded-4" style="background:rgba(6,182,212,.08);color:var(--info);">
+                    <i class="bi bi-anchor fs-3"></i>
                 </div>
             </div>
         </div>
         <div class="col-xl-3 col-md-6">
-            <div class="kpi-card p-4 h-100 d-flex flex-row align-items-center justify-content-between">
+            <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between shadow-sm">
                 <div>
                     <span class="text-secondary small fw-medium d-block mb-1">Berita Logistik</span>
                     <div class="kpi-value text-dark mb-1" id="kpi-news">
                         {{ number_format($articlesCount ?? 50) }}
                     </div>
-                    <span class="badge bg-warning-subtle text-warning small fw-semibold px-2 py-1 rounded-pill">
-                        <i class="bi bi-newspaper me-1"></i>Intelijen Rantai Pasok
-                    </span>
+                    <span class="text-primary small fw-semibold"><i class="bi bi-newspaper me-1"></i>Intelijen Rantai Pasok</span>
                 </div>
-                <div class="kpi-icon-wrapper" style="background:linear-gradient(135deg, rgba(245,158,11,0.15), rgba(251,191,36,0.05));color:var(--warning);">
-                    <i class="bi bi-newspaper"></i>
+                <div class="p-3 rounded-4" style="background:rgba(245,158,11,.08);color:var(--warning);">
+                    <i class="bi bi-newspaper fs-3"></i>
                 </div>
             </div>
         </div>
         <div class="col-xl-3 col-md-6">
-            <div class="kpi-card p-4 h-100 d-flex flex-row align-items-center justify-content-between">
+            <div class="card p-4 h-100 border-0 d-flex flex-row align-items-center justify-content-between shadow-sm">
                 <div>
                     <span class="text-secondary small fw-medium d-block mb-1">Skor Risiko Global</span>
                     <div class="kpi-value text-success mb-1" id="kpi-risk">
                         {{ number_format($avgRiskScore ?? 42, 1) }}
                     </div>
-                    <span class="badge bg-success-subtle text-success small fw-semibold px-2 py-1 rounded-pill">
-                        <i class="bi bi-shield-check me-1"></i>Rata-rata Terhitung
-                    </span>
+                    <span class="text-success small fw-semibold"><i class="bi bi-shield-check me-1"></i>Rata-rata Terhitung</span>
                 </div>
-                <div class="kpi-icon-wrapper" style="background:linear-gradient(135deg, rgba(34,197,94,0.15), rgba(74,222,128,0.05));color:var(--success);">
-                    <i class="bi bi-shield-exclamation"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- ── SELECTED COUNTRY INTELLIGENCE BANNER ── --}}
-    <div id="selected-country-banner" class="row g-4 mb-4" style="display:none;">
-        <div class="col-12">
-            <div class="card p-4 border-0 shadow-sm" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-left: 4px solid var(--primary) !important;">
-                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3 pb-3 border-bottom">
-                    <div class="d-flex align-items-center gap-3">
-                        <img id="sc-flag" src="" alt="Flag" class="rounded-2 shadow-sm border" style="width:48px;height:32px;object-fit:cover;">
-                        <div>
-                            <div class="d-flex align-items-center gap-2">
-                                <h4 id="sc-name" class="fw-bold text-dark mb-0">–</h4>
-                                <span id="sc-code" class="badge bg-secondary-subtle text-secondary fw-semibold"></span>
-                                <span id="sc-risk-badge" class="badge bg-success">Low</span>
-                            </div>
-                            <span class="text-secondary small">Panel Intelijen Terintegrasi Negara</span>
-                        </div>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <a id="sc-report-btn" href="#" target="_blank" class="btn btn-outline-primary btn-sm rounded-3 px-3">
-                            <i class="bi bi-file-earmark-pdf me-1"></i>Unduh Laporan PDF
-                        </a>
-                        <button class="btn btn-light btn-sm text-secondary border rounded-3 px-3" onclick="clearSelectedCountry()">
-                            <i class="bi bi-x-lg me-1"></i>Tutup
-                        </button>
-                    </div>
-                </div>
-
-                <div class="row g-3">
-                    <div class="col-md-3 col-6">
-                        <div class="p-3 bg-white rounded-3 border">
-                            <span class="text-secondary small d-block mb-1"><i class="bi bi-currency-dollar me-1 text-primary"></i>PDB Nominal</span>
-                            <span id="sc-gdp" class="fw-bold text-dark d-block fs-6">–</span>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6">
-                        <div class="p-3 bg-white rounded-3 border">
-                            <span class="text-secondary small d-block mb-1"><i class="bi bi-graph-up me-1 text-warning"></i>Tingkat Inflasi</span>
-                            <span id="sc-inflation" class="fw-bold text-dark d-block fs-6">–</span>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6">
-                        <div class="p-3 bg-white rounded-3 border">
-                            <span class="text-secondary small d-block mb-1"><i class="bi bi-people me-1 text-info"></i>Total Populasi</span>
-                            <span id="sc-population" class="fw-bold text-dark d-block fs-6">–</span>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6">
-                        <div class="p-3 bg-white rounded-3 border">
-                            <span class="text-secondary small d-block mb-1"><i class="bi bi-cloud-sun me-1 text-success"></i>Cuaca Wilayah</span>
-                            <span id="sc-weather-temp" class="fw-bold text-dark d-block fs-6">–</span>
-                            <span id="sc-weather-detail" class="text-secondary d-block" style="font-size:0.7rem;">–</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-3 pt-2 d-flex justify-content-between align-items-center small text-secondary">
-                    <div>
-                        <i class="bi bi-cash-coin me-1 text-primary"></i>Mata Uang: <b id="sc-currency" class="text-dark">USD</b>
-                        <span class="mx-2">•</span>
-                        <span id="sc-exchange-rate">Kurs Acuan Logistik</span>
-                    </div>
+                <div class="p-3 rounded-4" style="background:rgba(34,197,94,.08);color:var(--success);">
+                    <i class="bi bi-shield-exclamation fs-3"></i>
                 </div>
             </div>
         </div>
