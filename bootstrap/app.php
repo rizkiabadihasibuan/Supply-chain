@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trustProxies(at: '*');
+
         // Tambahkan StartSession & EncryptCookies ke API middleware group
         // supaya session-based auth bisa dipakai dari AJAX di browser
         $middleware->api(prepend: [
